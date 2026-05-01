@@ -1,0 +1,235 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <!--
+  ╔══════════════════════════════════════════════════════════╗
+  ║  0xRoot — WRITEUP TEMPLATE                              ║
+  ║  Copy this file and rename it to your machine name.     ║
+  ║  Edit every line marked with ← EDIT                    ║
+  ╚══════════════════════════════════════════════════════════╝
+  -->
+  <script src="../assets/components.js"></script>
+  <style>
+    .wr-hero { margin-bottom:36px; }
+    .wr-title { font-family:var(--mono); font-size:36px; font-weight:700; color:var(--text); margin-bottom:10px; }
+    .wr-title em { color:var(--green); font-style:normal; }
+    .wr-meta  { display:flex; gap:7px; flex-wrap:wrap; margin-bottom:18px; }
+    .wr-summary { font-size:15px; color:var(--muted); line-height:1.8; max-width:700px; border-left:2px solid var(--green); padding-left:16px; }
+    .flags { display:flex; gap:12px; margin:22px 0; flex-wrap:wrap; }
+    .flag-box { background:var(--bg3); border:1px solid var(--border); border-radius:8px; padding:14px 18px; flex:1; min-width:200px; }
+    .flag-lbl { font-family:var(--mono); font-size:10px; color:var(--muted); text-transform:uppercase; letter-spacing:.1em; margin-bottom:6px; }
+    .flag-val { font-family:var(--mono); font-size:13px; color:var(--green); word-break:break-all; }
+    .wr-section { margin-bottom:44px; scroll-margin-top:70px; }
+    .wr-sec-hdr { display:flex; align-items:center; gap:12px; margin-bottom:20px; padding-bottom:10px; border-bottom:1px solid var(--border); }
+    .step-num { font-family:var(--mono); font-size:11px; color:var(--green); background:var(--gglow); border:1px solid rgba(57,211,83,.25); padding:2px 10px; border-radius:4px; }
+    .step-title { font-family:var(--mono); font-size:18px; font-weight:500; color:var(--text); }
+    .prose { font-size:15px; line-height:1.85; color:#a0aab4; margin-bottom:14px; }
+    .prose strong { color:var(--text); font-weight:500; }
+    .prose code { font-family:var(--mono); font-size:12px; background:var(--surface2); color:var(--orange); padding:2px 6px; border-radius:3px; }
+    .toc-extra { padding:14px 10px 10px; border-top:1px solid var(--border); }
+    .toc-lbl { font-family:var(--mono); font-size:10px; color:var(--muted); letter-spacing:.12em; text-transform:uppercase; padding:0 8px; margin-bottom:6px; }
+    .toc-item { display:flex; align-items:center; gap:8px; padding:6px 10px; border-radius:5px; font-family:var(--mono); font-size:11px; color:var(--muted); text-decoration:none; transition:all .15s; border:1px solid transparent; }
+    .toc-item:hover { background:var(--surface); color:var(--text); }
+    .toc-item.active { color:var(--green); background:var(--gglow); border-color:rgba(57,211,83,.2); }
+    .toc-num { color:var(--gdim); font-size:10px; width:14px; flex-shrink:0; }
+    .mc-info { margin:10px; background:var(--bg3); border:1px solid var(--border); border-radius:8px; overflow:hidden; }
+    .mc-info-row { display:flex; justify-content:space-between; font-family:var(--mono); font-size:11px; padding:7px 14px; border-bottom:1px solid var(--border); }
+    .mc-info-row:last-child { border-bottom:none; }
+    .mc-info-k { color:var(--muted); } .mc-info-v { color:var(--text); }
+  </style>
+</head>
+<body>
+<div class="page-content">
+
+  <!-- ── HERO ── -->
+  <div class="wr-hero">
+    <div class="wr-title">MachineName<em>.</em></div>  <!-- ← EDIT machine name -->
+    <div class="wr-meta">
+      <!-- ← EDIT: keep only relevant tags -->
+      <span class="tag tag-green">Easy</span>      <!-- Easy / Medium / Hard / Insane -->
+      <span class="tag tag-orange">Windows</span>  <!-- Linux / Windows / AD -->
+      <span class="tag tag-blue">Web</span>
+      <span class="tag tag-muted">HTB</span>
+    </div>
+    <div class="wr-summary">
+      ← EDIT: One or two sentences describing the machine and its main attack vector.
+    </div>
+  </div>
+
+  <!-- ── FLAGS ── -->
+  <div class="flags">
+    <div class="flag-box">
+      <div class="flag-lbl">User Flag</div>
+      <div class="flag-val">← paste flag here</div>
+    </div>
+    <div class="flag-box">
+      <div class="flag-lbl">Root Flag</div>
+      <div class="flag-val">← paste flag here</div>
+    </div>
+  </div>
+
+  <!-- ══════════════════════════════════
+       STEP 01 — RECON
+  ═══════════════════════════════════ -->
+  <div class="wr-section" id="recon">
+    <div class="wr-sec-hdr">
+      <span class="step-num">01</span>
+      <span class="step-title">Reconnaissance</span>
+    </div>
+
+    <p class="prose">← EDIT: describe your initial scanning approach.</p>
+
+    <div class="terminal">
+      <div class="term-bar">
+        <div class="dot dot-r"></div><div class="dot dot-y"></div><div class="dot dot-g"></div>
+        <span class="term-label">nmap</span>
+        <button class="copy-btn" onclick="copyTerm(this)">copy</button>
+      </div>
+      <div class="term-body">
+<span class="tp">$</span> <span class="tc">nmap</span> <span class="tf">-sC -sV -oN</span> <span class="ta">scan.txt</span> <span class="tt">10.129.x.x</span>
+
+<span class="tcm"># ← paste your nmap output here</span>
+<span class="thl"><span class="to">← highlight interesting ports with thl class</span></span>
+      </div>
+    </div>
+
+    <div class="callout c-find">
+      <strong>finding:</strong> ← describe the key takeaway from recon.
+    </div>
+  </div>
+
+  <!-- ══════════════════════════════════
+       STEP 02 — ENUMERATION
+  ═══════════════════════════════════ -->
+  <div class="wr-section" id="enum">
+    <div class="wr-sec-hdr">
+      <span class="step-num">02</span>
+      <span class="step-title">Enumeration</span>
+    </div>
+    <p class="prose">← EDIT: web, SMB, service-specific enumeration.</p>
+    <div class="terminal">
+      <div class="term-bar">
+        <div class="dot dot-r"></div><div class="dot dot-y"></div><div class="dot dot-g"></div>
+        <span class="term-label">← tool name</span>
+        <button class="copy-btn" onclick="copyTerm(this)">copy</button>
+      </div>
+      <div class="term-body">
+<span class="tp">$</span> <span class="tc">← command here</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- ══════════════════════════════════
+       STEP 03 — FOOTHOLD
+  ═══════════════════════════════════ -->
+  <div class="wr-section" id="foothold">
+    <div class="wr-sec-hdr">
+      <span class="step-num">03</span>
+      <span class="step-title">Foothold</span>
+    </div>
+    <p class="prose">← EDIT: exploit used, shell obtained.</p>
+    <div class="terminal">
+      <div class="term-bar">
+        <div class="dot dot-r"></div><div class="dot dot-y"></div><div class="dot dot-g"></div>
+        <span class="term-label">← label</span>
+        <button class="copy-btn" onclick="copyTerm(this)">copy</button>
+      </div>
+      <div class="term-body">
+<span class="tp">$</span> <span class="tc">← command</span>
+      </div>
+    </div>
+    <div class="callout c-warn"><strong>note:</strong> ← any important warnings or gotchas.</div>
+  </div>
+
+  <!-- ══════════════════════════════════
+       STEP 04 — PRIVILEGE ESCALATION
+  ═══════════════════════════════════ -->
+  <div class="wr-section" id="privesc">
+    <div class="wr-sec-hdr">
+      <span class="step-num">04</span>
+      <span class="step-title">Privilege Escalation</span>
+    </div>
+    <p class="prose">← EDIT: privesc vector, commands used, root access.</p>
+    <div class="terminal">
+      <div class="term-bar">
+        <div class="dot dot-r"></div><div class="dot dot-y"></div><div class="dot dot-g"></div>
+        <span class="term-label">← label</span>
+        <button class="copy-btn" onclick="copyTerm(this)">copy</button>
+      </div>
+      <div class="term-body">
+<span class="tp">$</span> <span class="tc">← command</span>
+<span class="thl"><span class="to">← highlight the root shell prompt</span></span>
+      </div>
+    </div>
+  </div>
+
+  <!-- ══════════════════════════════════
+       STEP 05 — SUMMARY
+  ═══════════════════════════════════ -->
+  <div class="wr-section" id="summary">
+    <div class="wr-sec-hdr">
+      <span class="step-num">05</span>
+      <span class="step-title">Summary</span>
+    </div>
+    <div class="callout c-info">
+      <strong>attack chain:</strong><br><br>
+      ← EDIT: nmap → enumeration → foothold → privesc → root
+    </div>
+    <p class="prose" style="margin-top:16px;">
+      <strong>Lessons learned:</strong> ← key takeaways from this machine.
+    </p>
+  </div>
+
+  <!-- bottom nav -->
+  <div style="display:flex;justify-content:space-between;margin-top:24px;font-family:var(--mono);font-size:12px;">
+    <a href="index.html" style="color:var(--muted);text-decoration:none;">← all writeups</a>
+    <a href="#" style="color:var(--green);text-decoration:none;">next machine →</a>  <!-- ← EDIT -->
+  </div>
+
+</div><!-- /page-content -->
+
+<!-- ══════════════════════════════════
+     initPage — EDIT THIS SECTION
+═══════════════════════════════════ -->
+<script>
+  initPage({
+    title: 'MachineName — Writeup',          // ← EDIT
+    breadcrumb: 'writeups/machinename',      // ← EDIT
+    tags: [
+      { label: 'Easy',    color: 'green'  }, // ← EDIT difficulty
+      { label: 'Linux',   color: 'orange' }, // ← EDIT OS
+      { label: 'Web',     color: 'blue'   }, // ← EDIT technique tags
+    ],
+    extraSb: `
+      <div class="mc-info">
+        <div class="mc-info-row"><span class="mc-info-k">machine</span><span class="mc-info-v">MachineName</span></div>
+        <div class="mc-info-row"><span class="mc-info-k">os</span><span class="mc-info-v">Linux</span></div>
+        <div class="mc-info-row"><span class="mc-info-k">difficulty</span><span class="mc-info-v" style="color:var(--green)">Easy</span></div>
+        <div class="mc-info-row"><span class="mc-info-k">ip</span><span class="mc-info-v">10.129.x.x</span></div>
+        <div class="mc-info-row"><span class="mc-info-k">platform</span><span class="mc-info-v">HackTheBox</span></div>
+        <div class="mc-info-row"><span class="mc-info-k">user</span><span class="mc-info-v" style="color:var(--green)">✓</span></div>
+        <div class="mc-info-row"><span class="mc-info-k">root</span><span class="mc-info-v" style="color:var(--orange)">WIP</span></div>
+      </div>
+      <div class="toc-extra">
+        <div class="toc-lbl">contents</div>
+        <a href="#recon"    class="toc-item active"><span class="toc-num">01</span>Recon</a>
+        <a href="#enum"     class="toc-item"><span class="toc-num">02</span>Enumeration</a>
+        <a href="#foothold" class="toc-item"><span class="toc-num">03</span>Foothold</a>
+        <a href="#privesc"  class="toc-item"><span class="toc-num">04</span>Priv Esc</a>
+        <a href="#summary"  class="toc-item"><span class="toc-num">05</span>Summary</a>
+      </div>`,
+  });
+
+  // TOC scroll highlighting
+  const tocLinks = document.querySelectorAll('.toc-item');
+  const sections = document.querySelectorAll('.wr-section');
+  window.addEventListener('scroll', () => {
+    let cur = '';
+    sections.forEach(s => { if (window.scrollY >= s.offsetTop - 100) cur = s.id; });
+    tocLinks.forEach(l => l.classList.toggle('active', l.getAttribute('href') === '#' + cur));
+  });
+</script>
+</body>
+</html>

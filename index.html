@@ -1,0 +1,215 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <script src="assets/components.js"></script>
+  <style>
+    /* ── TERMINAL HERO ── */
+    .terminal-hero { margin-bottom:36px; }
+
+    /* ── STATS ── */
+    .stats-row { display:grid; grid-template-columns:repeat(4,1fr); gap:14px; margin-bottom:40px; }
+    .stat-card { background:var(--bg3); border:1px solid var(--border); border-radius:8px; padding:20px; text-align:center; }
+    .stat-num { font-family:var(--mono); font-size:32px; font-weight:700; line-height:1; }
+    .stat-lbl { font-family:var(--mono); font-size:10px; color:var(--muted); margin-top:6px; text-transform:uppercase; letter-spacing:.08em; }
+
+    /* ── MACHINE GRID ── */
+    .machines-grid { display:grid; grid-template-columns:repeat(auto-fill,minmax(276px,1fr)); gap:14px; margin-bottom:48px; }
+
+    .mc {
+      background:var(--bg3); border:1px solid var(--border); border-radius:8px;
+      padding:18px; cursor:pointer; transition:all .2s;
+      text-decoration:none; display:block; position:relative; overflow:hidden;
+    }
+    .mc::before { content:''; position:absolute; top:0; left:0; right:0; height:2px; background:var(--border); transition:background .2s; }
+    .mc:hover { border-color:rgba(57,211,83,.35); background:var(--surface); transform:translateY(-2px); }
+
+    .mc.easy   ::before, .mc.easy:hover   { --hc:var(--green);  }
+    .mc.medium ::before, .mc.medium:hover { --hc:var(--orange); }
+    .mc.hard   ::before, .mc.hard:hover   { --hc:var(--red);    }
+    .mc.insane ::before, .mc.insane:hover { --hc:var(--purple); }
+
+    .mc.easy::before   { background:var(--green);  }
+    .mc.medium::before { background:var(--orange); }
+    .mc.hard::before   { background:var(--red);    }
+    .mc.insane::before { background:var(--purple); }
+
+    .mc.easy:hover   { border-color:rgba(57,211,83,.4);  }
+    .mc.medium:hover { border-color:rgba(255,166,87,.4); }
+    .mc.hard:hover   { border-color:rgba(248,81,73,.4);  }
+    .mc.insane:hover { border-color:rgba(188,140,255,.4);}
+
+    .mc-top { display:flex; justify-content:space-between; align-items:flex-start; margin-bottom:12px; }
+    .mc-name { font-family:var(--mono); font-size:16px; font-weight:500; color:var(--text); }
+    .mc-os   { font-family:var(--mono); font-size:11px; color:var(--muted); margin-top:3px; }
+    .mc-tags { display:flex; gap:5px; flex-wrap:wrap; margin-top:10px; }
+    .mc-flags{ font-family:var(--mono); font-size:11px; color:var(--muted); margin-top:10px; display:flex; gap:16px; }
+    .mc-flags span { color:var(--text); }
+
+    /* ── TOOLS ── */
+    .tools-grid { display:grid; grid-template-columns:repeat(auto-fill,minmax(170px,1fr)); gap:10px; margin-bottom:48px; }
+    .tool-pill {
+      background:var(--bg3); border:1px solid var(--border); border-radius:6px;
+      padding:12px 14px; display:flex; align-items:center; gap:10px;
+      font-family:var(--mono); font-size:12px; color:var(--text);
+      transition:all .15s; cursor:default;
+    }
+    .tool-pill:hover { border-color:rgba(88,166,255,.4); background:var(--surface); color:var(--accent); }
+    .tool-pill-icon { width:26px; height:26px; background:var(--surface2); border-radius:5px; display:flex; align-items:center; justify-content:center; font-size:13px; flex-shrink:0; }
+  </style>
+</head>
+<body>
+<div class="page-content">
+
+  <!-- ── TERMINAL HERO ── -->
+  <div class="terminal-hero">
+    <div class="terminal">
+      <div class="term-bar">
+        <div class="dot dot-r"></div><div class="dot dot-y"></div><div class="dot dot-g"></div>
+        <span class="term-label">jostif@kali — bash</span>
+      </div>
+      <div class="term-body">
+<span class="tp">┌──(</span><span class="tt">jostif</span><span class="tp">㉿kali)-[</span><span class="ta">~/writeups</span><span class="tp">]</span>
+<span class="tp">└─$</span> <span class="tc">whoami</span>
+<span class="to">  → pentester · CTF player · eternal learner</span>
+<span class="tp">└─$</span> <span class="tc">ls</span> <span class="tf">-la</span> ./notes
+<span class="to">  12 writeups &nbsp; 8 cheatsheets &nbsp; ∞ caffeine</span>
+<span class="tp">└─$</span> <span class="tc">cat</span> motto.txt
+<span class="thl"><span class="to">  "hack the planet, document everything"</span></span>
+<span class="tp">└─$</span> <span style="display:inline-block;width:8px;height:15px;background:var(--green);vertical-align:middle;animation:sb-pulse 1.1s step-end infinite;"></span>
+      </div>
+    </div>
+  </div>
+
+  <!-- ── STATS ── -->
+  <div class="stats-row">
+    <div class="stat-card"><div class="stat-num" style="color:var(--green)">12</div><div class="stat-lbl">Machines Pwned</div></div>
+    <div class="stat-card"><div class="stat-num" style="color:var(--orange)">8</div><div class="stat-lbl">Cheatsheets</div></div>
+    <div class="stat-card"><div class="stat-num" style="color:var(--accent)">3</div><div class="stat-lbl">CVEs Studied</div></div>
+    <div class="stat-card"><div class="stat-num" style="color:var(--purple)">47</div><div class="stat-lbl">Flags Captured</div></div>
+  </div>
+
+  <!-- ── RECENT WRITEUPS ── -->
+  <div style="margin-bottom:48px">
+    <div class="sec-hdr">
+      <span class="sec-title">// recent writeups</span>
+      <div class="sec-line"></div>
+      <a href="/writeups/" style="font-family:var(--mono);font-size:11px;color:var(--muted);text-decoration:none;">view all →</a>
+    </div>
+
+    <div class="machines-grid">
+
+      <a class="mc easy" href="/writeups/thetoppers.html">
+        <div class="mc-top">
+          <div><div class="mc-name">TheToppers</div><div class="mc-os">🐧 Linux · Starting Point</div></div>
+        </div>
+        <div class="mc-tags">
+          <span class="tag tag-green">Easy</span>
+          <span class="tag tag-blue">S3</span>
+          <span class="tag tag-blue">Web</span>
+        </div>
+        <div class="mc-flags">user <span>✓</span> root <span>✓</span></div>
+      </a>
+
+      <a class="mc easy" href="/writeups/unika.html">
+        <div class="mc-top">
+          <div><div class="mc-name">Unika</div><div class="mc-os">🪟 Windows · Starting Point</div></div>
+        </div>
+        <div class="mc-tags">
+          <span class="tag tag-green">Easy</span>
+          <span class="tag tag-orange">LFI</span>
+          <span class="tag tag-orange">NTLMv2</span>
+        </div>
+        <div class="mc-flags">user <span>✓</span> root <span>✓</span></div>
+      </a>
+
+      <a class="mc medium" href="/writeups/active.html">
+        <div class="mc-top">
+          <div><div class="mc-name">Active</div><div class="mc-os">🪟 Windows · HackTheBox</div></div>
+        </div>
+        <div class="mc-tags">
+          <span class="tag tag-orange">Medium</span>
+          <span class="tag tag-purple">Kerberoast</span>
+          <span class="tag tag-blue">SMB</span>
+        </div>
+        <div class="mc-flags">user <span>✓</span> root <span>✓</span></div>
+      </a>
+
+      <a class="mc hard" href="/writeups/garfield.html">
+        <div class="mc-top">
+          <div><div class="mc-name">Garfield</div><div class="mc-os">📦 AD · HackTheBox</div></div>
+        </div>
+        <div class="mc-tags">
+          <span class="tag tag-red">Hard</span>
+          <span class="tag tag-red">RODC</span>
+          <span class="tag tag-purple">RBCD</span>
+          <span class="tag tag-orange">KeyList</span>
+        </div>
+        <div class="mc-flags">user <span>✓</span> root <span style="color:var(--orange)">in progress</span></div>
+      </a>
+
+      <a class="mc medium" href="/writeups/passage.html">
+        <div class="mc-top">
+          <div><div class="mc-name">Passage</div><div class="mc-os">🐧 Linux · HackTheBox</div></div>
+        </div>
+        <div class="mc-tags">
+          <span class="tag tag-orange">Medium</span>
+          <span class="tag tag-blue">CuteNews</span>
+          <span class="tag tag-red">RCE</span>
+        </div>
+        <div class="mc-flags">user <span>✓</span> root <span>✓</span></div>
+      </a>
+
+      <a class="mc insane" href="/writeups/fulcrum.html">
+        <div class="mc-top">
+          <div><div class="mc-name">Fulcrum</div><div class="mc-os">🐧 Linux · HackTheBox</div></div>
+        </div>
+        <div class="mc-tags">
+          <span class="tag tag-purple">Insane</span>
+          <span class="tag tag-blue">Pivoting</span>
+          <span class="tag tag-orange">XXE</span>
+        </div>
+        <div class="mc-flags">user <span>✓</span> root <span style="color:var(--muted)">✗</span></div>
+      </a>
+
+    </div>
+  </div>
+
+  <!-- ── TOOLS ── -->
+  <div>
+    <div class="sec-hdr">
+      <span class="sec-title">// tools &amp; arsenal</span>
+      <div class="sec-line"></div>
+      <a href="/tools.html" style="font-family:var(--mono);font-size:11px;color:var(--muted);text-decoration:none;">full list →</a>
+    </div>
+    <div class="tools-grid">
+      <div class="tool-pill"><div class="tool-pill-icon">🗺</div>Nmap</div>
+      <div class="tool-pill"><div class="tool-pill-icon">⚡</div>ffuf</div>
+      <div class="tool-pill"><div class="tool-pill-icon">🐙</div>Gobuster</div>
+      <div class="tool-pill"><div class="tool-pill-icon">🔑</div>Hashcat</div>
+      <div class="tool-pill"><div class="tool-pill-icon">🪝</div>Hydra</div>
+      <div class="tool-pill"><div class="tool-pill-icon">💀</div>Metasploit</div>
+      <div class="tool-pill"><div class="tool-pill-icon">🩸</div>BloodHound</div>
+      <div class="tool-pill"><div class="tool-pill-icon">🐍</div>Impacket</div>
+      <div class="tool-pill"><div class="tool-pill-icon">🪟</div>Evil-WinRM</div>
+      <div class="tool-pill"><div class="tool-pill-icon">📡</div>Responder</div>
+      <div class="tool-pill"><div class="tool-pill-icon">🔗</div>Chisel</div>
+      <div class="tool-pill"><div class="tool-pill-icon">🦈</div>Wireshark</div>
+    </div>
+  </div>
+
+</div><!-- /page-content -->
+<script>
+  initPage({
+    title: 'Dashboard',
+    breadcrumb: '',
+    tags: [
+      { label: 'HTB',       color: 'orange' },
+      { label: 'TryHackMe', color: 'blue'   },
+      { label: 'OSCP prep', color: 'green'  },
+    ],
+  });
+</script>
+</body>
+</html>

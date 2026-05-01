@@ -1,0 +1,435 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <script src="assets/components.js"></script>
+  <style>
+    .tools-grid { display:grid; grid-template-columns:repeat(auto-fill,minmax(296px,1fr)); gap:14px; margin-bottom:48px; }
+    .tool-card { background:var(--bg3); border:1px solid var(--border); border-radius:8px; overflow:hidden; transition:border-color .15s; }
+    .tool-card:hover { border-color:rgba(88,166,255,.35); }
+    .tool-card-hdr { background:var(--surface); padding:12px 16px; border-bottom:1px solid var(--border); display:flex; align-items:center; gap:10px; }
+    .tool-icon { width:32px; height:32px; border-radius:6px; background:var(--surface2); display:flex; align-items:center; justify-content:center; font-size:16px; flex-shrink:0; }
+    .tool-name { font-family:var(--mono); font-size:13px; font-weight:500; color:var(--text); }
+    .tool-cat  { font-family:var(--mono); font-size:10px; color:var(--muted); margin-top:2px; }
+    .tool-card-body { padding:12px 16px; font-family:var(--mono); font-size:12px; color:var(--muted); line-height:1.7; }
+    .tool-install { background:var(--surface2); border-radius:5px; padding:6px 10px; margin-top:8px; font-family:var(--mono); font-size:11px; color:var(--orange); cursor:pointer; border:1px solid transparent; transition:all .15s; display:flex; gap:8px; align-items:center; }
+    .tool-install:hover { border-color:var(--border); color:var(--text); }
+    .tool-install .di { color:var(--green); }
+
+    .res-table { width:100%; border-collapse:collapse; font-family:var(--mono); font-size:12px; }
+    .res-table th { background:var(--surface2); color:var(--muted); padding:9px 14px; text-align:left; font-weight:400; border-bottom:1px solid var(--border); letter-spacing:.05em; }
+    .res-table td { padding:9px 14px; border-bottom:1px solid var(--bg3); color:var(--text); }
+    .res-table tr:hover td { background:var(--surface); }
+    .res-table a { color:var(--accent); text-decoration:none; }
+    .res-table a:hover { color:var(--green); }
+    .res-table td:last-child { color:var(--muted); font-size:11px; }
+  </style>
+</head>
+<body>
+<div class="page-content">
+
+  <!-- tools -->
+  <div style="margin-bottom:48px">
+    <div class="sec-hdr">
+      <span class="sec-title">// tools &amp; arsenal</span>
+      <div class="sec-line"></div>
+    </div>
+    <div class="tools-grid">
+
+      <div class="tool-card">
+        <div class="tool-card-hdr">
+          <div class="tool-icon">🗺</div>
+          <div><div class="tool-name">Nmap</div><div class="tool-cat">recon · port scanning</div></div>
+          <span class="tag tag-green" style="margin-left:auto">essential</span>
+        </div>
+        <div class="tool-card-body">
+          Network scanner. Use <b style="color:var(--text)">-sC -sV</b> for scripts + versions, <b style="color:var(--text)">-p-</b> for all ports, <b style="color:var(--text)">--script vuln</b> for CVE detection.
+          <div class="tool-install" onclick="copyInstall(this)"><span class="di">$</span> sudo apt install nmap</div>
+        </div>
+      </div>
+
+      <div class="tool-card">
+        <div class="tool-card-hdr">
+          <div class="tool-icon">🩸</div>
+          <div><div class="tool-name">BloodHound</div><div class="tool-cat">AD · graph attack paths</div></div>
+          <span class="tag tag-red" style="margin-left:auto">AD</span>
+        </div>
+        <div class="tool-card-body">
+          Visualises AD privilege escalation paths. Collect with <b style="color:var(--text)">bloodhound-python</b>, ingest JSON into GUI, query with Cypher.
+          <div class="tool-install" onclick="copyInstall(this)"><span class="di">$</span> pip install bloodhound --break-system-packages</div>
+        </div>
+      </div>
+
+      <div class="tool-card">
+        <div class="tool-card-hdr">
+          <div class="tool-icon">🐍</div>
+          <div><div class="tool-name">Impacket</div><div class="tool-cat">AD · network protocols</div></div>
+          <span class="tag tag-red" style="margin-left:auto">AD</span>
+        </div>
+        <div class="tool-card-body">
+          Swiss army knife for AD. GetUserSPNs, secretsdump, psexec, smbserver — all here. Run as <b style="color:var(--text)">impacket-&lt;tool&gt;</b>.
+          <div class="tool-install" onclick="copyInstall(this)"><span class="di">$</span> sudo apt install python3-impacket</div>
+        </div>
+      </div>
+
+      <div class="tool-card">
+        <div class="tool-card-hdr">
+          <div class="tool-icon">⚡</div>
+          <div><div class="tool-name">ffuf</div><div class="tool-cat">web · fuzzing</div></div>
+          <span class="tag tag-blue" style="margin-left:auto">web</span>
+        </div>
+        <div class="tool-card-body">
+          Fast web fuzzer for dirs, vhosts, parameters. Use <b style="color:var(--text)">-fs</b> to filter by response size and <b style="color:var(--text)">FUZZ</b> as the placeholder.
+          <div class="tool-install" onclick="copyInstall(this)"><span class="di">$</span> sudo apt install ffuf</div>
+        </div>
+      </div>
+
+      <div class="tool-card">
+        <div class="tool-card-hdr">
+          <div class="tool-icon">🔑</div>
+          <div><div class="tool-name">Hashcat</div><div class="tool-cat">cracking · GPU-accelerated</div></div>
+          <span class="tag tag-purple" style="margin-left:auto">cracking</span>
+        </div>
+        <div class="tool-card-body">
+          300+ hash modes. <b style="color:var(--text)">-m 5600</b> NTLMv2 · <b style="color:var(--text)">-m 13100</b> Kerberoast · <b style="color:var(--text)">-m 18200</b> AS-REP. Use GPU on host, not in VM.
+          <div class="tool-install" onclick="copyInstall(this)"><span class="di">$</span> sudo apt install hashcat</div>
+        </div>
+      </div>
+
+      <div class="tool-card">
+        <div class="tool-card-hdr">
+          <div class="tool-icon">📡</div>
+          <div><div class="tool-name">Responder</div><div class="tool-cat">network · NTLMv2 capture</div></div>
+          <span class="tag tag-orange" style="margin-left:auto">MITM</span>
+        </div>
+        <div class="tool-card-body">
+          LLMNR/NBT-NS/MDNS poisoner. Captures NTLMv2 hashes when hosts try to resolve names on the network.
+          <div class="tool-install" onclick="copyInstall(this)"><span class="di">$</span> sudo apt install responder</div>
+        </div>
+      </div>
+
+      <div class="tool-card">
+        <div class="tool-card-hdr">
+          <div class="tool-icon">🪟</div>
+          <div><div class="tool-name">Evil-WinRM</div><div class="tool-cat">windows · remote shell</div></div>
+          <span class="tag tag-orange" style="margin-left:auto">Windows</span>
+        </div>
+        <div class="tool-card-body">
+          Best WinRM shell: upload/download, pass-the-hash (<b style="color:var(--text)">-H</b>), built-in PowerShell. Needs port 5985 open.
+          <div class="tool-install" onclick="copyInstall(this)"><span class="di">$</span> gem install evil-winrm</div>
+        </div>
+      </div>
+
+      <div class="tool-card">
+        <div class="tool-card-hdr">
+          <div class="tool-icon">🔗</div>
+          <div><div class="tool-name">Chisel</div><div class="tool-cat">pivoting · HTTP tunnel</div></div>
+          <span class="tag tag-teal" style="margin-left:auto">pivot</span>
+        </div>
+        <div class="tool-card-body">
+          TCP/UDP tunneling over HTTP. Use for pivoting when SSH is unavailable. Fast, reliable, one binary on each side.
+          <div class="tool-install" onclick="copyInstall(this)"><span class="di">$</span> go install github.com/jpillora/chisel@latest</div>
+        </div>
+      </div>
+
+      <div class="tool-card">
+        <div class="tool-card-hdr">
+          <div class="tool-icon">🪝</div>
+          <div><div class="tool-name">Hydra</div><div class="tool-cat">bruteforce · online</div></div>
+          <span class="tag tag-red" style="margin-left:auto">brute</span>
+        </div>
+        <div class="tool-card-body">
+          Online password brute-force for SSH, FTP, HTTP forms, SMB, RDP. Pair with curated wordlists, not rockyou for online attacks.
+          <div class="tool-install" onclick="copyInstall(this)"><span class="di">$</span> sudo apt install hydra</div>
+        </div>
+      </div>
+
+      <div class="tool-card">
+        <div class="tool-card-hdr">
+          <div class="tool-icon">🐙</div>
+          <div><div class="tool-name">Gobuster</div><div class="tool-cat">web · directory / vhost</div></div>
+          <span class="tag tag-blue" style="margin-left:auto">web</span>
+        </div>
+        <div class="tool-card-body">
+          Fast dir/vhost/DNS brute-forcer written in Go. Use <b style="color:var(--text)">dir</b>, <b style="color:var(--text)">vhost</b>, or <b style="color:var(--text)">dns</b> mode.
+          <div class="tool-install" onclick="copyInstall(this)"><span class="di">$</span> sudo apt install gobuster</div>
+        </div>
+      </div>
+
+      <div class="tool-card">
+        <div class="tool-card-hdr">
+          <div class="tool-icon">💀</div>
+          <div><div class="tool-name">Metasploit</div><div class="tool-cat">exploitation framework</div></div>
+          <span class="tag tag-red" style="margin-left:auto">exploit</span>
+        </div>
+        <div class="tool-card-body">
+          Industry-standard exploit framework. Useful for CVE exploits and post-exploitation. Use msfvenom for standalone payloads.
+          <div class="tool-install" onclick="copyInstall(this)"><span class="di">$</span> sudo apt install metasploit-framework</div>
+        </div>
+      </div>
+
+      <div class="tool-card">
+        <div class="tool-card-hdr">
+          <div class="tool-icon">🧨</div>
+          <div><div class="tool-name">LinPEAS / WinPEAS</div><div class="tool-cat">privesc · enumeration</div></div>
+          <span class="tag tag-purple" style="margin-left:auto">privesc</span>
+        </div>
+        <div class="tool-card-body">
+          Automated PrivEsc enumeration. Run on victim after foothold. Highlights misconfigs, writable paths, SUID, creds in configs.
+          <div class="tool-install" onclick="copyInstall(this)"><span class="di">$</span> curl -L https://github.com/peass-ng/PEASS-ng/releases/latest/download/linpeas.sh -o linpeas.sh</div>
+        </div>
+      </div>
+
+      <div class="tool-card">
+        <div class="tool-card-hdr">
+          <div class="tool-icon">🕷️</div>
+          <div><div class="tool-name">Burp Suite</div><div class="tool-cat">web · proxy / scanner</div></div>
+          <span class="tag tag-blue" style="margin-left:auto">web</span>
+        </div>
+        <div class="tool-card-body">
+          The web app pentesting standard. Intercept, modify, replay requests. Use Repeater for manual testing, Intruder for fuzzing, Scanner for automated issues.
+          <div class="tool-install" onclick="copyInstall(this)"><span class="di">$</span> sudo apt install burpsuite</div>
+        </div>
+      </div>
+
+      <div class="tool-card">
+        <div class="tool-card-hdr">
+          <div class="tool-icon">🔬</div>
+          <div><div class="tool-name">Nikto</div><div class="tool-cat">web · vulnerability scanner</div></div>
+          <span class="tag tag-blue" style="margin-left:auto">web</span>
+        </div>
+        <div class="tool-card-body">
+          Web server scanner. Detects dangerous files, outdated software, misconfigs. Use <b style="color:var(--text)">-h</b> for target, <b style="color:var(--text)">-ssl</b> for HTTPS, <b style="color:var(--text)">-Tuning</b> to filter test types.
+          <div class="tool-install" onclick="copyInstall(this)"><span class="di">$</span> sudo apt install nikto</div>
+        </div>
+      </div>
+
+      <div class="tool-card">
+        <div class="tool-card-hdr">
+          <div class="tool-icon">🧲</div>
+          <div><div class="tool-name">Netcat / Ncat</div><div class="tool-cat">shells · port utility</div></div>
+          <span class="tag tag-green" style="margin-left:auto">essential</span>
+        </div>
+        <div class="tool-card-body">
+          The Swiss army knife of networking. Set up listeners (<b style="color:var(--text)">-lvnp</b>), transfer files, banner grab, and catch reverse shells. Ncat adds SSL support.
+          <div class="tool-install" onclick="copyInstall(this)"><span class="di">$</span> sudo apt install ncat</div>
+        </div>
+      </div>
+
+      <div class="tool-card">
+        <div class="tool-card-hdr">
+          <div class="tool-icon">🌐</div>
+          <div><div class="tool-name">SQLMap</div><div class="tool-cat">web · SQL injection</div></div>
+          <span class="tag tag-blue" style="margin-left:auto">web</span>
+        </div>
+        <div class="tool-card-body">
+          Automated SQLi detection and exploitation. Use <b style="color:var(--text)">--dbs</b> to dump databases, <b style="color:var(--text)">--os-shell</b> for RCE, <b style="color:var(--text)">-r</b> to feed a Burp request file.
+          <div class="tool-install" onclick="copyInstall(this)"><span class="di">$</span> sudo apt install sqlmap</div>
+        </div>
+      </div>
+
+      <div class="tool-card">
+        <div class="tool-card-hdr">
+          <div class="tool-icon">🔍</div>
+          <div><div class="tool-name">enum4linux-ng</div><div class="tool-cat">recon · SMB / LDAP</div></div>
+          <span class="tag tag-orange" style="margin-left:auto">Windows</span>
+        </div>
+        <div class="tool-card-body">
+          SMB/LDAP enumeration for Windows/Samba targets. Pulls users, groups, shares, policies, and domain info without credentials.
+          <div class="tool-install" onclick="copyInstall(this)"><span class="di">$</span> pip install enum4linux-ng --break-system-packages</div>
+        </div>
+      </div>
+
+      <div class="tool-card">
+        <div class="tool-card-hdr">
+          <div class="tool-icon">🗝️</div>
+          <div><div class="tool-name">John the Ripper</div><div class="tool-cat">cracking · CPU-based</div></div>
+          <span class="tag tag-purple" style="margin-left:auto">cracking</span>
+        </div>
+        <div class="tool-card-body">
+          CPU hash cracker. Great for <b style="color:var(--text)">ssh2john</b>, <b style="color:var(--text)">zip2john</b>, <b style="color:var(--text)">keepass2john</b> helpers that convert files to crackable format before attacking.
+          <div class="tool-install" onclick="copyInstall(this)"><span class="di">$</span> sudo apt install john</div>
+        </div>
+      </div>
+
+      <div class="tool-card">
+        <div class="tool-card-hdr">
+          <div class="tool-icon">🛸</div>
+          <div><div class="tool-name">CrackMapExec</div><div class="tool-cat">AD · lateral movement</div></div>
+          <span class="tag tag-red" style="margin-left:auto">AD</span>
+        </div>
+        <div class="tool-card-body">
+          Swiss army knife for AD post-exploitation. Spray creds, enumerate shares, execute commands, dump SAM/LSA over SMB/WinRM in one tool.
+          <div class="tool-install" onclick="copyInstall(this)"><span class="di">$</span> sudo apt install crackmapexec</div>
+        </div>
+      </div>
+
+      <div class="tool-card">
+        <div class="tool-card-hdr">
+          <div class="tool-icon">🧵</div>
+          <div><div class="tool-name">Kerbrute</div><div class="tool-cat">AD · Kerberos enum</div></div>
+          <span class="tag tag-red" style="margin-left:auto">AD</span>
+        </div>
+        <div class="tool-card-body">
+          Fast Kerberos-based username enumeration and password spraying. Uses AS-REQ to validate users without triggering lockouts. Use <b style="color:var(--text)">userenum</b> / <b style="color:var(--text)">passwordspray</b>.
+          <div class="tool-install" onclick="copyInstall(this)"><span class="di">$</span> go install github.com/ropnop/kerbrute@latest</div>
+        </div>
+      </div>
+
+      <div class="tool-card">
+        <div class="tool-card-hdr">
+          <div class="tool-icon">📦</div>
+          <div><div class="tool-name">Socat</div><div class="tool-cat">pivoting · relay / tunnel</div></div>
+          <span class="tag tag-teal" style="margin-left:auto">pivot</span>
+        </div>
+        <div class="tool-card-body">
+          Powerful relay tool. Create stable TTY shells (<b style="color:var(--text)">pty</b>), port forwards, and encrypted tunnels. Often used to upgrade netcat shells to fully interactive.
+          <div class="tool-install" onclick="copyInstall(this)"><span class="di">$</span> sudo apt install socat</div>
+        </div>
+      </div>
+
+      <div class="tool-card">
+        <div class="tool-card-hdr">
+          <div class="tool-icon">🧬</div>
+          <div><div class="tool-name">pwncat-cs</div><div class="tool-cat">shells · post-exploitation</div></div>
+          <span class="tag tag-purple" style="margin-left:auto">privesc</span>
+        </div>
+        <div class="tool-card-body">
+          Post-exploitation framework that wraps reverse shells. Auto-upgrades to PTY, handles file transfer, persistence, and has built-in PrivEsc enumeration.
+          <div class="tool-install" onclick="copyInstall(this)"><span class="di">$</span> pip install pwncat-cs --break-system-packages</div>
+        </div>
+      </div>
+
+      <div class="tool-card">
+        <div class="tool-card-hdr">
+          <div class="tool-icon">🌀</div>
+          <div><div class="tool-name">Wireshark / tshark</div><div class="tool-cat">network · packet analysis</div></div>
+          <span class="tag tag-green" style="margin-left:auto">essential</span>
+        </div>
+        <div class="tool-card-body">
+          Deep packet inspection for captured traffic. Use <b style="color:var(--text)">tshark</b> for CLI/scripting, filter with display filters. Essential for analyzing pcap challenges and MITM output.
+          <div class="tool-install" onclick="copyInstall(this)"><span class="di">$</span> sudo apt install wireshark tshark</div>
+        </div>
+      </div>
+
+      <div class="tool-card">
+        <div class="tool-card-hdr">
+          <div class="tool-icon">🥔</div>
+          <div><div class="tool-name">Potato Suite</div><div class="tool-cat">privesc · token impersonation</div></div>
+          <span class="tag tag-purple" style="margin-left:auto">privesc</span>
+        </div>
+        <div class="tool-card-body">
+          Windows token impersonation exploits family: <b style="color:var(--text)">SweetPotato</b> (local service → SYSTEM), <b style="color:var(--text)">JuicyPotatoNG</b>, <b style="color:var(--text)">PrintSpoofer</b>. Use when you have <b style="color:var(--text)">SeImpersonatePrivilege</b>.
+          <div class="tool-install" onclick="copyInstall(this)"><span class="di">$</span> iwr https://github.com/uknowsec/SweetPotato/releases/latest/download/SweetPotato.exe -o SweetPotato.exe</div>
+        </div>
+      </div>
+
+      <div class="tool-card">
+        <div class="tool-card-hdr">
+          <div class="tool-icon">🪑</div>
+          <div><div class="tool-name">Seatbelt</div><div class="tool-cat">privesc · host enumeration</div></div>
+          <span class="tag tag-purple" style="margin-left:auto">privesc</span>
+        </div>
+        <div class="tool-card-body">
+          C# host-survey tool by GhostPack. Runs dozens of safety checks covering credentials, tokens, browser data, AppLocker, AV, and more. Use <b style="color:var(--text)">-group=all</b> for full sweep.
+          <div class="tool-install" onclick="copyInstall(this)"><span class="di">$</span> iwr https://github.com/r3motecontrol/Ghostpack-CompiledBinaries/raw/master/Seatbelt.exe -o Seatbelt.exe</div>
+        </div>
+      </div>
+
+      <div class="tool-card">
+        <div class="tool-card-hdr">
+          <div class="tool-icon">🔭</div>
+          <div><div class="tool-name">Watson</div><div class="tool-cat">privesc · CVE detection</div></div>
+          <span class="tag tag-purple" style="margin-left:auto">privesc</span>
+        </div>
+        <div class="tool-card-body">
+          C# tool that fingerprints the target Windows version and maps it to unpatched local privilege escalation CVEs. Fast, offline, no AV-triggering scripts needed.
+          <div class="tool-install" onclick="copyInstall(this)"><span class="di">$</span> iwr https://github.com/r3motecontrol/Ghostpack-CompiledBinaries/raw/master/Watson.exe -o Watson.exe</div>
+        </div>
+      </div>
+
+      <div class="tool-card">
+        <div class="tool-card-hdr">
+          <div class="tool-icon">📜</div>
+          <div><div class="tool-name">Certipy</div><div class="tool-cat">AD · ADCS · ESC attacks</div></div>
+          <span class="tag tag-red" style="margin-left:auto">AD</span>
+        </div>
+        <div class="tool-card-body">
+          Python tool for Active Directory Certificate Services (ADCS) abuse. Find and exploit ESC1–ESC8 misconfigs to get domain admin certs. Use <b style="color:var(--text)">find -vulnerable</b> then <b style="color:var(--text)">req</b> / <b style="color:var(--text)">auth</b>.
+          <div class="tool-install" onclick="copyInstall(this)"><span class="di">$</span> pip install certipy-ad --break-system-packages</div>
+        </div>
+      </div>
+
+      <div class="tool-card">
+        <div class="tool-card-hdr">
+          <div class="tool-icon">📋</div>
+          <div><div class="tool-name">Certify</div><div class="tool-cat">AD · ADCS · enumeration</div></div>
+          <span class="tag tag-red" style="margin-left:auto">AD</span>
+        </div>
+        <div class="tool-card-body">
+          C# GhostPack tool to enumerate ADCS misconfigurations from Windows. Use <b style="color:var(--text)">find /vulnerable</b> to spot ESC paths, then pair with Rubeus <b style="color:var(--text)">asktgt</b> to obtain TGTs from certs.
+          <div class="tool-install" onclick="copyInstall(this)"><span class="di">$</span> iwr https://github.com/r3motecontrol/Ghostpack-CompiledBinaries/raw/master/Certify.exe -o Certify.exe</div>
+        </div>
+      </div>
+
+      <div class="tool-card">
+        <div class="tool-card-hdr">
+          <div class="tool-icon">🎟️</div>
+          <div><div class="tool-name">Rubeus</div><div class="tool-cat">AD · Kerberos abuse</div></div>
+          <span class="tag tag-red" style="margin-left:auto">AD</span>
+        </div>
+        <div class="tool-card-body">
+          C# GhostPack Kerberos toolkit. Kerberoast, AS-REP roast, pass-the-ticket, overpass-the-hash, S4U delegation abuse, and TGT/TGS requests — all in one binary.
+          <div class="tool-install" onclick="copyInstall(this)"><span class="di">$</span> iwr https://github.com/r3motecontrol/Ghostpack-CompiledBinaries/raw/master/Rubeus.exe -o Rubeus.exe</div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- references -->
+  <div>
+    <div class="sec-hdr">
+      <span class="sec-title">// references &amp; resources</span>
+      <div class="sec-line"></div>
+    </div>
+    <table class="res-table">
+      <thead>
+        <tr><th>Resource</th><th>Category</th><th>Description</th></tr>
+      </thead>
+      <tbody>
+        <tr><td><a href="https://gtfobins.github.io" target="_blank">GTFOBins</a></td><td><span class="tag tag-red">PrivEsc</span></td><td>Unix binary escapes — SUID, sudo, cron, capabilities</td></tr>
+        <tr><td><a href="https://lolbas-project.github.io" target="_blank">LOLBAS</a></td><td><span class="tag tag-orange">Windows</span></td><td>Living off the land binaries &amp; scripts for Windows</td></tr>
+        <tr><td><a href="https://book.hacktricks.xyz" target="_blank">HackTricks</a></td><td><span class="tag tag-blue">General</span></td><td>The most comprehensive attack technique reference</td></tr>
+        <tr><td><a href="https://revshells.com" target="_blank">RevShells</a></td><td><span class="tag tag-red">Shells</span></td><td>Interactive reverse shell generator — all languages</td></tr>
+        <tr><td><a href="https://crackstation.net" target="_blank">CrackStation</a></td><td><span class="tag tag-purple">Cracking</span></td><td>Online hash lookup / massive rainbow table</td></tr>
+        <tr><td><a href="https://www.exploit-db.com" target="_blank">Exploit-DB</a></td><td><span class="tag tag-red">Exploits</span></td><td>Searchable public exploit archive — includes PoCs</td></tr>
+        <tr><td><a href="https://github.com/danielmiessler/SecLists" target="_blank">SecLists</a></td><td><span class="tag tag-teal">Wordlists</span></td><td>The definitive wordlist collection for everything</td></tr>
+        <tr><td><a href="https://wadcoms.github.io" target="_blank">WADComs</a></td><td><span class="tag tag-yellow">AD</span></td><td>Interactive AD attack command cheatsheet</td></tr>
+        <tr><td><a href="https://www.thehacker.recipes" target="_blank">The Hacker Recipes</a></td><td><span class="tag tag-yellow">AD</span></td><td>Deep-dive AD attack techniques with context</td></tr>
+        <tr><td><a href="https://ippsec.rocks" target="_blank">ippsec.rocks</a></td><td><span class="tag tag-green">HTB</span></td><td>Search HTB writeup videos by technique</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+</div><!-- /page-content -->
+<script>
+  initPage({
+    title: 'Tools & Resources',
+    breadcrumb: 'tools',
+    tags: [{ label: 'Arsenal', color: 'green' }, { label: 'References', color: 'blue' }],
+  });
+
+  function copyInstall(el) {
+    const text = el.innerText.replace('$', '').trim();
+    navigator.clipboard?.writeText(text).then(() => {
+      const orig = el.innerHTML;
+      el.innerHTML = '<span class="di">✓</span> copied!';
+      el.style.color = 'var(--green)';
+      setTimeout(() => { el.innerHTML = orig; el.style.color = ''; }, 1500);
+    });
+  }
+</script>
+</body>
+</html>

