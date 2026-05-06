@@ -97,7 +97,6 @@ function _injectStyles() {
   --mono:      'JetBrains Mono', monospace;
   --sans:      'Space Grotesk', sans-serif;
   --sbw:       248px;
-  --sbw-col:   56px;
 }
 
 *, *::before, *::after { margin:0; padding:0; box-sizing:border-box; }
@@ -119,104 +118,39 @@ body::before {
   position:fixed; left:0; top:0; bottom:0; width:var(--sbw);
   background:var(--bg2); border-right:1px solid var(--border);
   display:flex; flex-direction:column; z-index:200; overflow-y:auto;
-  overflow-x:hidden;
-  transition: width .25s cubic-bezier(.4,0,.2,1);
 }
-#oxr-sb.collapsed { width:var(--sbw-col); }
 #oxr-sb::-webkit-scrollbar { width:4px; }
 #oxr-sb::-webkit-scrollbar-track { background:var(--bg); }
 #oxr-sb::-webkit-scrollbar-thumb { background:var(--surface2); border-radius:2px; }
 
-/* Logo area */
-.sb-logo {
-  padding:20px 18px 18px; border-bottom:1px solid var(--border);
-  display:flex; align-items:center; justify-content:space-between;
-  min-height:72px; overflow:hidden; flex-shrink:0;
-}
-.sb-logo-text { transition:opacity .2s, width .2s; overflow:hidden; white-space:nowrap; }
-#oxr-sb.collapsed .sb-logo-text { opacity:0; width:0; }
+.sb-logo { padding:20px 18px 18px; border-bottom:1px solid var(--border); }
 .sb-logo-tag { font-family:var(--mono); font-size:10px; color:var(--green); margin-bottom:4px; letter-spacing:.05em; }
 .sb-logo-name { font-family:var(--mono); font-size:21px; font-weight:700; color:var(--text); text-decoration:none; display:block; transition:color .15s; }
 .sb-logo-name:hover { color:var(--green); }
 .sb-logo-name em { color:var(--green); font-style:normal; }
 .sb-logo-sub { font-size:11px; color:var(--muted); margin-top:3px; font-family:var(--mono); }
 
-/* Collapse toggle button */
-.sb-collapse-btn {
-  flex-shrink:0; width:24px; height:24px; border-radius:5px;
-  background:var(--surface); border:1px solid var(--border);
-  color:var(--muted); cursor:pointer; display:flex; align-items:center;
-  justify-content:center; transition:all .15s; margin-left:auto;
-}
-.sb-collapse-btn:hover { color:var(--green); border-color:rgba(57,211,83,.4); background:var(--gglow); }
-.sb-collapse-btn svg { transition:transform .25s cubic-bezier(.4,0,.2,1); display:block; }
-#oxr-sb.collapsed .sb-collapse-btn { margin-left:0; }
-#oxr-sb.collapsed .sb-collapse-btn svg { transform:rotate(180deg); }
+.sb-sec { padding:13px 10px 6px; }
+.sb-sec-lbl { font-family:var(--mono); font-size:10px; color:var(--muted); letter-spacing:.12em; text-transform:uppercase; padding:0 8px; margin-bottom:5px; }
 
-/* Section labels */
-.sb-sec { padding:13px 10px 6px; overflow:hidden; }
-.sb-sec-lbl {
-  font-family:var(--mono); font-size:10px; color:var(--muted);
-  letter-spacing:.12em; text-transform:uppercase; padding:0 8px; margin-bottom:5px;
-  white-space:nowrap; overflow:hidden;
-  transition:opacity .15s, max-height .2s;
-  max-height:20px;
-}
-#oxr-sb.collapsed .sb-sec-lbl { opacity:0; max-height:0; margin-bottom:0; }
-
-/* Nav items */
 .sb-item {
   display:flex; align-items:center; gap:10px;
   padding:7px 10px; border-radius:6px; cursor:pointer;
   font-size:12px; font-family:var(--mono); color:var(--muted);
   transition:all .15s; text-decoration:none; border:1px solid transparent;
-  white-space:nowrap; overflow:hidden;
-  position:relative;
 }
 .sb-item:hover { background:var(--surface); color:var(--text); }
 .sb-item.active { background:var(--gglow); color:var(--green); border-color:rgba(57,211,83,.25); }
 .sb-icon { font-size:13px; width:16px; text-align:center; flex-shrink:0; }
-.sb-label { transition:opacity .15s; }
-#oxr-sb.collapsed .sb-label { opacity:0; }
-.sb-badge {
-  margin-left:auto; font-size:10px; background:var(--surface2); color:var(--muted);
-  padding:1px 6px; border-radius:8px; font-family:var(--mono);
-  transition:opacity .15s; flex-shrink:0;
-}
-#oxr-sb.collapsed .sb-badge { opacity:0; }
+.sb-badge { margin-left:auto; font-size:10px; background:var(--surface2); color:var(--muted); padding:1px 6px; border-radius:8px; font-family:var(--mono); }
 .sb-item.active .sb-badge { background:var(--gdim); color:var(--green); }
 
-/* Tooltip on collapsed hover */
-#oxr-sb.collapsed .sb-item::after,
-#oxr-sb.collapsed .sb-cs-toggle::after {
-  content: attr(data-label);
-  position:absolute; left:calc(var(--sbw-col) + 8px); top:50%;
-  transform:translateY(-50%);
-  background:var(--surface2); color:var(--text);
-  font-family:var(--mono); font-size:11px;
-  padding:5px 10px; border-radius:5px;
-  border:1px solid var(--border);
-  white-space:nowrap; pointer-events:none;
-  opacity:0; transition:opacity .15s;
-  z-index:999;
-}
-#oxr-sb.collapsed .sb-item:hover::after,
-#oxr-sb.collapsed .sb-cs-toggle:hover::after { opacity:1; }
-
-/* Footer */
-.sb-foot {
-  margin-top:auto; padding:13px 16px; border-top:1px solid var(--border);
-  font-family:var(--mono); font-size:10px; color:var(--muted);
-  overflow:hidden; white-space:nowrap;
-}
-.sb-foot-text { transition:opacity .15s; }
-#oxr-sb.collapsed .sb-foot-text { opacity:0; }
+.sb-foot { margin-top:auto; padding:13px 16px; border-top:1px solid var(--border); font-family:var(--mono); font-size:10px; color:var(--muted); }
 .sb-dot { display:inline-block; width:6px; height:6px; border-radius:50%; background:var(--green); margin-right:5px; animation:sb-pulse 2s infinite; }
 @keyframes sb-pulse { 0%,100%{opacity:1} 50%{opacity:.3} }
 
 /* ── MAIN ── */
-#oxr-main { margin-left:var(--sbw); min-height:100vh; display:flex; flex-direction:column; transition:margin-left .25s cubic-bezier(.4,0,.2,1); }
-body.sb-collapsed #oxr-main { margin-left:var(--sbw-col); }
+#oxr-main { margin-left:var(--sbw); min-height:100vh; display:flex; flex-direction:column; }
 
 /* ── TOPBAR ── */
 #oxr-top {
@@ -292,21 +226,16 @@ body.sb-collapsed #oxr-main { margin-left:var(--sbw-col); }
   font-size:12px; font-family:var(--mono); color:var(--muted);
   transition:all .15s; text-decoration:none; border:1px solid transparent;
   width:100%; background:none; text-align:left;
-  white-space:nowrap; overflow:hidden; position:relative;
 }
 .sb-cs-toggle:hover { background:var(--surface); color:var(--text); }
 .sb-cs-toggle.active { background:var(--gglow); color:var(--green); border-color:rgba(57,211,83,.25); }
-.sb-cs-label { transition:opacity .15s; }
-#oxr-sb.collapsed .sb-cs-label { opacity:0; }
-.sb-cs-arrow { margin-left:auto; font-size:10px; transition:transform .2s, opacity .15s; flex-shrink:0; }
-#oxr-sb.collapsed .sb-cs-arrow { opacity:0; }
+.sb-cs-arrow { margin-left:auto; font-size:10px; transition:transform .2s; flex-shrink:0; }
 .sb-cs-toggle.open .sb-cs-arrow { transform:rotate(90deg); }
 .sb-cs-children {
-  overflow:hidden; max-height:0; transition:max-height .28s ease, opacity .2s;
-  padding-left:12px; opacity:1;
+  overflow:hidden; max-height:0; transition:max-height .28s ease;
+  padding-left:12px;
 }
 .sb-cs-children.open { max-height:400px; }
-#oxr-sb.collapsed .sb-cs-children { opacity:0; max-height:0 !important; }
 .sb-cs-child {
   display:flex; align-items:center; gap:8px;
   padding:5px 10px; border-radius:5px;
@@ -341,8 +270,6 @@ body.sb-collapsed #oxr-main { margin-left:var(--sbw-col); }
   :root{ --sbw:0px; }
   #oxr-sb{ transform:translateX(-248px); width:248px; transition:transform .25s; }
   #oxr-sb.open{ transform:translateX(0); }
-  #oxr-sb.collapsed { width:248px; }
-  body.sb-collapsed #oxr-main { margin-left:0; }
   #oxr-toggle{ display:flex; }
   #scroll-top { bottom: 72px; }
   .page-content{ padding:24px 20px; }
@@ -370,8 +297,8 @@ function _buildSidebar() {
   };
 
   const nav = SITE_CONFIG.nav.map(n => `
-    <a href="${_base}${n.href}" class="sb-item${isActive(n.href) ? ' active' : ''}" data-label="${n.label}">
-      <span class="sb-icon">${n.icon}</span><span class="sb-label">${n.label}</span>
+    <a href="${_base}${n.href}" class="sb-item${isActive(n.href) ? ' active' : ''}">
+      <span class="sb-icon">${n.icon}</span>${n.label}
       ${n.badge ? `<span class="sb-badge">${n.badge}</span>` : ''}
     </a>`).join('');
 
@@ -384,44 +311,36 @@ function _buildSidebar() {
     </a>`).join('');
 
   const csToggle = `
-    <button class="sb-cs-toggle${csActive ? ' active' : ''}" data-label="Cheatsheets" onclick="(function(btn){const ch=btn.nextElementSibling;btn.classList.toggle('open');ch.classList.toggle('open');})(this)">
-      <span class="sb-icon">≡</span><span class="sb-cs-label">Cheatsheets</span>
-      <span class="sb-cs-arrow">▶</span>
-    </button>
-    <div class="sb-cs-children${csActive ? ' open' : ''}">
+    <div class="sb-cs-toggle" style="cursor: default;">
+      <span class="sb-icon">≡</span>Cheatsheets
+    </div>
+    <div class="sb-cs-children open" style="max-height: none;">
       ${csChildren}
     </div>`;
 
   const diff = SITE_CONFIG.difficulty.map(d => `
-    <a href="${_base}${d.href}" class="sb-item" data-label="${d.label}">
-      <span class="sb-icon" style="color:${d.color}">●</span><span class="sb-label">${d.label}</span>
+    <a href="${_base}${d.href}" class="sb-item">
+      <span class="sb-icon" style="color:${d.color}">●</span>${d.label}
       <span class="sb-badge">${d.count}</span>
     </a>`).join('');
 
   const os = SITE_CONFIG.os.map(o => `
-    <a href="${_base}${o.href}" class="sb-item" data-label="${o.label}">
-      <span class="sb-icon">${o.icon}</span><span class="sb-label">${o.label}</span>
+    <a href="${_base}${o.href}" class="sb-item">
+      <span class="sb-icon">${o.icon}</span>${o.label}
     </a>`).join('');
 
   return `
     <div class="sb-logo">
-      <div class="sb-logo-text">
-        <div class="sb-logo-tag">// pentesting notes</div>
-        <a href="${_base}index.html" class="sb-logo-name"><em>J0</em>$tif</a>
-        <div class="sb-logo-sub">${SITE_CONFIG.tagline}</div>
-      </div>
-      <button class="sb-collapse-btn" id="sb-collapse-btn" title="Toggle sidebar">
-        <svg width="12" height="12" viewBox="0 0 12 12" fill="none" xmlns="http://www.w3.org/2000/svg">
-          <path d="M7.5 2L3.5 6L7.5 10" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
-        </svg>
-      </button>
+      <div class="sb-logo-tag">// pentesting notes</div>
+      <a href="${_base}index.html" class="sb-logo-name"><em>J0</em>$tif</a>
+      <div class="sb-logo-sub">${SITE_CONFIG.tagline}</div>
     </div>
     <div class="sb-sec"><div class="sb-sec-lbl">navigation</div>${nav}${csToggle}</div>
     <div class="sb-sec"><div class="sb-sec-lbl">difficulty</div>${diff}</div>
     <div class="sb-sec"><div class="sb-sec-lbl">os</div>${os}</div>
     <div class="sb-foot">
-      <span class="sb-dot"></span><span class="sb-foot-text">vpn connected</span>
-      <div class="sb-foot-text" style="margin-top:4px;color:var(--accent)">${SITE_CONFIG.vpn_ip}</div>
+      <div><span class="sb-dot"></span>vpn connected</div>
+      <div style="margin-top:4px;color:var(--accent)">${SITE_CONFIG.vpn_ip}</div>
     </div>`;
 }
 
@@ -487,21 +406,6 @@ function initPage(opts = {}) {
   const tog = document.createElement('button');
   tog.id = 'oxr-toggle'; tog.innerHTML = '☰';
   tog.addEventListener('click', () => sb.classList.toggle('open'));
-
-  // Sidebar collapse (desktop)
-  const collapseBtn = sb.querySelector('#sb-collapse-btn');
-  const COLLAPSED_KEY = 'oxr-sb-collapsed';
-  const applyCollapsed = (collapsed) => {
-    sb.classList.toggle('collapsed', collapsed);
-    document.body.classList.toggle('sb-collapsed', collapsed);
-  };
-  // Restore saved state
-  applyCollapsed(localStorage.getItem(COLLAPSED_KEY) === '1');
-  collapseBtn.addEventListener('click', () => {
-    const next = !sb.classList.contains('collapsed');
-    applyCollapsed(next);
-    localStorage.setItem(COLLAPSED_KEY, next ? '1' : '0');
-  });
 
   main.appendChild(top);
   if (content) main.appendChild(content);
